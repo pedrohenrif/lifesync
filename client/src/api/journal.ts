@@ -48,7 +48,7 @@ async function journalRequest<T>(
   path: string,
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
-  const response = await apiRequest(path, { ...options, service: "journal" });
+  const response = await apiRequest(path, options);
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {

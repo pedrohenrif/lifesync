@@ -71,7 +71,7 @@ async function habitsRequest<T>(
   path: string,
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
-  const response = await apiRequest(path, { ...options, service: "habits" });
+  const response = await apiRequest(path, options);
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -108,7 +108,7 @@ export async function toggleHabit(id: string, date: string): Promise<HabitToggle
 }
 
 export async function deleteHabit(id: string): Promise<void> {
-  const response = await apiRequest(`/habits/${id}`, { method: "DELETE", service: "habits" });
+  const response = await apiRequest(`/habits/${id}`, { method: "DELETE" });
   if (!response.ok) {
     const data: unknown = await response.json().catch(() => null);
     const code = extractErrorCode(data);

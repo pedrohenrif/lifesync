@@ -69,7 +69,7 @@ async function goalsRequest<T>(
   path: string,
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
-  const response = await apiRequest(path, { ...options, service: "goals" });
+  const response = await apiRequest(path, options);
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -94,7 +94,7 @@ export async function updateGoal(id: string, input: UpdateGoalInput): Promise<Go
 }
 
 export async function deleteGoal(id: string): Promise<void> {
-  const response = await apiRequest(`/goals/${id}`, { method: "DELETE", service: "goals" });
+  const response = await apiRequest(`/goals/${id}`, { method: "DELETE" });
   if (!response.ok) {
     const data: unknown = await response.json().catch(() => null);
     const code = extractErrorCode(data);

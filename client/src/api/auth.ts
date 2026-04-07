@@ -116,7 +116,6 @@ export async function registerUser(
   const response = await apiRequest("/auth/register", {
     method: "POST",
     body: { email, password },
-    service: "auth",
   });
 
   const data: unknown = await response.json().catch(() => null);
@@ -170,7 +169,6 @@ export async function loginUser(
   const response = await apiRequest("/auth/login", {
     method: "POST",
     body: { email, password },
-    service: "auth",
   });
 
   const data: unknown = await response.json().catch(() => null);
@@ -218,7 +216,7 @@ export async function loginUser(
 }
 
 export async function getMe(): Promise<MeSuccessResponse> {
-  const response = await apiRequest("/auth/me", { service: "auth" });
+  const response = await apiRequest("/auth/me");
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {

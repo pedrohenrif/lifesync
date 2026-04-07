@@ -50,7 +50,7 @@ async function vaultRequest<T>(
   path: string,
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
-  const response = await apiRequest(path, { ...options, service: "vault" });
+  const response = await apiRequest(path, options);
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -70,7 +70,7 @@ export async function createNote(input: CreateNoteInput): Promise<NoteResponse> 
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const response = await apiRequest(`/vault/${id}`, { method: "DELETE", service: "vault" });
+  const response = await apiRequest(`/vault/${id}`, { method: "DELETE" });
   if (!response.ok) {
     const data: unknown = await response.json().catch(() => null);
     const code = extractErrorCode(data);

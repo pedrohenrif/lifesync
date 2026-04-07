@@ -53,7 +53,7 @@ export async function financeRequest<T>(
   path: string,
   options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
-  const res = await apiRequest(path, { ...options, service: "finance" });
+  const res = await apiRequest(path, options);
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     const error = data.error as { code?: string } | undefined;

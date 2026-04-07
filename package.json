@@ -11,6 +11,11 @@
     "dev:finance": "npm run dev -w finance-service",
     "dev:journal": "npm run dev -w journal-service",
     "dev:vault": "npm run dev -w vault-service",
-    "dev:server": "npm run dev -w auth-service"
+    "dev:gateway": "npm run dev -w api-gateway",
+    "dev:server": "concurrently -n gw,auth,goals,habits,finance,journal,vault -c blue,green,yellow,magenta,cyan,white,gray \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\"",
+    "dev": "concurrently -n client,gw,auth,goals,habits,finance,journal,vault -c red,blue,green,yellow,magenta,cyan,white,gray \"npm run dev:client\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
