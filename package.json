@@ -1,0 +1,16 @@
+{
+  "name": "lifesync-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["client", "server/*"],
+  "scripts": {
+    "dev:client": "npm run dev -w client",
+    "dev:auth": "npm run dev -w auth-service",
+    "dev:goals": "npm run dev -w goals-service",
+    "dev:habits": "npm run dev -w habits-service",
+    "dev:finance": "npm run dev -w finance-service",
+    "dev:journal": "npm run dev -w journal-service",
+    "dev:vault": "npm run dev -w vault-service",
+    "dev:server": "npm run dev -w auth-service"
+  }
+}

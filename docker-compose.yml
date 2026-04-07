@@ -1,0 +1,62 @@
+services:
+  mongo-auth:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_auth_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_auth
+
+  mongo-goals:
+    image: mongo:7
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_goals_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_goals
+
+  mongo-habits:
+    image: mongo:7
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo_habits_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_habits
+
+  mongo-finance:
+    image: mongo:7
+    ports:
+      - "27020:27017"
+    volumes:
+      - mongo_finance_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_finance
+
+  mongo-journal:
+    image: mongo:7
+    ports:
+      - "27021:27017"
+    volumes:
+      - mongo_journal_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_journal
+
+  mongo-vault:
+    image: mongo:7
+    ports:
+      - "27022:27017"
+    volumes:
+      - mongo_vault_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_vault
+
+volumes:
+  mongo_auth_data:
+  mongo_goals_data:
+  mongo_habits_data:
+  mongo_finance_data:
+  mongo_journal_data:
+  mongo_vault_data:

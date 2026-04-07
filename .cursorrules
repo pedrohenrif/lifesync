@@ -1,0 +1,22 @@
+# REGRAS GERAIS DE CÓDIGO
+- Escreva código limpo, modular e altamente coeso.
+- Use TypeScript estrito sempre. O uso de `any` é terminantemente proibido. Use `unknown` e faça type assertions se necessário.
+- Priorize a imutabilidade. Evite `let` a menos que seja estritamente necessário.
+- Nomes de variáveis, funções e classes devem ser em INGLÊS, descritivos e claros. Comentários explicando regras de negócio complexas devem ser em PORTUGUÊS.
+
+# REGRAS PARA O BACKEND (DDD & MICROSERVIÇOS)
+- Ao criar um caso de uso (Use Case), ele deve ter apenas um método público, geralmente chamado `execute`.
+- Retorne objetos de erro previsíveis (ex: Result Pattern ou Either) em vez de jogar Exceptions genéricas.
+- Implemente Injeção de Dependência nas classes da camada de Application (Use Cases) passando as interfaces dos repositórios via construtor.
+- Mongoose Schemas pertencem EXCLUSIVAMENTE à camada de Infrastructure. A camada de Domain não deve saber que o MongoDB existe.
+
+# REGRAS PARA O FRONTEND (REACT)
+- Crie componentes funcionais pequenos e de responsabilidade única.
+- Separe a lógica de UI da lógica de API usando Custom Hooks.
+- Para requisições assíncronas, priorize o padrão TanStack Query (React Query) para gerenciar cache e estados de loading/error.
+- Use Tailwind de forma utilitária. Evite criar arquivos de CSS externos a menos que seja um design system complexo.
+
+# COMPORTAMENTO DA IA
+- Antes de criar um arquivo, verifique na estrutura atual se a pasta correta já existe para evitar duplicação.
+- Se o usuário pedir uma feature complexa, escreva o plano de execução e aguarde aprovação antes de gerar o código.
+- NUNCA apague arquivos existentes a menos que o usuário solicite explicitamente.
