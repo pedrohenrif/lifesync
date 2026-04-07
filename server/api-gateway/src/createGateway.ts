@@ -8,26 +8,23 @@ import { env } from "./config/env.js";
 type ProxyRoute = {
   readonly context: string;
   readonly target: string;
-  readonly servicePrefix: string;
 };
 
-// Express strips the mount path before passing to the proxy middleware,
-// so we need to prepend the service prefix back via pathRewrite.
 const proxyRoutes: readonly ProxyRoute[] = [
-  { context: "/api/auth", target: env.authUrl, servicePrefix: "/auth" },
-  { context: "/api/goals", target: env.goalsUrl, servicePrefix: "/goals" },
-  { context: "/api/habits", target: env.habitsUrl, servicePrefix: "/habits" },
-  { context: "/api/transactions", target: env.financeUrl, servicePrefix: "/transactions" },
-  { context: "/api/investments", target: env.financeUrl, servicePrefix: "/investments" },
-  { context: "/api/journal", target: env.journalUrl, servicePrefix: "/journal" },
-  { context: "/api/vault", target: env.vaultUrl, servicePrefix: "/vault" },
+  { context: "/api/auth", target: env.authUrl },
+  { context: "/api/goals", target: env.goalsUrl },
+  { context: "/api/habits", target: env.habitsUrl },
+  { context: "/api/transactions", target: env.financeUrl },
+  { context: "/api/investments", target: env.financeUrl },
+  { context: "/api/journal", target: env.journalUrl },
+  { context: "/api/vault", target: env.vaultUrl },
 ];
 
-function buildProxyOptions(target: string, servicePrefix: string): Options {
+function buildProxyOptions(target: string): Options {
   return {
     target,
     changeOrigin: true,
-    pathRewrite: (path) => `${servicePrefix}${path}`,
+    pathRewrite: { "^/api": "" },
     on: {
       proxyReq: (_proxyReq, req) => {
         const url = (req as unknown as { originalUrl?: string }).originalUrl ?? req.url;
@@ -51,7 +48,7 @@ export function createGateway(): express.Express {
   app.use(morgan("short"));
 
   for (const route of proxyRoutes) {
-    app.use(route.context, createProxyMiddleware(buildProxyOptions(route.target, route.servicePrefix)));
+    app.use(route.context, createProxyMiddleware(buildProxyOptions(route.target)));
   }
 
   app.get("/health", (_req, res) => {
