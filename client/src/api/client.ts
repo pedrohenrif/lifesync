@@ -1,4 +1,4 @@
-const GATEWAY_URL = "http://localhost:3000/api";
+const GATEWAY_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000/api";
 
 const TOKEN_STORAGE_KEY = "@lifesync:token";
 

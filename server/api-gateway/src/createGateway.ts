@@ -47,7 +47,7 @@ export function createGateway(): express.Express {
   const app = express();
 
   app.use(helmet({ contentSecurityPolicy: false }));
-  app.use(cors({ origin: ["http://localhost:5173", "http://127.0.0.1:5173"], credentials: true }));
+  app.use(cors({ origin: env.corsOrigins, credentials: true }));
   app.use(morgan("short"));
 
   for (const route of proxyRoutes) {
