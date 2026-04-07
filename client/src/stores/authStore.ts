@@ -5,7 +5,9 @@ const USER_STORAGE_KEY = "@lifesync:user";
 
 export type AuthUser = {
   readonly id: string;
+  readonly name: string;
   readonly email: string;
+  readonly role: string;
 };
 
 type AuthState = {
@@ -18,9 +20,7 @@ type AuthState = {
 };
 
 function parseStoredUser(raw: string | null): AuthUser | null {
-  if (raw === null) {
-    return null;
-  }
+  if (raw === null) return null;
 
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -32,7 +32,13 @@ function parseStoredUser(raw: string | null): AuthUser | null {
       typeof parsed.id === "string" &&
       typeof parsed.email === "string"
     ) {
-      return { id: parsed.id, email: parsed.email };
+      const p = parsed as Record<string, unknown>;
+      return {
+        id: parsed.id,
+        name: typeof p.name === "string" ? p.name : "",
+        email: parsed.email,
+        role: typeof p.role === "string" ? p.role : "USER",
+      };
     }
   } catch {
     return null;
@@ -43,9 +49,7 @@ function parseStoredUser(raw: string | null): AuthUser | null {
 
 function getInitialToken(): string | null {
   const token = localStorage.getItem(TOKEN_STORAGE_KEY);
-  if (token === null || token.length === 0) {
-    return null;
-  }
+  if (token === null || token.length === 0) return null;
   return token;
 }
 

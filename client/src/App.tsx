@@ -8,6 +8,7 @@ import { Goals } from "./pages/Goals";
 import { Habits } from "./pages/Habits";
 import { Finance } from "./pages/Finance";
 import { Vault } from "./pages/Vault";
+import { AdminDashboard } from "./pages/AdminDashboard";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 
@@ -26,6 +27,7 @@ export function App(): ReactElement {
           <Route path="/habits" element={<Habits />} />
           <Route path="/finance" element={<Finance />} />
           <Route path="/vault" element={<Vault />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

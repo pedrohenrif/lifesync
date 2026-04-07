@@ -3,16 +3,17 @@ import { toast } from "sonner";
 import { registerUser, RegisterApiError } from "../api/auth";
 
 export type RegisterVariables = {
+  readonly name: string;
   readonly email: string;
   readonly password: string;
 };
 
 export function useRegister() {
   return useMutation({
-    mutationFn: ({ email, password }: RegisterVariables) =>
-      registerUser(email, password),
+    mutationFn: ({ name, email, password }: RegisterVariables) =>
+      registerUser(name, email, password),
     onSuccess: () => {
-      toast.success("Conta criada com sucesso! Faça login.");
+      toast.success("Cadastro realizado! Aguarde a aprovação do administrador para entrar.");
     },
     onError: (error) => {
       const message =

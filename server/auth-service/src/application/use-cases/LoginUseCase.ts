@@ -8,11 +8,16 @@ export type LoginSuccess = {
   readonly token: string;
   readonly user: {
     readonly id: string;
+    readonly name: string;
     readonly email: string;
+    readonly role: string;
   };
 };
 
-export type LoginError = { readonly code: "INVALID_CREDENTIALS" };
+export type LoginError =
+  | { readonly code: "INVALID_CREDENTIALS" }
+  | { readonly code: "ACCOUNT_PENDING" }
+  | { readonly code: "ACCOUNT_REJECTED" };
 
 export class LoginUseCase {
   constructor(
@@ -36,12 +41,21 @@ export class LoginUseCase {
       return err({ code: "INVALID_CREDENTIALS" });
     }
 
-    const token = this.tokenGenerator.generate(user.id);
+    if (user.status === "PENDING") {
+      return err({ code: "ACCOUNT_PENDING" });
+    }
+    if (user.status === "REJECTED") {
+      return err({ code: "ACCOUNT_REJECTED" });
+    }
+
+    const token = this.tokenGenerator.generate(user.id, user.role);
     return ok({
       token,
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   }

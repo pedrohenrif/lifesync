@@ -29,12 +29,20 @@ export function Login(): ReactElement {
     );
   };
 
+  const isPendingAccount =
+    isError && error instanceof LoginApiError && error.code === "ACCOUNT_PENDING";
+
+  const isRejectedAccount =
+    isError && error instanceof LoginApiError && error.code === "ACCOUNT_REJECTED";
+
   const errorMessage =
-    isError && error instanceof LoginApiError
-      ? error.message
-      : isError
-        ? "Algo deu errado. Tente novamente."
-        : null;
+    isPendingAccount || isRejectedAccount
+      ? null
+      : isError && error instanceof LoginApiError
+        ? error.message
+        : isError
+          ? "Algo deu errado. Tente novamente."
+          : null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
@@ -84,6 +92,18 @@ export function Login(): ReactElement {
               required
             />
           </div>
+
+          {isPendingAccount ? (
+            <div className="rounded-lg border border-yellow-700/50 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-400">
+              Sua conta ainda está em análise. Aguarde a aprovação do administrador.
+            </div>
+          ) : null}
+
+          {isRejectedAccount ? (
+            <div className="rounded-lg border border-red-700/50 bg-red-950/30 px-4 py-3 text-sm text-red-400">
+              Sua conta foi rejeitada pelo administrador.
+            </div>
+          ) : null}
 
           {errorMessage !== null ? (
             <p className="text-xs text-red-400/90" role="alert">

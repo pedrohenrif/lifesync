@@ -1,14 +1,20 @@
 export type UserId = string;
+export type UserRole = "USER" | "ADMIN";
+export type UserStatus = "PENDING" | "ACTIVE" | "REJECTED";
 
 export interface UserProps {
   readonly id: UserId;
+  readonly name: string;
   readonly email: string;
   readonly passwordHash: string;
+  readonly role: UserRole;
+  readonly status: UserStatus;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
 
 export type UserValidationError =
+  | { readonly code: "NAME_REQUIRED" }
   | { readonly code: "EMAIL_REQUIRED" }
   | { readonly code: "EMAIL_INVALID" }
   | { readonly code: "PASSWORD_HASH_REQUIRED" };
@@ -29,6 +35,10 @@ export class User {
   private constructor(private readonly props: UserProps) {}
 
   static create(props: UserProps): CreateUserResult {
+    const name = props.name.trim();
+    if (name.length === 0) {
+      return { ok: false, error: { code: "NAME_REQUIRED" } };
+    }
     const email = normalizeEmail(props.email);
     if (email.length === 0) {
       return { ok: false, error: { code: "EMAIL_REQUIRED" } };
@@ -41,30 +51,20 @@ export class User {
     }
     return {
       ok: true,
-      user: new User({
-        ...props,
-        email,
-      }),
+      user: new User({ ...props, name, email }),
     };
   }
 
-  get id(): UserId {
-    return this.props.id;
-  }
+  get id(): UserId { return this.props.id; }
+  get name(): string { return this.props.name; }
+  get email(): string { return this.props.email; }
+  get passwordHash(): string { return this.props.passwordHash; }
+  get role(): UserRole { return this.props.role; }
+  get status(): UserStatus { return this.props.status; }
+  get createdAt(): Date { return this.props.createdAt; }
+  get updatedAt(): Date { return this.props.updatedAt; }
 
-  get email(): string {
-    return this.props.email;
-  }
-
-  get passwordHash(): string {
-    return this.props.passwordHash;
-  }
-
-  get createdAt(): Date {
-    return this.props.createdAt;
-  }
-
-  get updatedAt(): Date {
-    return this.props.updatedAt;
+  withStatus(status: UserStatus): User {
+    return new User({ ...this.props, status, updatedAt: new Date() });
   }
 }

@@ -2,6 +2,8 @@ import { createServer } from "node:http";
 import { GetMeUseCase } from "./application/use-cases/GetMeUseCase.js";
 import { LoginUseCase } from "./application/use-cases/LoginUseCase.js";
 import { RegisterUserUseCase } from "./application/use-cases/RegisterUserUseCase.js";
+import { ListPendingUsersUseCase } from "./application/use-cases/ListPendingUsersUseCase.js";
+import { ReviewUserUseCase } from "./application/use-cases/ReviewUserUseCase.js";
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoUserRepository } from "./infrastructure/persistence/MongoUserRepository.js";
@@ -24,11 +26,15 @@ const loginUseCase = new LoginUseCase(
   tokenGenerator,
 );
 const getMeUseCase = new GetMeUseCase(userRepository);
+const listPendingUsersUseCase = new ListPendingUsersUseCase(userRepository);
+const reviewUserUseCase = new ReviewUserUseCase(userRepository);
 
 const app = createApp({
   registerUserUseCase,
   loginUseCase,
   getMeUseCase,
+  listPendingUsersUseCase,
+  reviewUserUseCase,
   jwtSecret: env.jwtSecret,
 });
 const server = createServer(app);

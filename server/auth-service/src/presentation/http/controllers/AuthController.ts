@@ -5,6 +5,7 @@ import type { LoginUseCase } from "../../../application/use-cases/LoginUseCase.j
 import type { RegisterUserUseCase } from "../../../application/use-cases/RegisterUserUseCase.js";
 
 const registerBodySchema = z.object({
+  name: z.string().min(1),
   email: z.string(),
   password: z.string(),
 });
@@ -56,7 +57,8 @@ export class AuthController {
 
     const result = await this.loginUseCase.execute(parsed.data);
     if (!result.ok) {
-      res.status(400).json({ error: result.error });
+      const statusCode = result.error.code === "ACCOUNT_PENDING" || result.error.code === "ACCOUNT_REJECTED" ? 403 : 400;
+      res.status(statusCode).json({ error: result.error });
       return;
     }
 

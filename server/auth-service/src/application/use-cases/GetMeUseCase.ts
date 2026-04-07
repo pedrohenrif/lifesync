@@ -3,7 +3,9 @@ import type { IUserRepository } from "../../domain/repositories/IUserRepository.
 
 export type GetMeSuccess = {
   readonly id: string;
+  readonly name: string;
   readonly email: string;
+  readonly role: string;
 };
 
 export type GetMeError = { readonly code: "USER_NOT_FOUND" };
@@ -19,7 +21,9 @@ export class GetMeUseCase {
 
     return ok({
       id: user.id,
+      name: user.name,
       email: user.email,
+      role: user.role,
     });
   }
 }

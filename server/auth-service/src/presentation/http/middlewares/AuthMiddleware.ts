@@ -3,18 +3,13 @@ import jwt from "jsonwebtoken";
 
 type JwtPayload = {
   readonly sub?: unknown;
+  readonly role?: unknown;
 };
 
 function parseBearerToken(authorization: string | undefined): string | null {
-  if (authorization === undefined) {
-    return null;
-  }
-
+  if (authorization === undefined) return null;
   const [scheme, token] = authorization.split(" ");
-  if (scheme !== "Bearer" || token === undefined || token.length === 0) {
-    return null;
-  }
-
+  if (scheme !== "Bearer" || token === undefined || token.length === 0) return null;
   return token;
 }
 
@@ -33,7 +28,8 @@ export function createAuthMiddleware(secret: string) {
         return;
       }
 
-      req.user = { id: decoded.sub };
+      const role = typeof decoded.role === "string" ? decoded.role : "USER";
+      req.user = { id: decoded.sub, role };
       next();
     } catch {
       res.status(401).json({ error: { code: "UNAUTHORIZED" } });

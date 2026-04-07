@@ -9,6 +9,7 @@ const MIN_PASSWORD_LENGTH = 8;
 
 export type RegisterUserSuccess = {
   readonly id: string;
+  readonly name: string;
   readonly email: string;
   readonly createdAt: string;
 };
@@ -41,8 +42,11 @@ export class RegisterUserUseCase {
     const now = new Date();
     const created = User.create({
       id: randomUUID(),
+      name: dto.name,
       email,
       passwordHash,
+      role: "USER",
+      status: "PENDING",
       createdAt: now,
       updatedAt: now,
     });
@@ -55,6 +59,7 @@ export class RegisterUserUseCase {
 
     return ok({
       id: created.user.id,
+      name: created.user.name,
       email: created.user.email,
       createdAt: created.user.createdAt.toISOString(),
     });

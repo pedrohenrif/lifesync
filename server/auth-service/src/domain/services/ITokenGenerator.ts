@@ -1,3 +1,3 @@
 export interface ITokenGenerator {
-  generate(userId: string): string;
+  generate(userId: string, role: string): string;
 }

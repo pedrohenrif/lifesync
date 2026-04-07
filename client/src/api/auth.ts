@@ -3,6 +3,7 @@ import { apiRequest } from "./client";
 export type RegisterSuccessResponse = {
   readonly user: {
     readonly id: string;
+    readonly name: string;
     readonly email: string;
     readonly createdAt: string;
   };
@@ -12,14 +13,18 @@ export type LoginSuccessResponse = {
   readonly token: string;
   readonly user: {
     readonly id: string;
+    readonly name: string;
     readonly email: string;
+    readonly role: string;
   };
 };
 
 export type MeSuccessResponse = {
   readonly user: {
     readonly id: string;
+    readonly name: string;
     readonly email: string;
+    readonly role: string;
   };
 };
 
@@ -104,18 +109,25 @@ function messageForCode(code: string): string {
       return "Dados inválidos. Verifique os campos.";
     case "INVALID_CREDENTIALS":
       return "E-mail ou senha inválidos.";
+    case "ACCOUNT_PENDING":
+      return "Sua conta ainda está em análise. Aguarde a aprovação do administrador.";
+    case "ACCOUNT_REJECTED":
+      return "Sua conta foi rejeitada pelo administrador.";
+    case "NAME_REQUIRED":
+      return "Informe seu nome completo.";
     default:
       return "Não foi possível criar a conta.";
   }
 }
 
 export async function registerUser(
+  name: string,
   email: string,
   password: string,
 ): Promise<RegisterSuccessResponse> {
   const response = await apiRequest("/auth/register", {
     method: "POST",
-    body: { email, password },
+    body: { name, email, password },
   });
 
   const data: unknown = await response.json().catch(() => null);
@@ -143,10 +155,12 @@ export async function registerUser(
 
   const u = data.user;
   const id = u.id;
+  const nameOut = u.name;
   const emailOut = u.email;
   const createdAt = u.createdAt;
   if (
     typeof id !== "string" ||
+    typeof nameOut !== "string" ||
     typeof emailOut !== "string" ||
     typeof createdAt !== "string"
   ) {
@@ -158,7 +172,7 @@ export async function registerUser(
   }
 
   return {
-    user: { id, email: emailOut, createdAt },
+    user: { id, name: nameOut, email: emailOut, createdAt },
   };
 }
 
@@ -193,11 +207,15 @@ export async function loginUser(
   const token = data.token;
   const user = data.user;
   const id = user.id;
+  const nameOut = user.name;
   const emailOut = user.email;
+  const roleOut = user.role;
   if (
     typeof token !== "string" ||
     typeof id !== "string" ||
-    typeof emailOut !== "string"
+    typeof nameOut !== "string" ||
+    typeof emailOut !== "string" ||
+    typeof roleOut !== "string"
   ) {
     throw new LoginApiError(
       response.status,
@@ -210,7 +228,9 @@ export async function loginUser(
     token,
     user: {
       id,
+      name: nameOut,
       email: emailOut,
+      role: roleOut,
     },
   };
 }
@@ -237,8 +257,15 @@ export async function getMe(): Promise<MeSuccessResponse> {
   }
 
   const id = data.user.id;
+  const name = data.user.name;
   const email = data.user.email;
-  if (typeof id !== "string" || typeof email !== "string") {
+  const role = data.user.role;
+  if (
+    typeof id !== "string" ||
+    typeof name !== "string" ||
+    typeof email !== "string" ||
+    typeof role !== "string"
+  ) {
     throw new MeApiError(
       response.status,
       "INVALID_RESPONSE",
@@ -246,5 +273,5 @@ export async function getMe(): Promise<MeSuccessResponse> {
     );
   }
 
-  return { user: { id, email } };
+  return { user: { id, name, email, role } };
 }
