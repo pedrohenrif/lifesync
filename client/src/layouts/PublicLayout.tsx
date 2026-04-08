@@ -6,7 +6,7 @@ export function PublicLayout(): ReactElement {
   const token = useAuthStore((s) => s.token);
 
   if (token !== null) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

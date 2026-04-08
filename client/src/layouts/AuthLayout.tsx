@@ -8,7 +8,7 @@ import { useAuthStore } from "../stores/authStore";
 type NavItem = { readonly to: string; readonly label: string; readonly icon: typeof Home };
 
 const BASE_NAV_ITEMS: readonly NavItem[] = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/dashboard", label: "Home", icon: Home },
   { to: "/goals", label: "Metas", icon: Target },
   { to: "/habits", label: "Hábitos", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },

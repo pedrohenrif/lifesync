@@ -9,20 +9,26 @@ import { Habits } from "./pages/Habits";
 import { Finance } from "./pages/Finance";
 import { Vault } from "./pages/Vault";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { LandingLayout } from "./layouts/LandingLayout";
 
 export function App(): ReactElement {
   return (
     <BrowserRouter>
       <Routes>
+        <Route element={<LandingLayout />}>
+          <Route path="/" element={<Landing />} />
+        </Route>
+
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
 
         <Route element={<AuthLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Home />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/habits" element={<Habits />} />
           <Route path="/finance" element={<Finance />} />
