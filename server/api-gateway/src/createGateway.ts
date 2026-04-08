@@ -28,7 +28,7 @@ export const createGateway = () => {
     );
   };
 
-  setupProxy("/api/auth", env.authUrl);
+  setupProxy("/auth", env.authUrl);
   setupProxy("/api/goals", env.goalsUrl);
   setupProxy("/api/habits", env.habitsUrl);
   setupProxy("/api/transactions", env.financeUrl);
