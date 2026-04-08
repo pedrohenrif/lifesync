@@ -3,7 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { env } from './config/env'; // Ajuste o path do env se necessário
+import { env } from './config/env.js'; 
 
 export const createGateway = () => {
   const app = express();
@@ -11,8 +11,6 @@ export const createGateway = () => {
   app.use(helmet());
   app.use(cors({ origin: ['http://localhost:5173', 'https://lifesync.agrosync.cloud'] }));
   app.use(morgan('dev'));
-
-  // IMPORTANTE: Não use express.json() antes do proxy, pois ele consome o body da requisição
 
   const setupProxy = (path: string, target: string) => {
     app.use(path, createProxyMiddleware({
@@ -24,7 +22,6 @@ export const createGateway = () => {
     }));
   };
 
-  // Configuração limpa e direta das rotas
   setupProxy('/api/auth', env.authUrl);
   setupProxy('/api/goals', env.goalsUrl);
   setupProxy('/api/habits', env.habitsUrl);
