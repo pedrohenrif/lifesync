@@ -9,7 +9,10 @@ export const createGateway = () => {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: env.corsOrigins, credentials: true }));
+  app.use(cors({ 
+    origin: ["https://lifesync.agrosync.cloud"], // Adicione seu domínio aqui
+    credentials: true 
+  }));
   app.use(morgan("dev"));
 
   const setupProxy = (path: string, target: string) => {
