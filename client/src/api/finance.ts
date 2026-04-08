@@ -28,6 +28,24 @@ export type FinancialSummary = {
   readonly transactions: readonly Transaction[];
 };
 
+export type ExpenseGroupId = "FIXED" | "LEISURE" | "PERSONAL" | "OTHER";
+
+export type ExpenseGroupBreakdown = {
+  readonly id: ExpenseGroupId;
+  readonly label: string;
+  readonly amount: number;
+  readonly percentOfExpense: number;
+};
+
+export type FinanceAnalytics = {
+  readonly year: number;
+  readonly month: number;
+  readonly totalIncome: number;
+  readonly totalExpense: number;
+  readonly expenseByGroup: readonly ExpenseGroupBreakdown[];
+  readonly topExpenseGroups: readonly ExpenseGroupBreakdown[];
+};
+
 export type CreateTransactionInput = {
   readonly title: string;
   readonly amount: number;
@@ -66,8 +84,17 @@ export async function financeRequest<T>(
   return (await res.json()) as T;
 }
 
-export async function getFinancialSummary(): Promise<FinancialSummary> {
-  return financeRequest<FinancialSummary>("/transactions/summary");
+export async function getFinanceAnalytics(year: number, month: number): Promise<FinanceAnalytics> {
+  const params = new URLSearchParams({ year: String(year), month: String(month) });
+  return financeRequest<FinanceAnalytics>(`/finance/analytics?${params.toString()}`);
+}
+
+export async function getFinancialSummary(year?: number, month?: number): Promise<FinancialSummary> {
+  const params = new URLSearchParams();
+  if (year !== undefined) params.set("year", String(year));
+  if (month !== undefined) params.set("month", String(month));
+  const qs = params.toString();
+  return financeRequest<FinancialSummary>(`/transactions/summary${qs.length > 0 ? `?${qs}` : ""}`);
 }
 
 export async function createTransaction(

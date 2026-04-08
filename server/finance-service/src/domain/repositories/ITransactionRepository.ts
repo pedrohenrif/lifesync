@@ -5,5 +5,6 @@ export interface ITransactionRepository {
   saveMany(transactions: readonly Transaction[]): Promise<void>;
   findById(id: string): Promise<Transaction | null>;
   findAllByUserId(userId: string): Promise<Transaction[]>;
+  findByUserIdAndMonth(userId: string, year: number, month: number): Promise<Transaction[]>;
   delete(id: string): Promise<void>;
 }

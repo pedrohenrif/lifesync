@@ -4,6 +4,7 @@ import {
   getInvestments,
   createInvestment,
   updateInvestmentBalance,
+  addInvestmentContribution,
   deleteInvestment,
   FinanceApiError,
   type CreateInvestmentInput,
@@ -52,6 +53,26 @@ export function useUpdateInvestmentBalance() {
         error instanceof FinanceApiError
           ? error.message
           : "Não foi possível atualizar o saldo.";
+      toast.error(message);
+    },
+  });
+}
+
+export function useAddContribution() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
+      addInvestmentContribution(id, amount),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+      toast.success("Aporte registrado com sucesso!");
+    },
+    onError: (error) => {
+      const message =
+        error instanceof FinanceApiError
+          ? error.message
+          : "Não foi possível registrar o aporte.";
       toast.error(message);
     },
   });

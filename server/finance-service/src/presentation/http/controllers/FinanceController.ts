@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { CreateTransactionUseCase } from "../../../application/use-cases/CreateTransactionUseCase.js";
 import type { GetFinancialSummaryUseCase } from "../../../application/use-cases/GetFinancialSummaryUseCase.js";
 import type { DeleteTransactionUseCase } from "../../../application/use-cases/DeleteTransactionUseCase.js";
+import type { GetFinanceAnalyticsUseCase } from "../../../application/use-cases/GetFinanceAnalyticsUseCase.js";
 
 const createTransactionBodySchema = z.object({
   title: z.string().min(1),
@@ -31,6 +32,7 @@ const ERROR_STATUS_MAP: Record<string, number> = {
   NAME_REQUIRED: 400,
   INVALID_INVESTED_AMOUNT: 400,
   INVALID_BALANCE: 400,
+  INVALID_PERIOD: 400,
 };
 
 function extractUserId(req: Request, res: Response): string | null {
@@ -47,6 +49,7 @@ export class FinanceController {
     private readonly createTransaction: CreateTransactionUseCase,
     private readonly getFinancialSummary: GetFinancialSummaryUseCase,
     private readonly deleteTransaction: DeleteTransactionUseCase,
+    private readonly getFinanceAnalytics: GetFinanceAnalyticsUseCase,
   ) {}
 
   readonly create = async (req: Request, res: Response): Promise<void> => {
@@ -73,9 +76,36 @@ export class FinanceController {
     const userId = extractUserId(req, res);
     if (userId === null) return;
 
-    const result = await this.getFinancialSummary.execute(userId);
+    const yearRaw = req.query.year;
+    const monthRaw = req.query.month;
+    const year = typeof yearRaw === "string" ? Number.parseInt(yearRaw, 10) : undefined;
+    const month = typeof monthRaw === "string" ? Number.parseInt(monthRaw, 10) : undefined;
+
+    const validYear = year !== undefined && Number.isFinite(year) ? year : undefined;
+    const validMonth = month !== undefined && Number.isFinite(month) && month >= 1 && month <= 12 ? month : undefined;
+
+    const result = await this.getFinancialSummary.execute(userId, validYear, validMonth);
     if (!result.ok) {
       res.status(500).json({ error: { code: "UNKNOWN_ERROR" } });
+      return;
+    }
+
+    res.status(200).json(result.value);
+  };
+
+  readonly analytics = async (req: Request, res: Response): Promise<void> => {
+    const userId = extractUserId(req, res);
+    if (userId === null) return;
+
+    const yearRaw = req.query.year;
+    const monthRaw = req.query.month;
+    const year = typeof yearRaw === "string" ? Number.parseInt(yearRaw, 10) : NaN;
+    const month = typeof monthRaw === "string" ? Number.parseInt(monthRaw, 10) : NaN;
+
+    const result = await this.getFinanceAnalytics.execute(userId, year, month);
+    if (!result.ok) {
+      const status = ERROR_STATUS_MAP[result.error.code] ?? 400;
+      res.status(status).json({ error: result.error });
       return;
     }
 

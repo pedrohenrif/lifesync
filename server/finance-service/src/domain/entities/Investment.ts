@@ -45,6 +45,15 @@ export class Investment {
     return Investment.create({ ...this.props, currentBalance: newBalance, updatedAt: new Date() });
   }
 
+  withContribution(amount: number): CreateInvestmentResult {
+    return Investment.create({
+      ...this.props,
+      investedAmount: this.props.investedAmount + amount,
+      currentBalance: this.props.currentBalance + amount,
+      updatedAt: new Date(),
+    });
+  }
+
   get id(): string { return this.props.id; }
   get userId(): string { return this.props.userId; }
   get name(): string { return this.props.name; }

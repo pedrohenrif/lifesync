@@ -2,18 +2,32 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getFinancialSummary,
+  getFinanceAnalytics,
   createTransaction,
   deleteTransaction,
   FinanceApiError,
   type CreateTransactionInput,
 } from "../api/finance";
 
-export const FINANCE_KEY = ["finance-summary"] as const;
+export function financeKey(year?: number, month?: number) {
+  return ["finance-summary", year, month] as const;
+}
 
-export function useFinancialSummary() {
+export function useFinancialSummary(year?: number, month?: number) {
   return useQuery({
-    queryKey: FINANCE_KEY,
-    queryFn: getFinancialSummary,
+    queryKey: financeKey(year, month),
+    queryFn: () => getFinancialSummary(year, month),
+  });
+}
+
+export function financeAnalyticsKey(year: number, month: number) {
+  return ["finance-analytics", year, month] as const;
+}
+
+export function useFinanceAnalytics(year: number, month: number) {
+  return useQuery({
+    queryKey: financeAnalyticsKey(year, month),
+    queryFn: () => getFinanceAnalytics(year, month),
   });
 }
 
@@ -23,7 +37,8 @@ export function useCreateTransaction() {
   return useMutation({
     mutationFn: (input: CreateTransactionInput) => createTransaction(input),
     onSuccess: (data) => {
-      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
+      void queryClient.invalidateQueries({ queryKey: ["finance-analytics"] });
       const msg =
         data.count > 1
           ? `${data.count} transações criadas com sucesso!`
@@ -46,7 +61,8 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: (id: string) => deleteTransaction(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
+      void queryClient.invalidateQueries({ queryKey: ["finance-analytics"] });
       toast.success("Transação removida.");
     },
     onError: (error) => {

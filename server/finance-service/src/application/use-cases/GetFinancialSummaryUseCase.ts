@@ -21,30 +21,27 @@ export type FinancialSummary = {
   readonly transactions: readonly TransactionSummaryItem[];
 };
 
-function endOfMonth(d: Date): Date {
-  const y = d.getFullYear();
-  const m = d.getMonth();
-  return new Date(y, m + 1, 0, 23, 59, 59, 999);
-}
-
 export class GetFinancialSummaryUseCase {
   constructor(private readonly transactions: ITransactionRepository) {}
 
-  async execute(userId: string): Promise<Result<FinancialSummary, never>> {
-    const all = await this.transactions.findAllByUserId(userId);
+  async execute(
+    userId: string,
+    year?: number,
+    month?: number,
+  ): Promise<Result<FinancialSummary, never>> {
+    const all =
+      year !== undefined && month !== undefined
+        ? await this.transactions.findByUserIdAndMonth(userId, year, month)
+        : await this.transactions.findAllByUserId(userId);
 
-    const cutoff = endOfMonth(new Date());
     let totalIncome = 0;
     let totalExpense = 0;
 
     const transactions: TransactionSummaryItem[] = all.map((tx) => {
-      // Saldo considera apenas transações até o fim do mês atual
-      if (tx.date <= cutoff) {
-        if (tx.type === "INCOME") {
-          totalIncome += tx.amount;
-        } else {
-          totalExpense += tx.amount;
-        }
+      if (tx.type === "INCOME") {
+        totalIncome += tx.amount;
+      } else {
+        totalExpense += tx.amount;
       }
 
       return {

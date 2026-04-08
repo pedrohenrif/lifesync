@@ -70,6 +70,24 @@ export class MongoTransactionRepository implements ITransactionRepository {
     return result;
   }
 
+  async findByUserIdAndMonth(userId: string, year: number, month: number): Promise<Transaction[]> {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+    const docs = await TransactionModel.find({
+      userId,
+      date: { $gte: start, $lte: end },
+    })
+      .sort({ date: -1 })
+      .lean()
+      .exec();
+    const result: Transaction[] = [];
+    for (const doc of docs) {
+      if (!isPersisted(doc)) throw new Error("Unexpected transaction document shape");
+      result.push(this.toDomain(doc));
+    }
+    return result;
+  }
+
   async delete(id: string): Promise<void> {
     await TransactionModel.deleteOne({ _id: id }).exec();
   }

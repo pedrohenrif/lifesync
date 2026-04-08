@@ -21,6 +21,7 @@ export const createGateway = () => {
       '/api/goals': env.goalsUrl,
       '/api/habits': env.habitsUrl,
       '/api/transactions': env.financeUrl,
+      '/api/finance': env.financeUrl,
       '/api/investments': env.financeUrl,
       '/api/journal': env.journalUrl,
       '/api/vault': env.vaultUrl,

@@ -77,7 +77,8 @@ function CardLink({ to, label }: { readonly to: string; readonly label: string }
 /* ─── Painel de Finanças ─── */
 
 function FinancePanel(): ReactElement {
-  const { data, isPending, isError } = useFinancialSummary();
+  const now = new Date();
+  const { data, isPending, isError } = useFinancialSummary(now.getFullYear(), now.getMonth() + 1);
 
   if (isPending) return <SkeletonCard lines={4} />;
   if (isError || data === undefined) {

@@ -47,6 +47,16 @@ export async function updateInvestmentBalance(
   });
 }
 
+export async function addInvestmentContribution(
+  id: string,
+  amount: number,
+): Promise<{ id: string; investedAmount: number; currentBalance: number; profitAmount: number; profitPercent: number }> {
+  return financeRequest("/investments/" + id + "/contribute", {
+    method: "PATCH",
+    body: { amount },
+  });
+}
+
 export async function deleteInvestment(id: string): Promise<null> {
   return financeRequest<null>(`/investments/${id}`, { method: "DELETE" });
 }
