@@ -1,15 +1,8 @@
 import { err, ok, type Result } from "../result.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
-import type { PrimaryFocus } from "../../domain/entities/User.js";
+import { toPublicAuthUserDto, type PublicAuthUserDto } from "../mappers/userPublicDto.js";
 
-export type GetMeSuccess = {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly role: string;
-  readonly hasCompletedOnboarding: boolean;
-  readonly primaryFocus: PrimaryFocus | null;
-};
+export type GetMeSuccess = PublicAuthUserDto;
 
 export type GetMeError = { readonly code: "USER_NOT_FOUND" };
 
@@ -22,13 +15,6 @@ export class GetMeUseCase {
       return err({ code: "USER_NOT_FOUND" });
     }
 
-    return ok({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-      primaryFocus: user.primaryFocus,
-    });
+    return ok(toPublicAuthUserDto(user));
   }
 }

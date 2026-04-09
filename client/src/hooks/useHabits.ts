@@ -15,6 +15,7 @@ import {
 } from "../api/habits";
 
 const HABITS_KEY = ["habits"] as const;
+const ME_KEY = ["auth", "me"] as const;
 
 export function useHabits() {
   return useQuery({
@@ -89,6 +90,7 @@ export function useToggleHabit() {
       toggleHabit(id, date),
     onSuccess: (data: HabitToggleResponse) => {
       void queryClient.invalidateQueries({ queryKey: HABITS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ME_KEY });
 
       if (data.habit.levelUp) {
         toast.success(`Você subiu para o Nível ${data.habit.level} neste hábito!`, {

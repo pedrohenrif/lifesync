@@ -3,18 +3,11 @@ import type { LoginUserDto } from "../dtos/LoginUserDto.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher.js";
 import type { ITokenGenerator } from "../../domain/services/ITokenGenerator.js";
-import type { PrimaryFocus } from "../../domain/entities/User.js";
+import { toPublicAuthUserDto, type PublicAuthUserDto } from "../mappers/userPublicDto.js";
 
 export type LoginSuccess = {
   readonly token: string;
-  readonly user: {
-    readonly id: string;
-    readonly name: string;
-    readonly email: string;
-    readonly role: string;
-    readonly hasCompletedOnboarding: boolean;
-    readonly primaryFocus: PrimaryFocus | null;
-  };
+  readonly user: PublicAuthUserDto;
 };
 
 export type LoginError =
@@ -54,14 +47,7 @@ export class LoginUseCase {
     const token = this.tokenGenerator.generate(user.id, user.role);
     return ok({
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
-        primaryFocus: user.primaryFocus,
-      },
+      user: toPublicAuthUserDto(user),
     });
   }
 }

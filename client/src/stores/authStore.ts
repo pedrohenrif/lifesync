@@ -1,5 +1,70 @@
 import { create } from "zustand";
-import type { AuthUserPayload } from "../api/auth";
+import type { AuthUserPayload, PrimaryFocus, UserAttributes } from "../api/auth";
+
+const DEFAULT_ATTRS: UserAttributes = {
+  health: 0,
+  finance: 0,
+  focus: 0,
+  knowledge: 0,
+  social: 0,
+};
+
+function normalizeUserFromStorage(p: Record<string, unknown>): AuthUserPayload {
+  const rawFocus = p.primaryFocus;
+  const primaryFocus: PrimaryFocus | null =
+    rawFocus === "FINANCE" || rawFocus === "HABITS" || rawFocus === "GOALS" ? rawFocus : null;
+  const base = {
+    id: p.id as string,
+    name: typeof p.name === "string" ? p.name : "",
+    email: p.email as string,
+    role: typeof p.role === "string" ? p.role : "USER",
+    hasCompletedOnboarding:
+      typeof p.hasCompletedOnboarding === "boolean" ? p.hasCompletedOnboarding : true,
+    primaryFocus,
+  };
+  const level = typeof p.level === "number" ? Math.max(1, Math.floor(p.level)) : 1;
+  const xpToNext =
+    typeof p.xpToNextLevel === "number" ? Math.max(1, Math.floor(p.xpToNextLevel)) : 100;
+  const currentXp = typeof p.currentXp === "number" ? Math.max(0, Math.floor(p.currentXp)) : 0;
+  const totalXp = typeof p.totalXp === "number" ? Math.max(0, Math.floor(p.totalXp)) : 0;
+  const coins = typeof p.coins === "number" ? Math.max(0, Math.floor(p.coins)) : 0;
+  const attrsRaw = p.attributes;
+  let attributes = DEFAULT_ATTRS;
+  if (typeof attrsRaw === "object" && attrsRaw !== null) {
+    const o = attrsRaw as Record<string, unknown>;
+    const n = (v: unknown) =>
+      typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0;
+    attributes = {
+      health: n(o.health),
+      finance: n(o.finance),
+      focus: n(o.focus),
+      knowledge: n(o.knowledge),
+      social: n(o.social),
+    };
+  }
+  const pr = p.personalRewards;
+  const personalRewards = Array.isArray(pr)
+    ? pr.filter(
+        (x): x is AuthUserPayload["personalRewards"][number] =>
+          typeof x === "object" &&
+          x !== null &&
+          typeof (x as { id?: string }).id === "string" &&
+          typeof (x as { title?: string }).title === "string" &&
+          typeof (x as { costCoins?: number }).costCoins === "number" &&
+          typeof (x as { createdAt?: string }).createdAt === "string",
+      )
+    : [];
+  return {
+    ...base,
+    level,
+    currentXp,
+    xpToNextLevel: xpToNext,
+    totalXp,
+    coins,
+    attributes,
+    personalRewards,
+  };
+}
 
 const TOKEN_STORAGE_KEY = "@lifesync:token";
 const USER_STORAGE_KEY = "@lifesync:user";
@@ -28,19 +93,7 @@ function parseStoredUser(raw: string | null): AuthUser | null {
       typeof parsed.id === "string" &&
       typeof parsed.email === "string"
     ) {
-      const p = parsed as Record<string, unknown>;
-      return {
-        id: parsed.id,
-        name: typeof p.name === "string" ? p.name : "",
-        email: parsed.email,
-        role: typeof p.role === "string" ? p.role : "USER",
-        hasCompletedOnboarding:
-          typeof p.hasCompletedOnboarding === "boolean" ? p.hasCompletedOnboarding : true,
-        primaryFocus:
-          p.primaryFocus === "FINANCE" || p.primaryFocus === "HABITS" || p.primaryFocus === "GOALS"
-            ? p.primaryFocus
-            : null,
-      };
+      return normalizeUserFromStorage(parsed as Record<string, unknown>);
     }
   } catch {
     return null;

@@ -5,6 +5,10 @@ import type { GoalStatus, GoalCategory, GoalValidationError } from "../../domain
 import type { IGoalRepository } from "../../domain/repositories/IGoalRepository.js";
 import { serializeGoalTasks, type SerializedGoalTask } from "./shared.js";
 
+export type GoalCompleteGamificationNotifier = {
+  notifyGoalCompleted(userId: string, goalCategory: GoalCategory): Promise<void>;
+};
+
 export type UpdateGoalSuccess = {
   readonly id: string;
   readonly userId: string;
@@ -27,7 +31,10 @@ export type UpdateGoalError =
   | { readonly code: "INVALID_TARGET_DATE" };
 
 export class UpdateGoalUseCase {
-  constructor(private readonly goals: IGoalRepository) {}
+  constructor(
+    private readonly goals: IGoalRepository,
+    private readonly gamification: GoalCompleteGamificationNotifier | null,
+  ) {}
 
   async execute(
     goalId: string,
@@ -84,6 +91,14 @@ export class UpdateGoalUseCase {
 
     const updated = result.goal;
     await this.goals.update(updated);
+
+    if (
+      this.gamification !== null &&
+      newStatus === "COMPLETED" &&
+      existing.status !== "COMPLETED"
+    ) {
+      void this.gamification.notifyGoalCompleted(existing.userId, existing.category).catch(() => undefined);
+    }
 
     return ok({
       id: updated.id,

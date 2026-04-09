@@ -1,8 +1,11 @@
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
 import {
   User,
+  type PersonalReward,
   type PrimaryFocus,
+  type UserAttributes,
   type UserStatus,
+  DEFAULT_USER_ATTRIBUTES,
 } from "../../domain/entities/User.js";
 import {
   UserModel,
@@ -42,20 +45,76 @@ function normalizePrimaryFocus(doc: PersistedUser): PrimaryFocus | null {
   return isPrimaryFocus(v) ? v : null;
 }
 
+function normalizeAttributes(doc: PersistedUser): UserAttributes {
+  const a = doc.attributes;
+  if (a === undefined || typeof a !== "object") {
+    return { ...DEFAULT_USER_ATTRIBUTES };
+  }
+  const o = a as Record<string, unknown>;
+  return {
+    health: typeof o.health === "number" ? Math.max(0, Math.floor(o.health)) : 0,
+    finance: typeof o.finance === "number" ? Math.max(0, Math.floor(o.finance)) : 0,
+    focus: typeof o.focus === "number" ? Math.max(0, Math.floor(o.focus)) : 0,
+    knowledge: typeof o.knowledge === "number" ? Math.max(0, Math.floor(o.knowledge)) : 0,
+    social: typeof o.social === "number" ? Math.max(0, Math.floor(o.social)) : 0,
+  };
+}
+
+function normalizePersonalRewards(doc: PersistedUser): PersonalReward[] {
+  const raw = doc.personalRewards;
+  if (!Array.isArray(raw)) return [];
+  const out: PersonalReward[] = [];
+  for (const item of raw) {
+    if (
+      typeof item === "object" &&
+      item !== null &&
+      typeof (item as { id?: string }).id === "string" &&
+      typeof (item as { title?: string }).title === "string" &&
+      typeof (item as { costCoins?: number }).costCoins === "number" &&
+      (item as { createdAt?: Date }).createdAt instanceof Date
+    ) {
+      out.push({
+        id: (item as { id: string }).id,
+        title: (item as { title: string }).title,
+        costCoins: Math.max(1, Math.floor((item as { costCoins: number }).costCoins)),
+        createdAt: (item as { createdAt: Date }).createdAt,
+      });
+    }
+  }
+  return out;
+}
+
+function userToDoc(user: User): Record<string, unknown> {
+  return {
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    passwordHash: user.passwordHash,
+    role: user.role,
+    status: user.status,
+    hasCompletedOnboarding: user.hasCompletedOnboarding,
+    primaryFocus: user.primaryFocus,
+    totalXp: user.totalXp,
+    coins: user.coins,
+    attributes: { ...user.attributes },
+    personalRewards: user.personalRewards.map((r) => ({
+      id: r.id,
+      title: r.title,
+      costCoins: r.costCoins,
+      createdAt: r.createdAt,
+    })),
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
 export class MongoUserRepository implements IUserRepository {
   async save(user: User): Promise<void> {
-    await UserModel.create({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      passwordHash: user.passwordHash,
-      role: user.role,
-      status: user.status,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-      primaryFocus: user.primaryFocus,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    });
+    await UserModel.create(userToDoc(user));
+  }
+
+  async updateUser(user: User): Promise<void> {
+    await UserModel.replaceOne({ _id: user.id }, userToDoc(user)).exec();
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -99,6 +158,14 @@ export class MongoUserRepository implements IUserRepository {
   }
 
   private toDomain(doc: PersistedUser): User {
+    const totalXp =
+      typeof doc.totalXp === "number" && Number.isFinite(doc.totalXp)
+        ? Math.max(0, Math.floor(doc.totalXp))
+        : 0;
+    const coins =
+      typeof doc.coins === "number" && Number.isFinite(doc.coins)
+        ? Math.max(0, Math.floor(doc.coins))
+        : 0;
     const result = User.create({
       id: doc._id,
       name: doc.name,
@@ -108,6 +175,10 @@ export class MongoUserRepository implements IUserRepository {
       status: doc.status,
       hasCompletedOnboarding: normalizeHasCompletedOnboarding(doc),
       primaryFocus: normalizePrimaryFocus(doc),
+      totalXp,
+      coins,
+      attributes: normalizeAttributes(doc),
+      personalRewards: normalizePersonalRewards(doc),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     });

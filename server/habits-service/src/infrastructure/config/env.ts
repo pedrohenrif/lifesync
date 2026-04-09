@@ -25,4 +25,6 @@ export const env = {
   habitsMongoUri:
     process.env.HABITS_MONGODB_URI ??
     "mongodb://localhost:27019/lifesync_habits",
+  authServiceUrl: (process.env.AUTH_SERVICE_URL ?? "http://localhost:4000").replace(/\/$/, ""),
+  internalGamificationKey: (process.env.INTERNAL_GAMIFICATION_KEY ?? "").trim(),
 } as const;

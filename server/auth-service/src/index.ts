@@ -5,6 +5,9 @@ import { LoginUseCase } from "./application/use-cases/LoginUseCase.js";
 import { RegisterUserUseCase } from "./application/use-cases/RegisterUserUseCase.js";
 import { ListPendingUsersUseCase } from "./application/use-cases/ListPendingUsersUseCase.js";
 import { ReviewUserUseCase } from "./application/use-cases/ReviewUserUseCase.js";
+import { CreatePersonalRewardUseCase } from "./application/use-cases/CreatePersonalRewardUseCase.js";
+import { RedeemPersonalRewardUseCase } from "./application/use-cases/RedeemPersonalRewardUseCase.js";
+import { ApplyInternalGamificationEventUseCase } from "./application/use-cases/ApplyInternalGamificationEventUseCase.js";
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoUserRepository } from "./infrastructure/persistence/MongoUserRepository.js";
@@ -30,6 +33,11 @@ const getMeUseCase = new GetMeUseCase(userRepository);
 const completeOnboardingUseCase = new CompleteOnboardingUseCase(userRepository);
 const listPendingUsersUseCase = new ListPendingUsersUseCase(userRepository);
 const reviewUserUseCase = new ReviewUserUseCase(userRepository);
+const createPersonalRewardUseCase = new CreatePersonalRewardUseCase(userRepository);
+const redeemPersonalRewardUseCase = new RedeemPersonalRewardUseCase(userRepository);
+const applyInternalGamificationEventUseCase = new ApplyInternalGamificationEventUseCase(
+  userRepository,
+);
 
 const app = createApp({
   registerUserUseCase,
@@ -38,7 +46,11 @@ const app = createApp({
   completeOnboardingUseCase,
   listPendingUsersUseCase,
   reviewUserUseCase,
+  createPersonalRewardUseCase,
+  redeemPersonalRewardUseCase,
+  applyInternalGamificationEventUseCase,
   jwtSecret: env.jwtSecret,
+  internalGamificationKey: env.internalGamificationKey,
 });
 const server = createServer(app);
 

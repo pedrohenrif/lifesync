@@ -1,19 +1,11 @@
 import { err, ok, type Result } from "../result.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
 import type { PrimaryFocus } from "../../domain/entities/User.js";
+import { toPublicAuthUserDto, type PublicAuthUserDto } from "../mappers/userPublicDto.js";
 
 export type CompleteOnboardingInput = {
   readonly name: string;
   readonly primaryFocus?: PrimaryFocus;
-};
-
-export type PublicAuthUser = {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly role: string;
-  readonly hasCompletedOnboarding: boolean;
-  readonly primaryFocus: PrimaryFocus | null;
 };
 
 export type CompleteOnboardingError =
@@ -26,7 +18,7 @@ export class CompleteOnboardingUseCase {
   async execute(
     userId: string,
     input: CompleteOnboardingInput,
-  ): Promise<Result<{ readonly user: PublicAuthUser }, CompleteOnboardingError>> {
+  ): Promise<Result<{ readonly user: PublicAuthUserDto }, CompleteOnboardingError>> {
     const name = input.name.trim();
     if (name.length === 0) {
       return err({ code: "NAME_REQUIRED" });
@@ -46,14 +38,7 @@ export class CompleteOnboardingUseCase {
     }
 
     return ok({
-      user: {
-        id: updated.id,
-        name: updated.name,
-        email: updated.email,
-        role: updated.role,
-        hasCompletedOnboarding: updated.hasCompletedOnboarding,
-        primaryFocus: updated.primaryFocus,
-      },
+      user: toPublicAuthUserDto(updated),
     });
   }
 }

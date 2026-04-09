@@ -7,14 +7,19 @@ import { DeleteHabitUseCase } from "./application/use-cases/DeleteHabitUseCase.j
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoHabitRepository } from "./infrastructure/persistence/MongoHabitRepository.js";
+import { HttpGamificationNotifier } from "./infrastructure/integrations/HttpGamificationNotifier.js";
 import { createApp } from "./presentation/http/createApp.js";
 
 await connectMongo(env.habitsMongoUri);
 
 const habitRepository = new MongoHabitRepository();
+const gamificationNotifier =
+  env.internalGamificationKey.length > 0
+    ? new HttpGamificationNotifier(env.authServiceUrl, env.internalGamificationKey)
+    : null;
 const createHabitUseCase = new CreateHabitUseCase(habitRepository);
 const listHabitsUseCase = new ListHabitsUseCase(habitRepository);
-const toggleHabitUseCase = new ToggleHabitUseCase(habitRepository);
+const toggleHabitUseCase = new ToggleHabitUseCase(habitRepository, gamificationNotifier);
 const updateHabitUseCase = new UpdateHabitUseCase(habitRepository);
 const deleteHabitUseCase = new DeleteHabitUseCase(habitRepository);
 

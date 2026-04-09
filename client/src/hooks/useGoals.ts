@@ -15,6 +15,7 @@ import {
 } from "../api/goals";
 
 const GOALS_KEY = ["goals"] as const;
+const ME_KEY = ["auth", "me"] as const;
 
 export function useGoals(category?: GoalCategory) {
   return useQuery({
@@ -43,6 +44,7 @@ export function useUpdateGoal() {
     mutationFn: ({ id, input }: { id: string; input: UpdateGoalInput }) => updateGoal(id, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ME_KEY });
       toast.success("Meta atualizada!");
     },
     onError: (error) => {
@@ -86,6 +88,7 @@ export function useToggleGoalTask() {
       toggleGoalTask(goalId, taskId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: GOALS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ME_KEY });
     },
     onError: (error) => {
       toast.error(error instanceof GoalsApiError ? error.message : "Não foi possível atualizar a sub-tarefa.");

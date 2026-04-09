@@ -3,7 +3,11 @@ import { err, ok, type Result } from "../result.js";
 import type { RegisterUserDto } from "../dtos/RegisterUserDto.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher.js";
-import { User, type UserValidationError } from "../../domain/entities/User.js";
+import {
+  User,
+  DEFAULT_USER_ATTRIBUTES,
+  type UserValidationError,
+} from "../../domain/entities/User.js";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -49,6 +53,10 @@ export class RegisterUserUseCase {
       status: "PENDING",
       hasCompletedOnboarding: false,
       primaryFocus: null,
+      totalXp: 0,
+      coins: 0,
+      attributes: DEFAULT_USER_ATTRIBUTES,
+      personalRewards: [],
       createdAt: now,
       updatedAt: now,
     });

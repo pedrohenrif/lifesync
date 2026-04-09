@@ -24,4 +24,6 @@ export const env = {
   jwtSecret: readRequiredString(process.env.JWT_SECRET, "JWT_SECRET"),
   authMongoUri:
     process.env.AUTH_MONGODB_URI ?? "mongodb://localhost:27017/lifesync_auth",
+  /** Chave compartilhada com habits/goals para POST /auth/internal/gamification/events */
+  internalGamificationKey: (process.env.INTERNAL_GAMIFICATION_KEY ?? "").trim(),
 } as const;

@@ -9,17 +9,22 @@ import { RemoveTaskFromGoalUseCase } from "./application/use-cases/RemoveTaskFro
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoGoalRepository } from "./infrastructure/persistence/MongoGoalRepository.js";
+import { HttpGamificationNotifier } from "./infrastructure/integrations/HttpGamificationNotifier.js";
 import { createApp } from "./presentation/http/createApp.js";
 
 await connectMongo(env.goalsMongoUri);
 
 const goalRepository = new MongoGoalRepository();
+const gamificationNotifier =
+  env.internalGamificationKey.length > 0
+    ? new HttpGamificationNotifier(env.authServiceUrl, env.internalGamificationKey)
+    : null;
 const createGoalUseCase = new CreateGoalUseCase(goalRepository);
 const listUserGoalsUseCase = new ListUserGoalsUseCase(goalRepository);
-const updateGoalUseCase = new UpdateGoalUseCase(goalRepository);
+const updateGoalUseCase = new UpdateGoalUseCase(goalRepository, gamificationNotifier);
 const deleteGoalUseCase = new DeleteGoalUseCase(goalRepository);
 const addTaskUseCase = new AddTaskToGoalUseCase(goalRepository);
-const toggleTaskUseCase = new ToggleGoalTaskUseCase(goalRepository);
+const toggleTaskUseCase = new ToggleGoalTaskUseCase(goalRepository, gamificationNotifier);
 const removeTaskUseCase = new RemoveTaskFromGoalUseCase(goalRepository);
 
 const app = createApp({

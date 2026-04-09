@@ -1,5 +1,10 @@
 import { err, ok, type Result } from "../result.js";
+import type { HabitCategory } from "../../domain/entities/Habit.js";
 import type { IHabitRepository } from "../../domain/repositories/IHabitRepository.js";
+
+export type HabitGamificationNotifier = {
+  notifyHabitCheckin(userId: string, habitCategory: HabitCategory): Promise<void>;
+};
 
 const XP_PER_CHECKIN = 10;
 
@@ -20,7 +25,10 @@ export type ToggleHabitError =
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 export class ToggleHabitUseCase {
-  constructor(private readonly habits: IHabitRepository) {}
+  constructor(
+    private readonly habits: IHabitRepository,
+    private readonly gamification: HabitGamificationNotifier | null,
+  ) {}
 
   async execute(
     habitId: string,
@@ -51,6 +59,10 @@ export class ToggleHabitUseCase {
     }
 
     await this.habits.update(updated);
+
+    if (isCheckin && this.gamification !== null) {
+      void this.gamification.notifyHabitCheckin(userId, habit.category).catch(() => undefined);
+    }
 
     return ok({
       id: updated.id,

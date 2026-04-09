@@ -20,6 +20,7 @@ import { useHabits } from "../hooks/useHabits";
 import { useGoals } from "../hooks/useGoals";
 import { DailyCheckIn } from "../components/journal/DailyCheckIn";
 import { HabitGlyph } from "../components/habits/HabitGlyph";
+import { GamificationCockpit } from "../components/gamification/GamificationCockpit";
 
 /* ─── Utilitários ─── */
 
@@ -320,6 +321,9 @@ export function Home(): ReactElement {
         </h1>
         <p className="mt-1 text-sm text-zinc-500">{formatTodayLong()}</p>
       </div>
+
+      {/* Evolução / nível / recompensas */}
+      {user !== null ? <GamificationCockpit user={user} /> : null}
 
       {/* Daily Check-In */}
       <DailyCheckIn />

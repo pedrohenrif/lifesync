@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   CheckSquare,
   Square,
+  Sword,
 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import type { Goal, GoalTask, GoalStatus, GoalCategory } from "../api/goals";
@@ -156,23 +157,25 @@ function CategoryBadge({ category }: { readonly category: GoalCategory }): React
 
 /* ─── Barra de Progresso ─── */
 
-function TaskProgressBar({ tasks }: { readonly tasks: readonly GoalTask[] }): ReactElement {
+/** Barra estilo “HP do desafio”: encolhe (vermelho/laranja) conforme subtarefas são concluídas. */
+function BossTaskProgressBar({ tasks }: { readonly tasks: readonly GoalTask[] }): ReactElement {
   const total = tasks.length;
-  const done = tasks.filter((t) => t.isCompleted).length;
-  const pct = Math.round((done / total) * 100);
+  const incomplete = tasks.filter((t) => !t.isCompleted).length;
+  const hpPct = total > 0 ? Math.round((incomplete / total) * 100) : 0;
+  const done = total - incomplete;
 
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
+        <span className="text-[10px] font-medium text-orange-400/90">Resistência do desafio</span>
         <span className="text-[10px] font-medium text-zinc-500">
-          {done}/{total} sub-tarefas
+          {done}/{total} etapas
         </span>
-        <span className="text-[10px] font-medium text-zinc-500">{pct}%</span>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-950 ring-1 ring-orange-950/60">
         <div
-          className="h-full rounded-full bg-emerald-500 transition-all duration-300"
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 transition-all duration-500"
+          style={{ width: `${hpPct}%` }}
         />
       </div>
     </div>
@@ -309,7 +312,15 @@ function GoalCard({
       </div>
 
       {/* Título */}
-      <h3 className="truncate text-sm font-medium text-zinc-100">{goal.title}</h3>
+      <div className="flex items-start gap-2">
+        {hasTasks ? (
+          <Sword
+            className="mt-0.5 h-4 w-4 shrink-0 text-orange-500/85"
+            aria-hidden
+          />
+        ) : null}
+        <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-100">{goal.title}</h3>
+      </div>
 
       {/* Descrição */}
       {goal.description !== null && goal.description.length > 0 && (
@@ -317,7 +328,7 @@ function GoalCard({
       )}
 
       {/* Barra de Progresso (se houver tasks) */}
-      {hasTasks && <TaskProgressBar tasks={goal.tasks} />}
+      {hasTasks && <BossTaskProgressBar tasks={goal.tasks} />}
 
       {/* Checklist de sub-tarefas */}
       {hasTasks && (

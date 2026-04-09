@@ -6,8 +6,12 @@ import type { LoginUseCase } from "../../application/use-cases/LoginUseCase.js";
 import type { RegisterUserUseCase } from "../../application/use-cases/RegisterUserUseCase.js";
 import type { ListPendingUsersUseCase } from "../../application/use-cases/ListPendingUsersUseCase.js";
 import type { ReviewUserUseCase } from "../../application/use-cases/ReviewUserUseCase.js";
+import type { CreatePersonalRewardUseCase } from "../../application/use-cases/CreatePersonalRewardUseCase.js";
+import type { RedeemPersonalRewardUseCase } from "../../application/use-cases/RedeemPersonalRewardUseCase.js";
+import type { ApplyInternalGamificationEventUseCase } from "../../application/use-cases/ApplyInternalGamificationEventUseCase.js";
 import { AuthController } from "./controllers/AuthController.js";
 import { AdminController } from "./controllers/AdminController.js";
+import { InternalGamificationController } from "./controllers/InternalGamificationController.js";
 import { createAuthMiddleware } from "./middlewares/AuthMiddleware.js";
 import { createAdminMiddleware } from "./middlewares/AdminMiddleware.js";
 import { healthRouter } from "./routes/healthRoutes.js";
@@ -19,7 +23,11 @@ export type AppDependencies = {
   readonly completeOnboardingUseCase: CompleteOnboardingUseCase;
   readonly listPendingUsersUseCase: ListPendingUsersUseCase;
   readonly reviewUserUseCase: ReviewUserUseCase;
+  readonly createPersonalRewardUseCase: CreatePersonalRewardUseCase;
+  readonly redeemPersonalRewardUseCase: RedeemPersonalRewardUseCase;
+  readonly applyInternalGamificationEventUseCase: ApplyInternalGamificationEventUseCase;
   readonly jwtSecret: string;
+  readonly internalGamificationKey: string;
 };
 
 function handleAsyncError(
@@ -34,21 +42,43 @@ function handleAsyncError(
   }
 }
 
+function createInternalKeyMiddleware(secret: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (secret.length === 0) {
+      res.status(503).json({ error: { code: "INTERNAL_GAMIFICATION_NOT_CONFIGURED" } });
+      return;
+    }
+    const key = req.header("x-internal-key");
+    if (key !== secret) {
+      res.status(401).json({ error: { code: "UNAUTHORIZED" } });
+      return;
+    }
+    next();
+  };
+}
+
 export function createApp(deps: AppDependencies): Express {
   const app = express();
   const authMiddleware = createAuthMiddleware(deps.jwtSecret);
   const adminMiddleware = createAdminMiddleware();
+  const internalMiddleware = createInternalKeyMiddleware(deps.internalGamificationKey);
 
   const authController = new AuthController(
     deps.registerUserUseCase,
     deps.loginUseCase,
     deps.getMeUseCase,
     deps.completeOnboardingUseCase,
+    deps.createPersonalRewardUseCase,
+    deps.redeemPersonalRewardUseCase,
   );
 
   const adminController = new AdminController(
     deps.listPendingUsersUseCase,
     deps.reviewUserUseCase,
+  );
+
+  const internalGamificationController = new InternalGamificationController(
+    deps.applyInternalGamificationEventUseCase,
   );
 
   app.use(cors());
@@ -66,6 +96,17 @@ export function createApp(deps: AppDependencies): Express {
   });
   app.patch("/auth/users/me/onboarding", authMiddleware, (req, res, next) => {
     void authController.completeOnboarding(req, res).catch(next);
+  });
+
+  app.post("/auth/users/me/rewards", authMiddleware, (req, res, next) => {
+    void authController.createPersonalReward(req, res).catch(next);
+  });
+  app.post("/auth/users/me/rewards/:id/redeem", authMiddleware, (req, res, next) => {
+    void authController.redeemPersonalReward(req, res).catch(next);
+  });
+
+  app.post("/auth/internal/gamification/events", internalMiddleware, (req, res, next) => {
+    void internalGamificationController.postEvent(req, res).catch(next);
   });
 
   app.get("/auth/admin/users/pending", authMiddleware, adminMiddleware, (req, res, next) => {
