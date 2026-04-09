@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { err, ok, type Result } from "../result.js";
 import type { CreateHabitDto } from "../dtos/CreateHabitDto.js";
-import { Habit } from "../../domain/entities/Habit.js";
+import { Habit, isHabitCategory, type HabitCategory } from "../../domain/entities/Habit.js";
 import type { HabitValidationError } from "../../domain/entities/Habit.js";
 import type { IHabitRepository } from "../../domain/repositories/IHabitRepository.js";
 
@@ -10,6 +10,8 @@ export type CreateHabitSuccess = {
   readonly userId: string;
   readonly name: string;
   readonly description: string | null;
+  readonly icon: string;
+  readonly category: string;
   readonly frequencyType: string;
   readonly targetDaysPerWeek: number | null;
   readonly completedDates: readonly string[];
@@ -30,11 +32,16 @@ export class CreateHabitUseCase {
   ): Promise<Result<CreateHabitSuccess, CreateHabitError>> {
     const frequencyType = dto.frequencyType ?? "DAILY";
 
+    const category: HabitCategory =
+      dto.category !== undefined && isHabitCategory(dto.category) ? dto.category : "PESSOAL";
+
     const result = Habit.create({
       id: randomUUID(),
       userId,
       name: dto.name,
       description: dto.description?.trim() ?? null,
+      icon: dto.icon?.trim() ?? "Activity",
+      category,
       frequencyType,
       targetDaysPerWeek:
         frequencyType === "WEEKLY_TARGET"
@@ -58,6 +65,8 @@ export class CreateHabitUseCase {
       userId: habit.userId,
       name: habit.name,
       description: habit.description,
+      icon: habit.icon,
+      category: habit.category,
       frequencyType: habit.frequencyType,
       targetDaysPerWeek: habit.targetDaysPerWeek,
       completedDates: [...habit.completedDates],

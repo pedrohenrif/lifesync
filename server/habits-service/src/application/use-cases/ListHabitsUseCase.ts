@@ -6,6 +6,8 @@ export type HabitSummary = {
   readonly userId: string;
   readonly name: string;
   readonly description: string | null;
+  readonly icon: string;
+  readonly category: string;
   readonly frequencyType: string;
   readonly targetDaysPerWeek: number | null;
   readonly completedDates: readonly string[];
@@ -29,6 +31,8 @@ export class ListHabitsUseCase {
         userId: h.userId,
         name: h.name,
         description: h.description,
+        icon: h.icon,
+        category: h.category,
         frequencyType: h.frequencyType,
         targetDaysPerWeek: h.targetDaysPerWeek,
         completedDates: [...h.completedDates],

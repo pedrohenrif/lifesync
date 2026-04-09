@@ -19,6 +19,7 @@ import { useFinancialSummary } from "../hooks/useFinance";
 import { useHabits } from "../hooks/useHabits";
 import { useGoals } from "../hooks/useGoals";
 import { DailyCheckIn } from "../components/journal/DailyCheckIn";
+import { HabitGlyph } from "../components/habits/HabitGlyph";
 
 /* ─── Utilitários ─── */
 
@@ -156,16 +157,19 @@ function HabitsPanel(): ReactElement {
           {habits.map((habit) => {
             const done = habit.completedDates.includes(today);
             return (
-              <li key={habit.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
+              <li key={habit.id} className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2.5">
                   {done ? (
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500">
-                      <Check className="h-3 w-3 text-white" />
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/90">
+                      <Check className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.5} />
                     </div>
                   ) : (
-                    <Circle className="h-5 w-5 text-zinc-700" />
+                    <Circle className="h-6 w-6 shrink-0 text-zinc-700" />
                   )}
-                  <span className={`text-sm ${done ? "text-zinc-400 line-through" : "text-zinc-200"}`}>
+                  <HabitGlyph icon={habit.icon} active={done} />
+                  <span
+                    className={`min-w-0 truncate text-sm ${done ? "text-zinc-400 line-through" : "text-zinc-200"}`}
+                  >
                     {habit.name}
                   </span>
                 </div>

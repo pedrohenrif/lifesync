@@ -6,9 +6,13 @@ import type { ToggleHabitUseCase } from "../../../application/use-cases/ToggleHa
 import type { UpdateHabitUseCase } from "../../../application/use-cases/UpdateHabitUseCase.js";
 import type { DeleteHabitUseCase } from "../../../application/use-cases/DeleteHabitUseCase.js";
 
+const habitCategorySchema = z.enum(["SAUDE", "FOCO", "FINANCAS", "PESSOAL"]);
+
 const createHabitBodySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  icon: z.string().min(1).max(64).optional(),
+  category: habitCategorySchema.optional(),
   frequencyType: z.enum(["DAILY", "WEEKLY_TARGET"]).optional(),
   targetDaysPerWeek: z.number().min(1).max(6).optional(),
 });
@@ -16,6 +20,8 @@ const createHabitBodySchema = z.object({
 const updateHabitBodySchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
+  icon: z.string().min(1).max(64).optional(),
+  category: habitCategorySchema.optional(),
   frequencyType: z.enum(["DAILY", "WEEKLY_TARGET"]).optional(),
   targetDaysPerWeek: z.number().min(1).max(6).nullable().optional(),
 });

@@ -7,6 +7,8 @@ export type UpdateHabitSuccess = {
   readonly id: string;
   readonly name: string;
   readonly description: string | null;
+  readonly icon: string;
+  readonly category: string;
   readonly frequencyType: string;
   readonly targetDaysPerWeek: number | null;
   readonly completedDates: readonly string[];
@@ -36,6 +38,8 @@ export class UpdateHabitUseCase {
     const result = existing.updateDetails({
       name: dto.name,
       description: dto.description,
+      icon: dto.icon,
+      category: dto.category,
       frequencyType: dto.frequencyType,
       targetDaysPerWeek: dto.targetDaysPerWeek,
     });
@@ -49,6 +53,8 @@ export class UpdateHabitUseCase {
       id: updated.id,
       name: updated.name,
       description: updated.description,
+      icon: updated.icon,
+      category: updated.category,
       frequencyType: updated.frequencyType,
       targetDaysPerWeek: updated.targetDaysPerWeek,
       completedDates: [...updated.completedDates],

@@ -7,3 +7,19 @@
     @apply min-h-screen bg-black text-zinc-100 antialiased;
   }
 }
+
+@keyframes habit-icon-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.habit-icon-pop {
+  animation: habit-icon-pop 0.55s cubic-bezier(0.34, 1.45, 0.64, 1);
+}

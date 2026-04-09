@@ -7,18 +7,23 @@ import { Flame, Sparkles, Target, Wallet } from "lucide-react";
 import { completeOnboarding, OnboardingApiError, type PrimaryFocus } from "../api/auth";
 import { createHabit } from "../api/habits";
 import { useAuthStore } from "../stores/authStore";
+import type { HabitTemplate } from "../components/habits/habitVisuals";
 
-const SUGGESTIONS: Record<PrimaryFocus, readonly string[]> = {
+const ONBOARDING_TEMPLATES: Record<PrimaryFocus, readonly HabitTemplate[]> = {
   FINANCE: [
-    "Revisar gastos do dia",
-    "Registrar uma despesa ou receita",
-    "Reservar 10 min para planejar o mês",
+    { name: "Revisar gastos do dia", icon: "Wallet", category: "FINANCAS" },
+    { name: "Registrar uma despesa ou receita", icon: "PenLine", category: "FINANCAS" },
+    { name: "Reservar 10 min para planejar o mês", icon: "Target", category: "FINANCAS" },
   ],
-  HABITS: ["Beber 2L de água", "Ler 10 páginas", "Dormir 8 horas"],
+  HABITS: [
+    { name: "Beber 2L de água", icon: "Droplets", category: "SAUDE" },
+    { name: "Ler 10 páginas", icon: "BookOpen", category: "FOCO" },
+    { name: "Dormir 8 horas", icon: "Moon", category: "SAUDE" },
+  ],
   GOALS: [
-    "Planejar um passo da meta principal",
-    "Revisar metas da semana",
-    "15 min focados na maior meta",
+    { name: "Planejar um passo da meta principal", icon: "Target", category: "FOCO" },
+    { name: "Revisar metas da semana", icon: "PenLine", category: "FOCO" },
+    { name: "15 min focados na maior meta", icon: "Zap", category: "FOCO" },
   ],
 };
 
@@ -64,7 +69,7 @@ export function Onboarding(): ReactElement {
 
   const suggestions = useMemo(() => {
     if (focus === null) return [];
-    return [...SUGGESTIONS[focus]];
+    return [...ONBOARDING_TEMPLATES[focus]];
   }, [focus]);
 
   const toggleHabit = (name: string): void => {
@@ -88,13 +93,20 @@ export function Onboarding(): ReactElement {
     }
 
     const habitNames = [...selectedHabits];
+    const metaByName = new Map(suggestions.map((t) => [t.name, t]));
     setSubmitting(true);
     try {
       const [mePayload] = await Promise.all([
         completeOnboarding({ name, primaryFocus: focus }),
-        ...habitNames.map((habitName) =>
-          createHabit({ name: habitName, frequencyType: "DAILY" }),
-        ),
+        ...habitNames.map((habitName) => {
+          const meta = metaByName.get(habitName);
+          return createHabit({
+            name: habitName,
+            frequencyType: "DAILY",
+            icon: meta?.icon ?? "Activity",
+            category: meta?.category ?? "PESSOAL",
+          });
+        }),
       ]);
       setUser(mePayload.user);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
@@ -247,18 +259,18 @@ export function Onboarding(): ReactElement {
               </p>
             </div>
             <ul className="space-y-3">
-              {suggestions.map((habitName) => {
-                const checked = selectedHabits.has(habitName);
+              {suggestions.map((t) => {
+                const checked = selectedHabits.has(t.name);
                 return (
-                  <li key={habitName}>
+                  <li key={t.name}>
                     <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-950/80 px-4 py-3 transition hover:border-zinc-700">
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => toggleHabit(habitName)}
+                        onChange={() => toggleHabit(t.name)}
                         className="h-4 w-4 rounded border-zinc-600 bg-zinc-900 accent-emerald-500"
                       />
-                      <span className="text-sm text-zinc-200">{habitName}</span>
+                      <span className="text-sm text-zinc-200">{t.name}</span>
                     </label>
                   </li>
                 );

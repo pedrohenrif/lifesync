@@ -12,7 +12,7 @@ import {
   Trash2,
   Hash,
 } from "lucide-react";
-import type { Habit, HabitFrequencyType } from "../api/habits";
+import type { Habit, HabitCategory, HabitFrequencyType } from "../api/habits";
 import {
   useHabits,
   useCreateHabit,
@@ -21,9 +21,26 @@ import {
   useToggleHabit,
 } from "../hooks/useHabits";
 import { WeeklyTracker } from "../components/habits/WeeklyTracker";
+import { HabitGlyph } from "../components/habits/HabitGlyph";
+import { HabitIconPicker } from "../components/habits/HabitIconPicker";
+import {
+  CATEGORY_LABELS,
+  HABIT_CATEGORIES,
+  suggestionsForUserFocus,
+  type HabitTemplate,
+} from "../components/habits/habitVisuals";
+import { useAuthStore } from "../stores/authStore";
 
 const INPUT_CLASS =
   "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
+
+function CategoryBadge({ category }: { readonly category: HabitCategory }): ReactElement {
+  return (
+    <span className="shrink-0 rounded-md border border-zinc-800/80 bg-zinc-800/40 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-zinc-500">
+      {CATEGORY_LABELS[category]}
+    </span>
+  );
+}
 
 function getTodayKey(): string {
   const d = new Date();
@@ -133,6 +150,8 @@ function EditHabitModal({
 }): ReactElement {
   const [name, setName] = useState(habit.name);
   const [description, setDescription] = useState(habit.description ?? "");
+  const [icon, setIcon] = useState(habit.icon);
+  const [category, setCategory] = useState<HabitCategory>(habit.category);
   const [frequencyType, setFrequencyType] = useState<HabitFrequencyType>(habit.frequencyType);
   const [targetDays, setTargetDays] = useState(habit.targetDaysPerWeek ?? 3);
   const updateHabit = useUpdateHabit();
@@ -148,6 +167,8 @@ function EditHabitModal({
         input: {
           name: trimmed,
           description: description.trim().length > 0 ? description.trim() : null,
+          icon,
+          category,
           frequencyType,
           targetDaysPerWeek: frequencyType === "WEEKLY_TARGET" ? targetDays : null,
         },
@@ -172,6 +193,21 @@ function EditHabitModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
+          <HabitIconPicker value={icon} onChange={setIcon} />
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-zinc-500">Categoria</span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as HabitCategory)}
+              className={INPUT_CLASS}
+            >
+              {HABIT_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABELS[c]}
+                </option>
+              ))}
+            </select>
+          </label>
           <input
             type="text"
             value={name}
@@ -242,12 +278,23 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
   const toggleHabit = useToggleHabit();
   const deleteHabitMutation = useDeleteHabit();
   const [editing, setEditing] = useState(false);
+  const [iconPop, setIconPop] = useState(false);
   const today = getTodayKey();
   const isDoneToday = habit.completedDates.includes(today);
   const isToggling = toggleHabit.isPending;
 
   const handleToggle = (): void => {
-    toggleHabit.mutate({ id: habit.id, date: today });
+    toggleHabit.mutate(
+      { id: habit.id, date: today },
+      {
+        onSuccess: (data) => {
+          if (data.habit.completedDates.includes(today)) {
+            setIconPop(true);
+            window.setTimeout(() => setIconPop(false), 600);
+          }
+        },
+      },
+    );
   };
 
   const handleDelete = (): void => {
@@ -266,7 +313,7 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
             disabled={isToggling}
             className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition disabled:opacity-50 ${
               isDoneToday
-                ? "border-orange-500 bg-orange-500 text-black"
+                ? "border-emerald-500/90 bg-emerald-500 text-zinc-950 shadow-[0_0_20px_-4px_rgba(16,185,129,0.5)]"
                 : "border-zinc-700 text-zinc-600 hover:border-zinc-500 hover:text-zinc-400"
             }`}
             aria-label={isDoneToday ? "Desmarcar hábito" : "Marcar hábito como feito"}
@@ -278,13 +325,19 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
+                  <HabitGlyph
+                    icon={habit.icon}
+                    active={isDoneToday}
+                    pop={iconPop}
+                  />
                   <h3
-                    className={`truncate text-sm font-medium ${
+                    className={`min-w-0 truncate text-sm font-medium ${
                       isDoneToday ? "text-zinc-400 line-through" : "text-zinc-100"
                     }`}
                   >
                     {habit.name}
                   </h3>
+                  <CategoryBadge category={habit.category} />
                   {habit.frequencyType === "WEEKLY_TARGET" &&
                     habit.targetDaysPerWeek !== null && (
                       <span className="shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">
@@ -343,11 +396,21 @@ function CreateHabitForm({
 }: {
   readonly onClose: () => void;
 }): ReactElement {
+  const primaryFocus = useAuthStore((s) => s.user?.primaryFocus);
+  const smartList = suggestionsForUserFocus(primaryFocus);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("Activity");
+  const [category, setCategory] = useState<HabitCategory>("PESSOAL");
   const [frequencyType, setFrequencyType] = useState<HabitFrequencyType>("DAILY");
   const [targetDays, setTargetDays] = useState(3);
   const createHabit = useCreateHabit();
+
+  const applyTemplate = (t: HabitTemplate): void => {
+    setName(t.name);
+    setIcon(t.icon);
+    setCategory(t.category);
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -359,6 +422,8 @@ function CreateHabitForm({
         name: trimmedName,
         description:
           description.trim().length > 0 ? description.trim() : undefined,
+        icon,
+        category,
         frequencyType,
         targetDaysPerWeek:
           frequencyType === "WEEKLY_TARGET" ? targetDays : undefined,
@@ -367,6 +432,8 @@ function CreateHabitForm({
         onSuccess: () => {
           setName("");
           setDescription("");
+          setIcon("Activity");
+          setCategory("PESSOAL");
           setFrequencyType("DAILY");
           setTargetDays(3);
           onClose();
@@ -390,6 +457,44 @@ function CreateHabitForm({
       </div>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        {smartList.length > 0 ? (
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Sugestões para você
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {smartList.map((t) => (
+                <button
+                  key={t.name}
+                  type="button"
+                  onClick={() => applyTemplate(t)}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-left text-xs text-zinc-300 transition hover:border-emerald-600/40 hover:bg-zinc-900"
+                >
+                  <span className="font-medium text-zinc-100">{t.name}</span>
+                  <span className="mt-0.5 block text-[10px] text-zinc-600">
+                    {CATEGORY_LABELS[t.category]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <HabitIconPicker value={icon} onChange={setIcon} />
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-medium text-zinc-500">Categoria</span>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as HabitCategory)}
+            className={INPUT_CLASS}
+          >
+            {HABIT_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABELS[c]}
+              </option>
+            ))}
+          </select>
+        </label>
         <input
           type="text"
           value={name}
