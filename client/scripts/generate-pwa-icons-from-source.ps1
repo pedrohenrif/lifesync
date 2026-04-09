@@ -1,8 +1,10 @@
 # Builds pwa-192x192.png and pwa-512x512.png from scripts/pwa-icon-source.png
-# Stretches the source to fill the entire square on #000000. No inset — Android
-# maskable padding is the only crop; your source should already use the full canvas.
+# Draws the source centered on #000000, scaled to fit inside ~72% of the canvas side
+# (breathing room for Android maskable safe zone). Replace pwa-icon-source.png with
+# your image_12 master (square, high-res) for best results.
 param(
-  [string] $SourceFile = ""
+  [string] $SourceFile = "",
+  [double] $ArtworkScale = 0.72
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -21,7 +23,8 @@ function Write-PwaSquare {
   param(
     [System.Drawing.Image] $Src,
     [int] $S,
-    [string] $OutPath
+    [string] $OutPath,
+    [double] $InnerFraction
   )
   $bmp = New-Object System.Drawing.Bitmap $S, $S
   $g = [System.Drawing.Graphics]::FromImage($bmp)
@@ -30,7 +33,16 @@ function Write-PwaSquare {
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::Half
   $bg = [System.Drawing.Color]::FromArgb(255, 0, 0, 0)
   $g.Clear($bg)
-  $g.DrawImage($Src, 0, 0, [float]$S, [float]$S)
+
+  $inner = [double]$S * $InnerFraction
+  $sw = [double]$Src.Width
+  $sh = [double]$Src.Height
+  $scale = [Math]::Min($inner / $sw, $inner / $sh)
+  $dw = [int][Math]::Round($sw * $scale)
+  $dh = [int][Math]::Round($sh * $scale)
+  $x = [int]([Math]::Round(($S - $dw) / 2.0))
+  $y = [int]([Math]::Round(($S - $dh) / 2.0))
+  $g.DrawImage($Src, $x, $y, $dw, $dh)
   $g.Dispose()
   $bmp.Save($OutPath, [System.Drawing.Imaging.ImageFormat]::Png)
   $bmp.Dispose()
@@ -40,7 +52,7 @@ $srcImg = [System.Drawing.Image]::FromFile((Resolve-Path -LiteralPath $SourceFil
 try {
   foreach ($size in @(192, 512)) {
     $out = Join-Path $public "pwa-${size}x${size}.png"
-    Write-PwaSquare -Src $srcImg -S $size -OutPath $out
+    Write-PwaSquare -Src $srcImg -S $size -OutPath $out -InnerFraction $ArtworkScale
     $len = (Get-Item -LiteralPath $out).Length
     Write-Host ('Wrote {0} ({1} bytes)' -f $out, $len)
   }
