@@ -45,6 +45,7 @@ import {
 } from "../hooks/useInvestments";
 import type { Transaction, TransactionType, PaymentMethod, ExpenseGroupId } from "../api/finance";
 import type { Investment } from "../api/investments";
+import { AppModalShell } from "../components/ui/AppModalShell";
 
 /* ─── Constantes ─── */
 
@@ -210,19 +211,8 @@ function CreateTransactionForm({ onClose }: { readonly onClose: () => void }): R
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-zinc-300">Nova Transação</h3>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300"
-          aria-label="Fechar"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
+    <AppModalShell title="Nova Transação" onClose={onClose} maxWidthClass="max-w-lg">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <input className={INPUT_CLASS} placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <input className={INPUT_CLASS} placeholder="Valor (total)" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
@@ -278,7 +268,8 @@ function CreateTransactionForm({ onClose }: { readonly onClose: () => void }): R
       >
         {createMutation.isPending ? "Salvando..." : "Adicionar Transação"}
       </button>
-    </form>
+      </form>
+    </AppModalShell>
   );
 }
 
@@ -727,18 +718,8 @@ function CreateInvestmentForm({ onClose }: { readonly onClose: () => void }): Re
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-zinc-300">Novo Investimento</h3>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300"
-          aria-label="Fechar"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+    <AppModalShell title="Novo Investimento" onClose={onClose} maxWidthClass="max-w-lg">
+      <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <input className={INPUT_CLASS} placeholder="Nome (ex: Tesouro Selic)" value={name} onChange={(e) => setName(e.target.value)} required />
         <input className={INPUT_CLASS} placeholder="Valor aportado" type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} required />
@@ -750,7 +731,8 @@ function CreateInvestmentForm({ onClose }: { readonly onClose: () => void }): Re
       >
         {createMutation.isPending ? "Salvando..." : "Adicionar Investimento"}
       </button>
-    </form>
+      </form>
+    </AppModalShell>
   );
 }
 

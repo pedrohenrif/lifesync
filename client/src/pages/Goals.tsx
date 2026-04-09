@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   Target,
   Plus,
-  X,
   Trash2,
   Circle,
   Clock,
@@ -26,6 +25,7 @@ import {
   useToggleGoalTask,
   useRemoveGoalTask,
 } from "../hooks/useGoals";
+import { AppModalShell } from "../components/ui/AppModalShell";
 
 /* ─── Mapeamentos de Categoria ─── */
 
@@ -435,20 +435,8 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 md:p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-zinc-300">Nova meta</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md p-1 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
-          aria-label="Fechar formulário"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+    <AppModalShell title="Nova meta" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="text"
           value={title}
@@ -499,7 +487,7 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
           {createGoal.isPending ? "Criando..." : "Adicionar Meta"}
         </button>
       </form>
-    </div>
+    </AppModalShell>
   );
 }
 

@@ -1,7 +1,6 @@
 # Builds pwa-192x192.png and pwa-512x512.png from scripts/pwa-icon-source.png
-# Scales the full master into the square (fit, centered). Use a source PNG where the
-# glyph already fills ~80-85% of the square on pure black — do not inset here or Android
-# maskable padding will shrink the logo twice.
+# Stretches the source to fill the entire square on #000000. No inset — Android
+# maskable padding is the only crop; your source should already use the full canvas.
 param(
   [string] $SourceFile = ""
 )
@@ -31,15 +30,7 @@ function Write-PwaSquare {
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::Half
   $bg = [System.Drawing.Color]::FromArgb(255, 0, 0, 0)
   $g.Clear($bg)
-
-  $sw = [double]$Src.Width
-  $sh = [double]$Src.Height
-  $scale = [Math]::Min([double]$S / $sw, [double]$S / $sh)
-  $dw = [int][Math]::Round($sw * $scale)
-  $dh = [int][Math]::Round($sh * $scale)
-  $x = [int](($S - $dw) / 2)
-  $y = [int](($S - $dh) / 2)
-  $g.DrawImage($Src, $x, $y, $dw, $dh)
+  $g.DrawImage($Src, 0, 0, [float]$S, [float]$S)
   $g.Dispose()
   $bmp.Save($OutPath, [System.Drawing.Imaging.ImageFormat]::Png)
   $bmp.Dispose()

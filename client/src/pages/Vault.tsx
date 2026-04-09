@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   BookMarked,
   Plus,
-  X,
   FileText,
   ExternalLink,
   Target,
@@ -12,6 +11,7 @@ import {
 import type { VaultNote, NoteType } from "../api/vault";
 import { useNotes, useCreateNote, useDeleteNote } from "../hooks/useVault";
 import { useGoals } from "../hooks/useGoals";
+import { AppModalShell } from "../components/ui/AppModalShell";
 
 const INPUT_CLASS =
   "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
@@ -53,21 +53,8 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
-      <div className="max-h-[min(90vh,100dvh)] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-zinc-800 border-b-0 bg-zinc-950 p-4 sm:rounded-xl sm:border-b md:p-6">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-zinc-200">Nova Nota</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
+    <AppModalShell title="Nova Nota" onClose={onClose} maxWidthClass="max-w-lg">
+      <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="text"
             value={title}
@@ -160,8 +147,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </AppModalShell>
   );
 }
 

@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Activity,
   Plus,
-  X,
   Flame,
   Check,
   Star,
@@ -23,6 +22,7 @@ import { WeeklyTracker } from "../components/habits/WeeklyTracker";
 import { HabitGlyph } from "../components/habits/HabitGlyph";
 import { HabitIconPicker } from "../components/habits/HabitIconPicker";
 import { EditHabitForm } from "../components/habits/EditHabitForm";
+import { AppModalShell } from "../components/ui/AppModalShell";
 import {
   CATEGORY_LABELS,
   HABIT_CATEGORIES,
@@ -310,20 +310,8 @@ function CreateHabitForm({
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 md:p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-zinc-300">Novo hábito</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md p-1 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
-          aria-label="Fechar formulário"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+    <AppModalShell title="Novo hábito" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="space-y-3">
         {smartList.length > 0 ? (
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -412,7 +400,7 @@ function CreateHabitForm({
           {createHabit.isPending ? "Criando..." : "Adicionar Hábito"}
         </button>
       </form>
-    </div>
+    </AppModalShell>
   );
 }
 
