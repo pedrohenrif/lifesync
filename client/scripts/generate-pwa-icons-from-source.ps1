@@ -1,5 +1,7 @@
-# Builds pwa-192x192.png and pwa-512x512.png from public/pwa-icon-source.png
-# Uses theme background #09090b and scales artwork to ~76% of canvas for maskable safe zone.
+# Builds pwa-192x192.png and pwa-512x512.png from scripts/pwa-icon-source.png
+# Scales the full master into the square (fit, centered). Use a source PNG where the
+# glyph already fills ~80-85% of the square on pure black — do not inset here or Android
+# maskable padding will shrink the logo twice.
 param(
   [string] $SourceFile = ""
 )
@@ -27,13 +29,12 @@ function Write-PwaSquare {
   $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
   $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::Half
-  $bg = [System.Drawing.Color]::FromArgb(255, 9, 9, 11)
+  $bg = [System.Drawing.Color]::FromArgb(255, 0, 0, 0)
   $g.Clear($bg)
 
-  $safe = [double]$S * 0.76
   $sw = [double]$Src.Width
   $sh = [double]$Src.Height
-  $scale = $safe / [Math]::Max($sw, $sh)
+  $scale = [Math]::Min([double]$S / $sw, [double]$S / $sh)
   $dw = [int][Math]::Round($sw * $scale)
   $dh = [int][Math]::Round($sh * $scale)
   $x = [int](($S - $dw) / 2)
