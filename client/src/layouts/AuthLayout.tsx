@@ -1,6 +1,8 @@
 import type { ReactElement } from "react";
 import { useEffect, useMemo } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+
+const ONBOARDING_PATH = "/onboarding";
 import { LogOut, Home, Target, Activity, Wallet, BookMarked, ShieldCheck } from "lucide-react";
 import { useMe } from "../hooks/useMe";
 import { useAuthStore } from "../stores/authStore";
@@ -62,6 +64,24 @@ export function AuthLayout(): ReactElement {
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
           <span className="text-sm">Carregando sessão...</span>
         </div>
+      </div>
+    );
+  }
+
+  const isOnboardingRoute = location.pathname === ONBOARDING_PATH;
+
+  if (!isOnboardingRoute && user !== null && user.hasCompletedOnboarding === false) {
+    return <Navigate to={ONBOARDING_PATH} replace />;
+  }
+
+  if (isOnboardingRoute && user !== null && user.hasCompletedOnboarding === true) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (isOnboardingRoute) {
+    return (
+      <div className="min-h-screen bg-black text-zinc-100">
+        <Outlet />
       </div>
     );
   }

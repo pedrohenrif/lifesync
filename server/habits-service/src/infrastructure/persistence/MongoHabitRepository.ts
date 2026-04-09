@@ -1,6 +1,10 @@
 import type { IHabitRepository } from "../../domain/repositories/IHabitRepository.js";
-import { Habit } from "../../domain/entities/Habit.js";
-import type { HabitFrequencyType } from "../../domain/entities/Habit.js";
+import {
+  Habit,
+  isHabitCategory,
+  type HabitCategory,
+  type HabitFrequencyType,
+} from "../../domain/entities/Habit.js";
 import {
   HabitModel,
   type PersistedHabit,
@@ -30,6 +34,8 @@ export class MongoHabitRepository implements IHabitRepository {
       userId: habit.userId,
       name: habit.name,
       description: habit.description,
+      icon: habit.icon,
+      category: habit.category,
       frequencyType: habit.frequencyType,
       targetDaysPerWeek: habit.targetDaysPerWeek,
       completedDates: [...habit.completedDates],
@@ -71,6 +77,8 @@ export class MongoHabitRepository implements IHabitRepository {
         $set: {
           name: habit.name,
           description: habit.description,
+          icon: habit.icon,
+          category: habit.category,
           frequencyType: habit.frequencyType,
           targetDaysPerWeek: habit.targetDaysPerWeek,
           completedDates: [...habit.completedDates],
@@ -86,11 +94,19 @@ export class MongoHabitRepository implements IHabitRepository {
   }
 
   private toDomain(doc: PersistedHabit): Habit {
+    const rawCat = doc.category;
+    const category: HabitCategory =
+      typeof rawCat === "string" && isHabitCategory(rawCat) ? rawCat : "PESSOAL";
+    const icon =
+      typeof doc.icon === "string" && doc.icon.trim().length > 0 ? doc.icon.trim() : "Activity";
+
     const result = Habit.create({
       id: doc._id,
       userId: doc.userId,
       name: doc.name,
       description: doc.description,
+      icon,
+      category,
       frequencyType: doc.frequencyType as HabitFrequencyType,
       targetDaysPerWeek: doc.targetDaysPerWeek,
       completedDates: doc.completedDates,

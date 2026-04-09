@@ -1,5 +1,16 @@
 import { apiRequest } from "./client";
 
+export type PrimaryFocus = "FINANCE" | "HABITS" | "GOALS";
+
+export type AuthUserPayload = {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly role: string;
+  readonly hasCompletedOnboarding: boolean;
+  readonly primaryFocus: PrimaryFocus | null;
+};
+
 export type RegisterSuccessResponse = {
   readonly user: {
     readonly id: string;
@@ -11,21 +22,11 @@ export type RegisterSuccessResponse = {
 
 export type LoginSuccessResponse = {
   readonly token: string;
-  readonly user: {
-    readonly id: string;
-    readonly name: string;
-    readonly email: string;
-    readonly role: string;
-  };
+  readonly user: AuthUserPayload;
 };
 
 export type MeSuccessResponse = {
-  readonly user: {
-    readonly id: string;
-    readonly name: string;
-    readonly email: string;
-    readonly role: string;
-  };
+  readonly user: AuthUserPayload;
 };
 
 type ApiErrorPayload = {
@@ -93,6 +94,18 @@ export class MeApiError extends Error {
   }
 }
 
+export class OnboardingApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "OnboardingApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 function messageForCode(code: string): string {
   switch (code) {
     case "EMAIL_ALREADY_EXISTS":
@@ -114,10 +127,46 @@ function messageForCode(code: string): string {
     case "ACCOUNT_REJECTED":
       return "Sua conta foi rejeitada pelo administrador.";
     case "NAME_REQUIRED":
-      return "Informe seu nome completo.";
+      return "Informe como prefere ser chamado.";
     default:
-      return "Não foi possível criar a conta.";
+      return "Não foi possível concluir esta ação.";
   }
+}
+
+function isPrimaryFocus(value: unknown): value is PrimaryFocus {
+  return value === "FINANCE" || value === "HABITS" || value === "GOALS";
+}
+
+export function parseAuthUserPayload(u: Record<string, unknown>): AuthUserPayload | null {
+  const id = u.id;
+  const name = u.name;
+  const email = u.email;
+  const role = u.role;
+  if (
+    typeof id !== "string" ||
+    typeof name !== "string" ||
+    typeof email !== "string" ||
+    typeof role !== "string"
+  ) {
+    return null;
+  }
+  const hasCompletedOnboarding =
+    typeof u.hasCompletedOnboarding === "boolean" ? u.hasCompletedOnboarding : true;
+  const rawFocus = u.primaryFocus;
+  const primaryFocus =
+    rawFocus === null || rawFocus === undefined
+      ? null
+      : isPrimaryFocus(rawFocus)
+        ? rawFocus
+        : null;
+  return {
+    id,
+    name,
+    email,
+    role,
+    hasCompletedOnboarding,
+    primaryFocus,
+  };
 }
 
 export async function registerUser(
@@ -127,7 +176,7 @@ export async function registerUser(
 ): Promise<RegisterSuccessResponse> {
   const response = await apiRequest("/auth/register", {
     method: "POST",
-    body: { name, email, password },
+    body: { name: name.trim().length > 0 ? name : undefined, email, password },
   });
 
   const data: unknown = await response.json().catch(() => null);
@@ -205,18 +254,8 @@ export async function loginUser(
   }
 
   const token = data.token;
-  const user = data.user;
-  const id = user.id;
-  const nameOut = user.name;
-  const emailOut = user.email;
-  const roleOut = user.role;
-  if (
-    typeof token !== "string" ||
-    typeof id !== "string" ||
-    typeof nameOut !== "string" ||
-    typeof emailOut !== "string" ||
-    typeof roleOut !== "string"
-  ) {
+  const userParsed = parseAuthUserPayload(data.user);
+  if (typeof token !== "string" || userParsed === null) {
     throw new LoginApiError(
       response.status,
       "INVALID_RESPONSE",
@@ -226,12 +265,7 @@ export async function loginUser(
 
   return {
     token,
-    user: {
-      id,
-      name: nameOut,
-      email: emailOut,
-      role: roleOut,
-    },
+    user: userParsed,
   };
 }
 
@@ -256,16 +290,8 @@ export async function getMe(): Promise<MeSuccessResponse> {
     );
   }
 
-  const id = data.user.id;
-  const name = data.user.name;
-  const email = data.user.email;
-  const role = data.user.role;
-  if (
-    typeof id !== "string" ||
-    typeof name !== "string" ||
-    typeof email !== "string" ||
-    typeof role !== "string"
-  ) {
+  const userParsed = parseAuthUserPayload(data.user);
+  if (userParsed === null) {
     throw new MeApiError(
       response.status,
       "INVALID_RESPONSE",
@@ -273,5 +299,48 @@ export async function getMe(): Promise<MeSuccessResponse> {
     );
   }
 
-  return { user: { id, name, email, role } };
+  return { user: userParsed };
+}
+
+export async function completeOnboarding(input: {
+  readonly name: string;
+  readonly primaryFocus?: PrimaryFocus;
+}): Promise<MeSuccessResponse> {
+  const response = await apiRequest("/auth/users/me/onboarding", {
+    method: "PATCH",
+    body: input,
+  });
+  const data: unknown = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const payload = parseApiErrorPayload(data);
+    const code =
+      typeof payload.error?.code === "string"
+        ? payload.error.code
+        : "UNKNOWN_ERROR";
+    throw new OnboardingApiError(
+      response.status,
+      code,
+      messageForCode(code),
+    );
+  }
+
+  if (!isRecord(data) || !isRecord(data.user)) {
+    throw new OnboardingApiError(
+      response.status,
+      "INVALID_RESPONSE",
+      "Resposta inesperada do servidor.",
+    );
+  }
+
+  const userParsed = parseAuthUserPayload(data.user);
+  if (userParsed === null) {
+    throw new OnboardingApiError(
+      response.status,
+      "INVALID_RESPONSE",
+      "Resposta inesperada do servidor.",
+    );
+  }
+
+  return { user: userParsed };
 }

@@ -1,5 +1,6 @@
 import cors from "cors";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import type { CompleteOnboardingUseCase } from "../../application/use-cases/CompleteOnboardingUseCase.js";
 import type { GetMeUseCase } from "../../application/use-cases/GetMeUseCase.js";
 import type { LoginUseCase } from "../../application/use-cases/LoginUseCase.js";
 import type { RegisterUserUseCase } from "../../application/use-cases/RegisterUserUseCase.js";
@@ -15,6 +16,7 @@ export type AppDependencies = {
   readonly registerUserUseCase: RegisterUserUseCase;
   readonly loginUseCase: LoginUseCase;
   readonly getMeUseCase: GetMeUseCase;
+  readonly completeOnboardingUseCase: CompleteOnboardingUseCase;
   readonly listPendingUsersUseCase: ListPendingUsersUseCase;
   readonly reviewUserUseCase: ReviewUserUseCase;
   readonly jwtSecret: string;
@@ -41,6 +43,7 @@ export function createApp(deps: AppDependencies): Express {
     deps.registerUserUseCase,
     deps.loginUseCase,
     deps.getMeUseCase,
+    deps.completeOnboardingUseCase,
   );
 
   const adminController = new AdminController(
@@ -60,6 +63,9 @@ export function createApp(deps: AppDependencies): Express {
   });
   app.get("/auth/me", authMiddleware, (req, res, next) => {
     void authController.me(req, res).catch(next);
+  });
+  app.patch("/auth/users/me/onboarding", authMiddleware, (req, res, next) => {
+    void authController.completeOnboarding(req, res).catch(next);
   });
 
   app.get("/auth/admin/users/pending", authMiddleware, adminMiddleware, (req, res, next) => {

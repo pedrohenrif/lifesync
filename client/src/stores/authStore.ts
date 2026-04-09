@@ -1,14 +1,10 @@
 import { create } from "zustand";
+import type { AuthUserPayload } from "../api/auth";
 
 const TOKEN_STORAGE_KEY = "@lifesync:token";
 const USER_STORAGE_KEY = "@lifesync:user";
 
-export type AuthUser = {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly role: string;
-};
+export type AuthUser = AuthUserPayload;
 
 type AuthState = {
   readonly token: string | null;
@@ -38,6 +34,12 @@ function parseStoredUser(raw: string | null): AuthUser | null {
         name: typeof p.name === "string" ? p.name : "",
         email: parsed.email,
         role: typeof p.role === "string" ? p.role : "USER",
+        hasCompletedOnboarding:
+          typeof p.hasCompletedOnboarding === "boolean" ? p.hasCompletedOnboarding : true,
+        primaryFocus:
+          p.primaryFocus === "FINANCE" || p.primaryFocus === "HABITS" || p.primaryFocus === "GOALS"
+            ? p.primaryFocus
+            : null,
       };
     }
   } catch {

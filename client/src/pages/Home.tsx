@@ -1,4 +1,6 @@
 import type { ReactElement } from "react";
+import { useEffect, useState } from "react";
+import Confetti from "react-confetti";
 import { Link } from "react-router-dom";
 import {
   Wallet,
@@ -256,15 +258,61 @@ function GoalsPanel(): ReactElement {
 
 /* ─── Página Principal (Dashboard Cockpit) ─── */
 
+function WelcomeConfettiOverlay(): ReactElement | null {
+  const [dims, setDims] = useState(() => ({
+    width: typeof window !== "undefined" ? window.innerWidth : 0,
+    height: typeof window !== "undefined" ? window.innerHeight : 0,
+  }));
+
+  useEffect(() => {
+    const onResize = (): void => {
+      setDims({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  if (dims.width === 0) return null;
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[100]">
+      <Confetti
+        width={dims.width}
+        height={dims.height}
+        recycle={false}
+        numberOfPieces={260}
+        gravity={0.11}
+        colors={["#34d399", "#a78bfa", "#22d3ee", "#fbbf24", "#e4e4e7"]}
+      />
+    </div>
+  );
+}
+
 export function Home(): ReactElement {
   const user = useAuthStore((s) => s.user);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem("lifesync:onboarded") === "1") {
+      sessionStorage.removeItem("lifesync:onboarded");
+      setShowConfetti(true);
+      const t = window.setTimeout(() => setShowConfetti(false), 4800);
+      return () => window.clearTimeout(t);
+    }
+  }, []);
+
+  const greetingName =
+    user?.name?.trim() && user.name.trim().length > 0
+      ? user.name.trim()
+      : (user?.email?.split("@")[0] ?? "usuário");
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {showConfetti ? <WelcomeConfettiOverlay /> : null}
       {/* Header de boas-vindas */}
       <div>
         <h1 className="text-xl font-bold tracking-tight text-zinc-100 sm:text-2xl">
-          Olá, {user?.email ?? "usuário"}
+          Olá, {greetingName}
         </h1>
         <p className="mt-1 text-sm text-zinc-500">{formatTodayLong()}</p>
       </div>

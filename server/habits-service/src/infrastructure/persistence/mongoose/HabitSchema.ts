@@ -6,6 +6,12 @@ const habitSchema = new mongoose.Schema(
     userId: { type: String, required: true, index: true },
     name: { type: String, required: true, trim: true },
     description: { type: String, default: null },
+    icon: { type: String, default: "Activity" },
+    category: {
+      type: String,
+      enum: ["SAUDE", "FOCO", "FINANCAS", "PESSOAL"],
+      default: "PESSOAL",
+    },
     frequencyType: {
       type: String,
       required: true,
@@ -27,6 +33,8 @@ export type PersistedHabit = {
   readonly userId: string;
   readonly name: string;
   readonly description: string | null;
+  readonly icon?: string;
+  readonly category?: string;
   readonly frequencyType: string;
   readonly targetDaysPerWeek: number | null;
   readonly completedDates: string[];

@@ -42,11 +42,13 @@ export class RegisterUserUseCase {
     const now = new Date();
     const created = User.create({
       id: randomUUID(),
-      name: dto.name,
+      name: dto.name?.trim() ?? "",
       email,
       passwordHash,
       role: "USER",
       status: "PENDING",
+      hasCompletedOnboarding: false,
+      primaryFocus: null,
       createdAt: now,
       updatedAt: now,
     });

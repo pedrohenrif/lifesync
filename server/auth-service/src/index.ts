@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { CompleteOnboardingUseCase } from "./application/use-cases/CompleteOnboardingUseCase.js";
 import { GetMeUseCase } from "./application/use-cases/GetMeUseCase.js";
 import { LoginUseCase } from "./application/use-cases/LoginUseCase.js";
 import { RegisterUserUseCase } from "./application/use-cases/RegisterUserUseCase.js";
@@ -26,6 +27,7 @@ const loginUseCase = new LoginUseCase(
   tokenGenerator,
 );
 const getMeUseCase = new GetMeUseCase(userRepository);
+const completeOnboardingUseCase = new CompleteOnboardingUseCase(userRepository);
 const listPendingUsersUseCase = new ListPendingUsersUseCase(userRepository);
 const reviewUserUseCase = new ReviewUserUseCase(userRepository);
 
@@ -33,6 +35,7 @@ const app = createApp({
   registerUserUseCase,
   loginUseCase,
   getMeUseCase,
+  completeOnboardingUseCase,
   listPendingUsersUseCase,
   reviewUserUseCase,
   jwtSecret: env.jwtSecret,

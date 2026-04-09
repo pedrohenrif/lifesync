@@ -1,5 +1,6 @@
 export type RegisterUserDto = {
-  readonly name: string;
+  /** Optional; preferred name is set in onboarding. */
+  readonly name?: string;
   readonly email: string;
   readonly password: string;
 };

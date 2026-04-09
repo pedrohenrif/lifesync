@@ -1,11 +1,14 @@
 import { err, ok, type Result } from "../result.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
+import type { PrimaryFocus } from "../../domain/entities/User.js";
 
 export type GetMeSuccess = {
   readonly id: string;
   readonly name: string;
   readonly email: string;
   readonly role: string;
+  readonly hasCompletedOnboarding: boolean;
+  readonly primaryFocus: PrimaryFocus | null;
 };
 
 export type GetMeError = { readonly code: "USER_NOT_FOUND" };
@@ -24,6 +27,8 @@ export class GetMeUseCase {
       name: user.name,
       email: user.email,
       role: user.role,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      primaryFocus: user.primaryFocus,
     });
   }
 }

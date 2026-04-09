@@ -3,6 +3,7 @@ import type { LoginUserDto } from "../dtos/LoginUserDto.js";
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
 import type { IPasswordHasher } from "../../domain/services/IPasswordHasher.js";
 import type { ITokenGenerator } from "../../domain/services/ITokenGenerator.js";
+import type { PrimaryFocus } from "../../domain/entities/User.js";
 
 export type LoginSuccess = {
   readonly token: string;
@@ -11,6 +12,8 @@ export type LoginSuccess = {
     readonly name: string;
     readonly email: string;
     readonly role: string;
+    readonly hasCompletedOnboarding: boolean;
+    readonly primaryFocus: PrimaryFocus | null;
   };
 };
 
@@ -56,6 +59,8 @@ export class LoginUseCase {
         name: user.name,
         email: user.email,
         role: user.role,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        primaryFocus: user.primaryFocus,
       },
     });
   }

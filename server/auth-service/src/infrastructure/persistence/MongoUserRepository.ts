@@ -1,9 +1,17 @@
 import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
-import { User, type UserStatus } from "../../domain/entities/User.js";
+import {
+  User,
+  type PrimaryFocus,
+  type UserStatus,
+} from "../../domain/entities/User.js";
 import {
   UserModel,
   type PersistedUser,
 } from "./mongoose/UserSchema.js";
+
+function isPrimaryFocus(value: unknown): value is PrimaryFocus {
+  return value === "FINANCE" || value === "HABITS" || value === "GOALS";
+}
 
 function isPersistedUser(value: unknown): value is PersistedUser {
   if (value === null || typeof value !== "object") {
@@ -22,6 +30,18 @@ function isPersistedUser(value: unknown): value is PersistedUser {
   );
 }
 
+function normalizeHasCompletedOnboarding(doc: PersistedUser): boolean {
+  if (doc.hasCompletedOnboarding === true) return true;
+  if (doc.hasCompletedOnboarding === false) return false;
+  return true;
+}
+
+function normalizePrimaryFocus(doc: PersistedUser): PrimaryFocus | null {
+  const v = doc.primaryFocus;
+  if (v === null || v === undefined) return null;
+  return isPrimaryFocus(v) ? v : null;
+}
+
 export class MongoUserRepository implements IUserRepository {
   async save(user: User): Promise<void> {
     await UserModel.create({
@@ -31,6 +51,8 @@ export class MongoUserRepository implements IUserRepository {
       passwordHash: user.passwordHash,
       role: user.role,
       status: user.status,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+      primaryFocus: user.primaryFocus,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     });
@@ -60,6 +82,22 @@ export class MongoUserRepository implements IUserRepository {
     await UserModel.updateOne({ _id: id }, { $set: { status, updatedAt: new Date() } }).exec();
   }
 
+  async completeOnboarding(
+    id: string,
+    input: { readonly name: string; readonly primaryFocus?: PrimaryFocus },
+  ): Promise<User | null> {
+    const setDoc: Record<string, unknown> = {
+      name: input.name.trim(),
+      hasCompletedOnboarding: true,
+      updatedAt: new Date(),
+    };
+    if (input.primaryFocus !== undefined) {
+      setDoc.primaryFocus = input.primaryFocus;
+    }
+    await UserModel.updateOne({ _id: id }, { $set: setDoc }).exec();
+    return this.findById(id);
+  }
+
   private toDomain(doc: PersistedUser): User {
     const result = User.create({
       id: doc._id,
@@ -68,6 +106,8 @@ export class MongoUserRepository implements IUserRepository {
       passwordHash: doc.passwordHash,
       role: doc.role,
       status: doc.status,
+      hasCompletedOnboarding: normalizeHasCompletedOnboarding(doc),
+      primaryFocus: normalizePrimaryFocus(doc),
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     });

@@ -12,6 +12,7 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { Onboarding } from "./pages/Onboarding";
 import { LandingLayout } from "./layouts/LandingLayout";
 
 export function App(): ReactElement {
@@ -28,6 +29,7 @@ export function App(): ReactElement {
         </Route>
 
         <Route element={<AuthLayout />}>
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Home />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/habits" element={<Habits />} />

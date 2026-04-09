@@ -1,10 +1,16 @@
 export type HabitFrequencyType = "DAILY" | "WEEKLY_TARGET";
 
+/** Categorias fixas (sem acentos no payload/API). */
+export type HabitCategory = "SAUDE" | "FOCO" | "FINANCAS" | "PESSOAL";
+
 export interface HabitProps {
   readonly id: string;
   readonly userId: string;
   readonly name: string;
   readonly description: string | null;
+  /** Emoji (ex: "📚") ou nome de ícone Lucide em PascalCase (ex: "Activity"). */
+  readonly icon: string;
+  readonly category: HabitCategory;
   readonly frequencyType: HabitFrequencyType;
   readonly targetDaysPerWeek: number | null;
   readonly completedDates: readonly string[];
@@ -16,7 +22,8 @@ export interface HabitProps {
 export type HabitValidationError =
   | { readonly code: "NAME_REQUIRED" }
   | { readonly code: "USER_ID_REQUIRED" }
-  | { readonly code: "INVALID_TARGET_DAYS" };
+  | { readonly code: "INVALID_TARGET_DAYS" }
+  | { readonly code: "INVALID_CATEGORY" };
 
 export type CreateHabitResult =
   | { readonly ok: true; readonly habit: Habit }
@@ -27,6 +34,17 @@ function toDateKey(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+const HABIT_CATEGORIES: readonly HabitCategory[] = [
+  "SAUDE",
+  "FOCO",
+  "FINANCAS",
+  "PESSOAL",
+];
+
+export function isHabitCategory(value: string): value is HabitCategory {
+  return (HABIT_CATEGORIES as readonly string[]).includes(value);
 }
 
 function subtractDays(d: Date, n: number): Date {
@@ -92,12 +110,21 @@ export class Habit {
       return { ok: false, error: { code: "INVALID_TARGET_DAYS" } };
     }
 
+    if (!isHabitCategory(props.category)) {
+      return { ok: false, error: { code: "INVALID_CATEGORY" } };
+    }
+
+    const iconTrimmed = props.icon.trim();
+    const icon = iconTrimmed.length > 0 ? iconTrimmed : "Activity";
+
     return {
       ok: true,
       habit: new Habit({
         ...props,
         name: props.name.trim(),
         description: props.description?.trim() ?? null,
+        icon,
+        category: props.category,
       }),
     };
   }
@@ -113,6 +140,12 @@ export class Habit {
   }
   get description(): string | null {
     return this.props.description;
+  }
+  get icon(): string {
+    return this.props.icon;
+  }
+  get category(): HabitCategory {
+    return this.props.category;
   }
   get frequencyType(): HabitFrequencyType {
     return this.props.frequencyType;
@@ -163,13 +196,23 @@ export class Habit {
   updateDetails(data: {
     readonly name?: string;
     readonly description?: string | null;
+    readonly icon?: string;
+    readonly category?: HabitCategory;
     readonly frequencyType?: HabitFrequencyType;
     readonly targetDaysPerWeek?: number | null;
   }): CreateHabitResult {
+    const nextCategory = data.category ?? this.props.category;
+    if (!isHabitCategory(nextCategory)) {
+      return { ok: false, error: { code: "INVALID_CATEGORY" } };
+    }
+    const nextIconRaw = data.icon !== undefined ? data.icon.trim() : this.props.icon;
+    const nextIcon = nextIconRaw.length > 0 ? nextIconRaw : "Activity";
     return Habit.create({
       ...this.props,
       name: data.name ?? this.props.name,
       description: data.description !== undefined ? data.description : this.props.description,
+      icon: nextIcon,
+      category: nextCategory,
       frequencyType: data.frequencyType ?? this.props.frequencyType,
       targetDaysPerWeek: data.targetDaysPerWeek !== undefined ? data.targetDaysPerWeek : this.props.targetDaysPerWeek,
     });

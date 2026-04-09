@@ -23,7 +23,10 @@ export function Login(): ReactElement {
       {
         onSuccess: (response) => {
           setSession({ token: response.token, user: response.user });
-          navigate("/dashboard", { replace: true });
+          navigate(
+            response.user.hasCompletedOnboarding ? "/dashboard" : "/onboarding",
+            { replace: true },
+          );
         },
       },
     );

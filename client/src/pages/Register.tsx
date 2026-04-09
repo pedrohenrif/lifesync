@@ -59,7 +59,7 @@ export function Register(): ReactElement {
                 htmlFor={nameId}
                 className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500"
               >
-                Nome Completo
+                Nome (opcional)
               </label>
               <input
                 id={nameId}
@@ -69,8 +69,7 @@ export function Register(): ReactElement {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none ring-0 transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900"
-                placeholder="Seu nome completo"
-                required
+                placeholder="Você define como ser chamado no onboarding"
               />
             </div>
 
