@@ -1,11 +1,21 @@
 import type { ReactElement } from "react";
 import { useEffect, useMemo } from "react";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import {
+  LogOut,
+  Home,
+  Target,
+  Activity,
+  Wallet,
+  BookMarked,
+  ShieldCheck,
+  Download,
+} from "lucide-react";
+import { useMe } from "../hooks/useMe";
+import { usePwaInstall } from "../hooks/usePwaInstall";
+import { useAuthStore } from "../stores/authStore";
 
 const ONBOARDING_PATH = "/onboarding";
-import { LogOut, Home, Target, Activity, Wallet, BookMarked, ShieldCheck } from "lucide-react";
-import { useMe } from "../hooks/useMe";
-import { useAuthStore } from "../stores/authStore";
 
 type NavItem = { readonly to: string; readonly label: string; readonly icon: typeof Home };
 
@@ -34,6 +44,7 @@ export function AuthLayout(): ReactElement {
   const logout = useAuthStore((s) => s.logout);
   const location = useLocation();
   const meQuery = useMe(token !== null);
+  const { canShowInstall, install } = usePwaInstall();
 
   useEffect(() => {
     if (token === null) return;
@@ -90,17 +101,27 @@ export function AuthLayout(): ReactElement {
     <div className="flex min-h-screen flex-col bg-black text-zinc-100">
       <header className="border-b border-zinc-800 bg-zinc-950">
         {/* Mobile: marca + atalhos Cofre / Admin / Sair */}
-        <div className="flex items-center justify-between px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 md:hidden">
           <Link
             to="/dashboard"
-            className="text-sm font-semibold tracking-tight text-zinc-100 transition hover:text-white"
+            className="shrink-0 text-sm font-semibold tracking-tight text-zinc-100 transition hover:text-white"
           >
             LifeSync
           </Link>
-          <div className="flex items-center gap-0.5">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
+            {canShowInstall ? (
+              <button
+                type="button"
+                onClick={() => void install()}
+                className="flex max-w-[7.5rem] items-center gap-1 rounded-lg border border-zinc-800 px-2 py-1.5 text-[10px] font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+              >
+                <Download className="h-3 w-3 shrink-0" />
+                <span className="truncate">Instalar app</span>
+              </button>
+            ) : null}
             <Link
               to="/vault"
-              className={`flex h-10 w-10 items-center justify-center rounded-lg transition ${
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                 location.pathname === "/vault"
                   ? "bg-zinc-800 text-emerald-400"
                   : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
@@ -112,7 +133,7 @@ export function AuthLayout(): ReactElement {
             {user?.role === "ADMIN" ? (
               <Link
                 to="/admin"
-                className={`flex h-10 w-10 items-center justify-center rounded-lg transition ${
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                   location.pathname === "/admin"
                     ? "bg-zinc-800 text-emerald-400"
                     : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
@@ -125,7 +146,7 @@ export function AuthLayout(): ReactElement {
             <button
               type="button"
               onClick={logout}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-900 hover:text-zinc-200"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-900 hover:text-zinc-200"
               aria-label="Sair"
             >
               <LogOut className="h-5 w-5" />
@@ -155,8 +176,18 @@ export function AuthLayout(): ReactElement {
             })}
           </nav>
 
-          <div className="flex min-w-0 max-w-[40%] items-center gap-4">
-            <span className="truncate text-xs text-zinc-500">{user?.name ?? user?.email ?? ""}</span>
+          <div className="flex min-w-0 max-w-[50%] items-center gap-3">
+            {canShowInstall ? (
+              <button
+                type="button"
+                onClick={() => void install()}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Instalar aplicativo
+              </button>
+            ) : null}
+            <span className="min-w-0 truncate text-xs text-zinc-500">{user?.name ?? user?.email ?? ""}</span>
             <button
               type="button"
               onClick={logout}
