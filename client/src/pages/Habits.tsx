@@ -92,7 +92,7 @@ function HabitOptionsMenu({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="rounded-md p-1 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
+        className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
         aria-label="Opções"
       >
         <MoreVertical className="h-4 w-4" />
@@ -100,19 +100,19 @@ function HabitOptionsMenu({
 
       {open && (
         <div className="absolute right-0 top-8 z-20 min-w-[140px] overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 shadow-xl">
-          <button
-            type="button"
-            onClick={() => { setOpen(false); onEdit(); }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-800"
-          >
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onEdit(); }}
+              className="flex min-h-10 w-full items-center gap-2 px-3 py-2 text-xs text-zinc-300 transition hover:bg-zinc-800"
+            >
             <Pencil className="h-3.5 w-3.5" />
             Editar
           </button>
-          <button
-            type="button"
-            onClick={() => { setOpen(false); onDelete(); }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 transition hover:bg-zinc-800"
-          >
+            <button
+              type="button"
+              onClick={() => { setOpen(false); onDelete(); }}
+              className="flex min-h-10 w-full items-center gap-2 px-3 py-2 text-xs text-red-400 transition hover:bg-zinc-800"
+            >
             <Trash2 className="h-3.5 w-3.5" />
             Excluir
           </button>
@@ -157,8 +157,8 @@ function EditHabitModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-950 p-6">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-zinc-800 border-b-0 bg-zinc-950 p-4 sm:rounded-xl sm:border-b sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-zinc-200">Editar hábito</h2>
           <button
@@ -214,18 +214,18 @@ function EditHabitModal({
             )}
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border border-zinc-800 py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800"
+              className="min-h-11 flex-1 rounded-lg border border-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={updateHabit.isPending || name.trim().length === 0}
-              className="flex-1 rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+              className="min-h-11 flex-1 rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {updateHabit.isPending ? "Salvando..." : "Salvar"}
             </button>
@@ -258,9 +258,8 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
 
   return (
     <>
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 transition hover:border-zinc-700">
-        <div className="flex items-start gap-4">
-          {/* Check button */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-3 transition hover:border-zinc-700 md:p-4">
+        <div className="flex gap-3">
           <button
             type="button"
             onClick={handleToggle}
@@ -275,63 +274,57 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
             <Check className="h-5 w-5" strokeWidth={3} />
           </button>
 
-          {/* Main content */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5">
-              <h3
-                className={`truncate text-sm font-medium ${
-                  isDoneToday ? "text-zinc-400 line-through" : "text-zinc-100"
-                }`}
-              >
-                {habit.name}
-              </h3>
-
-              {habit.frequencyType === "WEEKLY_TARGET" &&
-              habit.targetDaysPerWeek !== null && (
-                <span className="shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">
-                  {habit.targetDaysPerWeek}x/sem
-                </span>
-              )}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3
+                    className={`truncate text-sm font-medium ${
+                      isDoneToday ? "text-zinc-400 line-through" : "text-zinc-100"
+                    }`}
+                  >
+                    {habit.name}
+                  </h3>
+                  {habit.frequencyType === "WEEKLY_TARGET" &&
+                    habit.targetDaysPerWeek !== null && (
+                      <span className="shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-500">
+                        {habit.targetDaysPerWeek}x/sem
+                      </span>
+                    )}
+                </div>
+                {habit.description !== null && habit.description.length > 0 && (
+                  <p className="mt-0.5 truncate text-xs text-zinc-600">{habit.description}</p>
+                )}
+              </div>
+              <HabitOptionsMenu onEdit={() => setEditing(true)} onDelete={handleDelete} />
             </div>
-
-            {habit.description !== null && habit.description.length > 0 && (
-              <p className="mt-0.5 truncate text-xs text-zinc-600">
-                {habit.description}
-              </p>
-            )}
 
             <XpProgressBar xp={habit.xp} level={habit.level} />
 
-            {/* Estatística rápida */}
             <div className="mt-1.5 flex items-center gap-1 text-[10px] text-zinc-600">
               <Hash className="h-2.5 w-2.5" />
               Total de check-ins: {habit.completedDates.length}
             </div>
-          </div>
 
-          {/* Right side: streak + weekly + options */}
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <HabitOptionsMenu
-              onEdit={() => setEditing(true)}
-              onDelete={handleDelete}
-            />
-
-            <div className="flex items-center gap-1.5">
-              <Flame
-                className={`h-4 w-4 ${
-                  habit.currentStreak > 0 ? "text-orange-400" : "text-zinc-700"
-                }`}
-              />
-              <span
-                className={`text-sm font-semibold tabular-nums ${
-                  habit.currentStreak > 0 ? "text-orange-400" : "text-zinc-700"
-                }`}
-              >
-                {habit.currentStreak}
-              </span>
+            <div className="mt-3 flex flex-col gap-3 border-t border-zinc-800/70 pt-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-1.5">
+                <Flame
+                  className={`h-4 w-4 ${
+                    habit.currentStreak > 0 ? "text-orange-400" : "text-zinc-700"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-semibold tabular-nums ${
+                    habit.currentStreak > 0 ? "text-orange-400" : "text-zinc-700"
+                  }`}
+                >
+                  {habit.currentStreak}
+                </span>
+              </div>
+              <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <WeeklyTracker completedDates={habit.completedDates} />
+              </div>
             </div>
-
-            <WeeklyTracker completedDates={habit.completedDates} />
           </div>
         </div>
       </div>
@@ -383,7 +376,7 @@ function CreateHabitForm({
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 md:p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-zinc-300">Novo hábito</h2>
         <button
@@ -414,7 +407,7 @@ function CreateHabitForm({
           className={INPUT_CLASS}
         />
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <select
             value={frequencyType}
             onChange={(e) => setFrequencyType(e.target.value as HabitFrequencyType)}
@@ -442,7 +435,7 @@ function CreateHabitForm({
         <button
           type="submit"
           disabled={createHabit.isPending || name.trim().length === 0}
-          className="w-full rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {createHabit.isPending ? "Criando..." : "Adicionar Hábito"}
         </button>
@@ -464,9 +457,9 @@ export function Habits(): ReactElement {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Activity className="h-6 w-6 text-zinc-400" />
+          <Activity className="h-6 w-6 shrink-0 text-zinc-400" />
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
               Hábitos
@@ -483,7 +476,7 @@ export function Habits(): ReactElement {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-zinc-200"
+            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Novo Hábito

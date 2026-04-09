@@ -41,7 +41,7 @@ function formatTargetDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-const CARD_CLASS = "rounded-2xl border border-zinc-800 bg-zinc-900 p-6";
+const CARD_CLASS = "rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:p-6";
 
 /* ─── Skeletons ─── */
 
@@ -96,12 +96,12 @@ function FinancePanel(): ReactElement {
         <h2 className="text-sm font-semibold text-zinc-400">Finanças</h2>
       </div>
 
-      <p className="text-3xl font-bold tracking-tight text-zinc-100">
+      <p className="text-2xl font-bold tracking-tight text-zinc-100 md:text-3xl">
         {formatCurrency(data.balance)}
       </p>
       <p className="text-xs text-zinc-500 mt-1">Saldo atual do mês</p>
 
-      <div className="mt-4 flex items-center gap-6">
+      <div className="mt-4 flex flex-wrap items-center gap-4 sm:gap-6">
         <div className="flex items-center gap-1.5">
           <TrendingUp className="h-4 w-4 text-emerald-400" />
           <span className="text-sm font-medium text-emerald-400">{formatCurrency(data.totalIncome)}</span>
@@ -263,7 +263,7 @@ export function Home(): ReactElement {
     <div className="mx-auto max-w-6xl space-y-8">
       {/* Header de boas-vindas */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
+        <h1 className="text-xl font-bold tracking-tight text-zinc-100 sm:text-2xl">
           Olá, {user?.email ?? "usuário"}
         </h1>
         <p className="mt-1 text-sm text-zinc-500">{formatTodayLong()}</p>

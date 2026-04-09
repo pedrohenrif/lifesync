@@ -293,7 +293,7 @@ function GoalCard({
   const hasTasks = goal.tasks.length > 0;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 transition hover:border-zinc-700 space-y-2.5">
+    <div className="space-y-2.5 rounded-xl border border-zinc-800 bg-zinc-900 p-3 transition hover:border-zinc-700 md:p-4">
       {/* Cabeçalho: categoria + prazo */}
       <div className="flex items-center justify-between">
         <CategoryBadge category={goal.category} />
@@ -309,7 +309,7 @@ function GoalCard({
       </div>
 
       {/* Título */}
-      <h3 className="text-sm font-medium text-zinc-100">{goal.title}</h3>
+      <h3 className="truncate text-sm font-medium text-zinc-100">{goal.title}</h3>
 
       {/* Descrição */}
       {goal.description !== null && goal.description.length > 0 && (
@@ -337,7 +337,7 @@ function GoalCard({
               type="button"
               onClick={() => moveTo(column.prev as GoalStatus)}
               disabled={isUpdating}
-              className="rounded-md p-1.5 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
               aria-label="Mover para anterior"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
@@ -348,7 +348,7 @@ function GoalCard({
               type="button"
               onClick={() => moveTo(column.next as GoalStatus)}
               disabled={isUpdating}
-              className="rounded-md p-1.5 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
               aria-label="Mover para próximo"
             >
               <ArrowRight className="h-3.5 w-3.5" />
@@ -360,7 +360,7 @@ function GoalCard({
           type="button"
           onClick={() => deleteGoalMutation.mutate(goal.id)}
           disabled={isDeleting}
-          className="rounded-md p-1.5 text-zinc-600 transition hover:bg-red-950/60 hover:text-red-400 disabled:opacity-50"
+          className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-red-950/60 hover:text-red-400 disabled:opacity-50"
           aria-label="Excluir meta"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -435,7 +435,7 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
   };
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 md:p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-zinc-300">Nova meta</h2>
         <button
@@ -466,7 +466,7 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
           className={INPUT_CLASS}
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs font-medium text-zinc-500">Categoria</label>
             <select
@@ -494,7 +494,7 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
         <button
           type="submit"
           disabled={createGoal.isPending || title.trim().length === 0}
-          className="w-full rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {createGoal.isPending ? "Criando..." : "Adicionar Meta"}
         </button>
@@ -549,9 +549,9 @@ export function Goals(): ReactElement {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Target className="h-6 w-6 text-zinc-400" />
+          <Target className="h-6 w-6 shrink-0 text-zinc-400" />
           <h1 className="text-xl font-semibold tracking-tight text-zinc-100">Metas</h1>
         </div>
 
@@ -559,7 +559,7 @@ export function Goals(): ReactElement {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-zinc-200"
+            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Nova Meta
@@ -583,7 +583,7 @@ export function Goals(): ReactElement {
           Erro ao carregar metas. Tente recarregar a página.
         </p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {COLUMNS.map((column) => (
             <KanbanColumn
               key={column.status}

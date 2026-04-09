@@ -40,7 +40,7 @@ function UserCard({
   readonly isLoading: boolean;
 }): ReactElement {
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-zinc-100">{user.name}</p>
         <p className="mt-0.5 truncate text-xs text-zinc-500">{user.email}</p>
@@ -50,12 +50,12 @@ function UserCard({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <button
           type="button"
           disabled={isLoading}
           onClick={onApprove}
-          className="flex items-center gap-1.5 rounded-lg bg-emerald-600/20 px-4 py-2 text-xs font-medium text-emerald-400 transition hover:bg-emerald-600/30 disabled:opacity-50"
+          className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-emerald-600/20 px-4 py-2.5 text-xs font-medium text-emerald-400 transition hover:bg-emerald-600/30 disabled:opacity-50 sm:justify-start"
         >
           <UserCheck className="h-3.5 w-3.5" />
           Aprovar
@@ -64,7 +64,7 @@ function UserCard({
           type="button"
           disabled={isLoading}
           onClick={onReject}
-          className="flex items-center gap-1.5 rounded-lg bg-red-600/20 px-4 py-2 text-xs font-medium text-red-400 transition hover:bg-red-600/30 disabled:opacity-50"
+          className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-red-600/20 px-4 py-2.5 text-xs font-medium text-red-400 transition hover:bg-red-600/30 disabled:opacity-50 sm:justify-start"
         >
           <UserX className="h-3.5 w-3.5" />
           Rejeitar

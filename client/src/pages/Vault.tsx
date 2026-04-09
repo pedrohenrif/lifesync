@@ -53,14 +53,14 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-zinc-800 bg-zinc-950 p-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+      <div className="max-h-[min(90vh,100dvh)] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-zinc-800 border-b-0 bg-zinc-950 p-4 sm:rounded-xl sm:border-b md:p-6">
+        <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-zinc-200">Nova Nota</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />
@@ -82,7 +82,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
             <button
               type="button"
               onClick={() => setType("NOTE")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-xs font-medium transition ${
+              className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition ${
                 type === "NOTE"
                   ? "border-zinc-600 bg-zinc-800 text-zinc-100"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
@@ -94,7 +94,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
             <button
               type="button"
               onClick={() => setType("LINK")}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-xs font-medium transition ${
+              className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition ${
                 type === "LINK"
                   ? "border-zinc-600 bg-zinc-800 text-zinc-100"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
@@ -143,18 +143,18 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
             </select>
           </div>
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border border-zinc-800 py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800"
+              className="min-h-11 flex-1 rounded-lg border border-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={createNote.isPending || title.trim().length === 0 || content.trim().length === 0}
-              className="flex-1 rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+              className="min-h-11 flex-1 rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {createNote.isPending ? "Salvando..." : "Salvar"}
             </button>
@@ -187,7 +187,7 @@ function NoteCard({
   const iconColor = isLink ? "text-blue-400" : "text-violet-400";
 
   return (
-    <div className="group flex flex-col rounded-xl border border-zinc-800 bg-zinc-950 p-4 transition hover:border-zinc-700">
+    <div className="group flex flex-col rounded-xl border border-zinc-800 bg-zinc-950 p-3 transition hover:border-zinc-700 md:p-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -252,9 +252,9 @@ export function Vault(): ReactElement {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <BookMarked className="h-6 w-6 text-zinc-400" />
+          <BookMarked className="h-6 w-6 shrink-0 text-zinc-400" />
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-zinc-100">Cofre</h1>
             <p className="text-xs text-zinc-600">Seu segundo cérebro</p>
@@ -264,7 +264,7 @@ export function Vault(): ReactElement {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:bg-zinc-200"
+          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Nova Nota
@@ -294,7 +294,7 @@ export function Vault(): ReactElement {
           </p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => (
             <NoteCard
               key={note.id}

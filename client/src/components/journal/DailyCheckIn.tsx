@@ -60,7 +60,7 @@ export function DailyCheckIn(): ReactElement {
 
   if (isPending) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="h-5 w-5 rounded bg-zinc-800 animate-pulse" />
           <div className="h-4 w-32 rounded bg-zinc-800 animate-pulse" />
@@ -77,7 +77,7 @@ export function DailyCheckIn(): ReactElement {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4"
+      className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 space-y-4 md:p-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ export function DailyCheckIn(): ReactElement {
       {/* Mood selector */}
       <div>
         <p className="mb-2.5 text-xs text-zinc-500">Como você está se sentindo?</p>
-        <div className="flex gap-2.5">
+        <div className="flex flex-wrap gap-2 sm:gap-2.5">
           {MOOD_OPTIONS.map((opt) => {
             const isSelected = mood === opt.value;
             return (
@@ -104,7 +104,7 @@ export function DailyCheckIn(): ReactElement {
                 key={opt.value}
                 type="button"
                 onClick={() => setMood(opt.value)}
-                className={`flex h-12 w-12 items-center justify-center rounded-xl border-2 text-xl transition ${
+                className={`flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-xl border-2 text-lg transition sm:h-12 sm:w-12 sm:text-xl ${
                   isSelected
                     ? opt.activeClass
                     : "border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/50"
@@ -132,7 +132,7 @@ export function DailyCheckIn(): ReactElement {
       <button
         type="submit"
         disabled={mood === null || saveMutation.isPending}
-        className="w-full rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saveMutation.isPending ? "Salvando..." : hasSavedToday ? "Atualizar Registro" : "Salvar Registro"}
       </button>
