@@ -9,7 +9,8 @@ import {
   RadarChart,
   ResponsiveContainer,
 } from "recharts";
-import { Coins, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Coins, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { AuthUser } from "../../stores/authStore";
 import { createPersonalReward, redeemPersonalReward } from "../../api/auth";
@@ -21,44 +22,73 @@ type GamificationCockpitProps = {
   readonly user: AuthUser;
 };
 
-export function LevelProgressBar({ user }: { readonly user: AuthUser }): ReactElement {
+export function LevelProgressBar({
+  user,
+  variant = "default",
+}: {
+  readonly user: AuthUser;
+  readonly variant?: "default" | "large";
+}): ReactElement {
   const pct =
     user.xpToNextLevel > 0
       ? Math.min(100, Math.round((user.currentXp / user.xpToNextLevel) * 100))
       : 100;
 
+  const large = variant === "large";
+
   return (
-    <div className={CARD}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Nível
-          </span>
-          <span className="text-lg font-semibold tabular-nums text-zinc-100">{user.level}</span>
+    <div className={`${CARD} ${large ? "p-5 md:p-7" : ""}`}>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Nível atual</p>
+          <p
+            className={`mt-1 font-bold tabular-nums tracking-tight text-zinc-100 ${large ? "text-4xl md:text-5xl" : "text-lg font-semibold"}`}
+          >
+            {user.level}
+          </p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-          <Coins className="h-3.5 w-3.5 text-amber-500/90" />
-          <span className="tabular-nums text-zinc-300">{user.coins}</span>
-          <span className="text-zinc-600">moedas</span>
+        <div
+          className={`flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.07] ${large ? "px-4 py-2.5" : "px-2.5 py-1.5"}`}
+        >
+          <Coins className={`shrink-0 text-amber-500/90 ${large ? "h-5 w-5" : "h-3.5 w-3.5"}`} />
+          <div className="text-left">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Moedas</p>
+            <p className={`font-semibold tabular-nums text-zinc-100 ${large ? "text-lg" : "text-sm"}`}>
+              {user.coins}
+            </p>
+          </div>
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between text-[11px] text-zinc-500">
-        <span>Progresso de maestria</span>
-        <span className="tabular-nums">
+      <div
+        className={`mt-4 flex items-center justify-between text-zinc-500 ${large ? "text-sm" : "text-[11px]"}`}
+      >
+        <span>Experiência até o próximo nível</span>
+        <span className="tabular-nums text-zinc-400">
           {user.currentXp} / {user.xpToNextLevel} XP
         </span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-800">
+      <div className={`mt-2 overflow-hidden rounded-full bg-zinc-800 ${large ? "h-3 md:h-3.5" : "h-2"}`}>
         <div
           className="h-full rounded-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-emerald-400 transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
+      {large ? (
+        <p className="mt-4 text-xs text-zinc-600">
+          XP total acumulado: <span className="tabular-nums text-zinc-500">{user.totalXp}</span>
+        </p>
+      ) : null}
     </div>
   );
 }
 
-export function EvolutionRadar({ user }: { readonly user: AuthUser }): ReactElement {
+export function EvolutionRadar({
+  user,
+  variant = "default",
+}: {
+  readonly user: AuthUser;
+  readonly variant?: "default" | "large";
+}): ReactElement {
   const data = useMemo(() => {
     const a = user.attributes;
     const max = Math.max(1, ...Object.values(a));
@@ -71,30 +101,54 @@ export function EvolutionRadar({ user }: { readonly user: AuthUser }): ReactElem
     ];
   }, [user.attributes]);
 
+  const large = variant === "large";
+  const chartMin = large ? "min-h-[300px] lg:min-h-[380px]" : "min-h-[220px]";
+  const outer = large ? "78%" : "70%";
+  const tickSize = large ? 12 : 10;
+  const strokeW = large ? 2 : 1.5;
+  const fillOp = large ? 0.28 : 0.22;
+
   return (
-    <div className={`${CARD} flex min-h-[280px] flex-col`}>
+    <div className={`${CARD} flex ${large ? "min-h-[320px] lg:min-h-[420px]" : "min-h-[280px]"} flex-col`}>
       <div className="mb-2 flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-emerald-500/80" />
-        <h2 className="text-sm font-semibold text-zinc-300">Perfil de evolução</h2>
+        <Sparkles className={`text-emerald-500/80 ${large ? "h-5 w-5" : "h-4 w-4"}`} />
+        <h2 className={`font-semibold text-zinc-300 ${large ? "text-base md:text-lg" : "text-sm"}`}>
+          {large ? "Gráfico de atributos" : "Perfil de evolução"}
+        </h2>
       </div>
-      <p className="mb-2 text-[11px] text-zinc-600">
-        Distribuição de XP por dimensão — reflexo da sua prática recente.
+      <p className={`mb-3 text-zinc-600 ${large ? "text-xs md:text-sm" : "text-[11px]"}`}>
+        {large
+          ? "Cada eixo reflete o XP acumulado na dimensão — hábitos, metas e finanças moldam o seu perfil."
+          : "Distribuição de XP por dimensão — reflexo da sua prática recente."}
       </p>
-      <div className="min-h-[220px] flex-1 w-full">
+      {large ? (
+        <ul className="mb-4 grid grid-cols-2 gap-2 text-[11px] sm:grid-cols-5 sm:gap-1">
+          {data.map((d) => (
+            <li
+              key={d.subject}
+              className="rounded-lg border border-zinc-800/80 bg-zinc-900/40 px-2 py-1.5 text-center"
+            >
+              <span className="block text-zinc-500">{d.subject}</span>
+              <span className="font-semibold tabular-nums text-emerald-400/90">{d.value}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className={`${chartMin} w-full flex-1`}>
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+          <RadarChart cx="50%" cy="50%" outerRadius={outer} data={data}>
             <PolarGrid stroke="#27272a" />
             <PolarAngleAxis
               dataKey="subject"
-              tick={{ fill: "#71717a", fontSize: 10 }}
+              tick={{ fill: "#71717a", fontSize: tickSize }}
             />
             <Radar
               name="XP"
               dataKey="value"
               stroke="#10b981"
               fill="#10b981"
-              fillOpacity={0.22}
-              strokeWidth={1.5}
+              fillOpacity={fillOp}
+              strokeWidth={strokeW}
             />
           </RadarChart>
         </ResponsiveContainer>
@@ -134,9 +188,9 @@ export function PersonalRewardsPanel({ user }: { readonly user: AuthUser }): Rea
 
   return (
     <div className={CARD}>
-      <h2 className="text-sm font-semibold text-zinc-300">Loja pessoal</h2>
+      <h2 className="text-sm font-semibold text-zinc-300">Loja de recompensas</h2>
       <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
-        Defina conquistas que deseja desbloquear. Cada 1 XP ganho rende 1 moeda.
+        Crie recompensas pessoais e resgate-as com moedas. Cada 1 XP ganho rende 1 moeda.
       </p>
 
       <form
@@ -151,7 +205,7 @@ export function PersonalRewardsPanel({ user }: { readonly user: AuthUser }): Rea
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ex.: Cinema, descanso, equipamento"
+          placeholder="Ex.: Assistir filme, descanso sem telas"
           className="min-h-10 flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-700/50"
         />
         <div className="flex gap-2">
@@ -254,16 +308,16 @@ export function GamificationCockpit({ user }: GamificationCockpitProps): ReactEl
   return (
     <>
       {showLevelUp ? <LevelUpOverlay /> : null}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <LevelProgressBar user={user} />
-        </div>
-        <div className="lg:col-span-2">
-          <EvolutionRadar user={user} />
-        </div>
-        <div className="lg:col-span-3">
-          <PersonalRewardsPanel user={user} />
-        </div>
+      <div className="space-y-4">
+        <LevelProgressBar user={user} variant="default" />
+        <EvolutionRadar user={user} variant="default" />
+        <Link
+          to="/profile"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/50 py-2.5 text-xs font-medium text-emerald-500/90 transition hover:border-emerald-800/60 hover:bg-zinc-900 hover:text-emerald-400"
+        >
+          Ficha de personagem e loja
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
     </>
   );

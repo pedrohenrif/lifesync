@@ -311,33 +311,34 @@ export function Home(): ReactElement {
       ? user.name.trim()
       : (user?.email?.split("@")[0] ?? "usuário");
 
+  const mainSpan = user !== null ? "lg:col-span-8" : "lg:col-span-12";
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-7xl space-y-8">
       {showConfetti ? <WelcomeConfettiOverlay /> : null}
-      {/* Header de boas-vindas */}
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-zinc-100 sm:text-2xl">
-          Olá, {greetingName}
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500">{formatTodayLong()}</p>
-      </div>
 
-      {/* Evolução / nível / recompensas */}
-      {user !== null ? <GamificationCockpit user={user} /> : null}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 lg:items-start">
+        {user !== null ? (
+          <aside className="max-lg:order-first lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
+            <GamificationCockpit user={user} />
+          </aside>
+        ) : null}
 
-      {/* Daily Check-In */}
-      <DailyCheckIn />
+        <div className={`space-y-6 ${mainSpan}`}>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-zinc-100 sm:text-2xl">Olá, {greetingName}</h1>
+            <p className="mt-1 text-sm text-zinc-500">{formatTodayLong()}</p>
+          </div>
 
-      {/* Bento Grid */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <div className="lg:row-span-1">
-          <FinancePanel />
-        </div>
-        <div className="lg:row-span-1">
-          <HabitsPanel />
-        </div>
-        <div className="lg:row-span-1">
-          <GoalsPanel />
+          <DailyCheckIn />
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <HabitsPanel />
+            <GoalsPanel />
+            <div className="md:col-span-2">
+              <FinancePanel />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import {
   BookMarked,
   ShieldCheck,
   Download,
+  Sparkles,
 } from "lucide-react";
 import { useMe } from "../hooks/useMe";
 import { usePwaInstall } from "../hooks/usePwaInstall";
@@ -24,6 +25,7 @@ const BASE_NAV_ITEMS: readonly NavItem[] = [
   { to: "/goals", label: "Metas", icon: Target },
   { to: "/habits", label: "Hábitos", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },
+  { to: "/profile", label: "Evolução", icon: Sparkles },
   { to: "/vault", label: "Cofre", icon: BookMarked },
 ];
 
@@ -120,6 +122,17 @@ export function AuthLayout(): ReactElement {
               </button>
             ) : null}
             <Link
+              to="/profile"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
+                location.pathname === "/profile"
+                  ? "bg-zinc-800 text-emerald-400"
+                  : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+              }`}
+              aria-label="Evolução"
+            >
+              <Sparkles className="h-5 w-5" />
+            </Link>
+            <Link
               to="/vault"
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                 location.pathname === "/vault"
@@ -155,7 +168,7 @@ export function AuthLayout(): ReactElement {
         </div>
 
         {/* Desktop: navegação completa */}
-        <div className="mx-auto hidden max-w-6xl items-center justify-between px-6 py-3 md:flex">
+        <div className="mx-auto hidden max-w-7xl items-center justify-between px-6 py-3 md:flex">
           <nav className="flex flex-wrap items-center gap-1">
             {navItems.map(({ to, label, icon: Icon }) => {
               const isActive = location.pathname === to;

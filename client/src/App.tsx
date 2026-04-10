@@ -8,6 +8,7 @@ import { Goals } from "./pages/Goals";
 import { Habits } from "./pages/Habits";
 import { Finance } from "./pages/Finance";
 import { Vault } from "./pages/Vault";
+import { Profile } from "./pages/Profile";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
@@ -34,6 +35,7 @@ export function App(): ReactElement {
           <Route path="/goals" element={<Goals />} />
           <Route path="/habits" element={<Habits />} />
           <Route path="/finance" element={<Finance />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/vault" element={<Vault />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>

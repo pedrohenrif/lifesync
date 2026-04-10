@@ -34,6 +34,9 @@ import {
   Heart,
   Brain,
   Coins,
+  Mail,
+  Phone,
+  User,
 } from "lucide-react";
 
 const MOCK_CARD = "rounded-2xl border border-zinc-800 bg-zinc-900";
@@ -935,10 +938,45 @@ export function Landing(): ReactElement {
         </div>
       </section>
 
-      <footer className="border-t border-zinc-800/80 px-5 py-10 sm:px-6">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm font-medium text-zinc-400">LifeSync</p>
-          <p className="mt-2 text-xs text-zinc-600">© 2026 Todos os direitos reservados.</p>
+      <footer className="border-t border-zinc-800/80 px-5 py-12 sm:px-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="text-center sm:text-left">
+              <p className="text-sm font-semibold tracking-tight text-zinc-200">LifeSync</p>
+              <p className="mt-1 text-xs text-zinc-600">© 2026 Todos os direitos reservados.</p>
+            </div>
+            <div className="w-full max-w-sm space-y-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 px-5 py-4 ring-1 ring-emerald-950/30">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/90">Contato</p>
+              <a
+                href="mailto:pedro.henrique.furtado.santos@gmail.com"
+                className="flex items-start gap-3 text-sm text-zinc-400 transition hover:text-emerald-400/90"
+              >
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                <span className="break-all text-left">pedro.henrique.furtado.santos@gmail.com</span>
+              </a>
+              <div className="flex flex-col gap-1.5">
+                <a
+                  href="tel:+5541987005383"
+                  className="flex items-center gap-3 text-sm text-zinc-400 transition hover:text-emerald-400/90"
+                >
+                  <Phone className="h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                  <span className="tabular-nums">(41) 98700-5383</span>
+                </a>
+                <a
+                  href="https://wa.me/5541987005383"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pl-7 text-xs font-medium text-zinc-600 transition hover:text-emerald-500/90"
+                >
+                  Conversar no WhatsApp →
+                </a>
+              </div>
+              <p className="flex items-center gap-3 text-sm text-zinc-500">
+                <User className="h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                Pedro Henrique Furtado Santos
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
