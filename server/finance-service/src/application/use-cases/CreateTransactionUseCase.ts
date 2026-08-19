@@ -17,6 +17,20 @@ export type CreateTransactionError =
 
 const FIXED_PROJECTION_MONTHS = 12;
 
+function parseLocalDate(isoDate: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate.trim());
+  if (match === null) {
+    const fallback = new Date(isoDate);
+    return Number.isNaN(fallback.getTime()) ? null : fallback;
+  }
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  const parsed = new Date(year, month - 1, day);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
 function addMonths(base: Date, months: number): Date {
   const result = new Date(base);
   const day = result.getDate();
@@ -34,8 +48,8 @@ export class CreateTransactionUseCase {
     userId: string,
     dto: CreateTransactionDto,
   ): Promise<Result<CreateTransactionSuccess, CreateTransactionError>> {
-    const parsedDate = new Date(dto.date);
-    if (Number.isNaN(parsedDate.getTime())) {
+    const parsedDate = parseLocalDate(dto.date);
+    if (parsedDate === null) {
       return err({ code: "INVALID_DATE" });
     }
 

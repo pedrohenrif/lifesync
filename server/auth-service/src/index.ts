@@ -8,7 +8,10 @@ import { ReviewUserUseCase } from "./application/use-cases/ReviewUserUseCase.js"
 import { CreatePersonalRewardUseCase } from "./application/use-cases/CreatePersonalRewardUseCase.js";
 import { RedeemPersonalRewardUseCase } from "./application/use-cases/RedeemPersonalRewardUseCase.js";
 import { ApplyInternalGamificationEventUseCase } from "./application/use-cases/ApplyInternalGamificationEventUseCase.js";
-import { env } from "./infrastructure/config/env.js";
+import { SubscribePushUseCase } from "./application/use-cases/SubscribePushUseCase.js";
+import { env, vapidIsConfigured } from "./infrastructure/config/env.js";
+import { startEveningHabitPushCron } from "./infrastructure/jobs/eveningHabitPushCron.js";
+import { configureWebPush } from "./infrastructure/push/webPushSender.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoUserRepository } from "./infrastructure/persistence/MongoUserRepository.js";
 import { BcryptPasswordService } from "./infrastructure/security/BcryptPasswordService.js";
@@ -38,6 +41,11 @@ const redeemPersonalRewardUseCase = new RedeemPersonalRewardUseCase(userReposito
 const applyInternalGamificationEventUseCase = new ApplyInternalGamificationEventUseCase(
   userRepository,
 );
+const subscribePushUseCase = new SubscribePushUseCase(userRepository);
+
+if (vapidIsConfigured) {
+  configureWebPush(env.vapidPublicKey, env.vapidPrivateKey, env.vapidSubject);
+}
 
 const app = createApp({
   registerUserUseCase,
@@ -49,11 +57,20 @@ const app = createApp({
   createPersonalRewardUseCase,
   redeemPersonalRewardUseCase,
   applyInternalGamificationEventUseCase,
+  subscribePushUseCase,
   jwtSecret: env.jwtSecret,
   internalGamificationKey: env.internalGamificationKey,
+  vapidConfigured: vapidIsConfigured,
 });
 const server = createServer(app);
 
 server.listen(env.port, () => {
   console.log(`auth-service listening on port ${env.port}`);
+  startEveningHabitPushCron({
+    enabled: env.enablePushReminderCron,
+    userRepository,
+    habitsServiceUrl: env.habitsServiceUrl,
+    internalKey: env.internalGamificationKey,
+    vapidConfigured: vapidIsConfigured,
+  });
 });

@@ -54,6 +54,14 @@ export class Investment {
     });
   }
 
+  withName(name: string): CreateInvestmentResult {
+    return Investment.create({
+      ...this.props,
+      name,
+      updatedAt: new Date(),
+    });
+  }
+
   get id(): string { return this.props.id; }
   get userId(): string { return this.props.userId; }
   get name(): string { return this.props.name; }

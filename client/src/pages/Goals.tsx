@@ -39,7 +39,7 @@ type CategoryConfig = {
 const CATEGORY_MAP: Record<GoalCategory, CategoryConfig> = {
   STUDY: { label: "Estudos", bgClass: "bg-blue-500/15", textClass: "text-blue-400" },
   PERSONAL: { label: "Pessoal", bgClass: "bg-violet-500/15", textClass: "text-violet-400" },
-  BUSINESS: { label: "Empresarial", bgClass: "bg-emerald-500/15", textClass: "text-emerald-400" },
+  BUSINESS: { label: "Empresarial", bgClass: "bg-blue-500/15", textClass: "text-blue-400" },
   FAMILY: { label: "Familiar", bgClass: "bg-amber-500/15", textClass: "text-amber-400" },
   DREAMS: { label: "Sonhos", bgClass: "bg-pink-500/15", textClass: "text-pink-400" },
   OTHER: { label: "Outro", bgClass: "bg-zinc-500/15", textClass: "text-zinc-400" },
@@ -102,16 +102,15 @@ const COLUMNS: readonly ColumnConfig[] = [
     status: "COMPLETED",
     label: "Concluídas",
     icon: CheckCircle2,
-    accent: "border-emerald-800",
-    iconColor: "text-emerald-400",
+    accent: "border-blue-800",
+    iconColor: "text-blue-400",
     emptyText: "Nenhuma meta concluída",
     prev: "IN_PROGRESS",
     next: null,
   },
 ];
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
+const INPUT_CLASS = "ls-input";
 
 /* ─── Lógica de Prazo ─── */
 
@@ -204,11 +203,11 @@ function TaskChecklist({
           <button
             type="button"
             onClick={() => toggleTask.mutate({ goalId, taskId: task.id })}
-            className="shrink-0 text-zinc-500 transition hover:text-emerald-400"
+            className="shrink-0 text-zinc-500 transition hover:text-blue-400"
             aria-label={task.isCompleted ? "Desmarcar" : "Marcar"}
           >
             {task.isCompleted ? (
-              <CheckSquare className="h-3.5 w-3.5 text-emerald-400" />
+              <CheckSquare className="h-3.5 w-3.5 text-blue-400" />
             ) : (
               <Square className="h-3.5 w-3.5" />
             )}
@@ -266,7 +265,7 @@ function InlineAddTask({ goalId }: { readonly goalId: string }): ReactElement {
         <button
           type="submit"
           disabled={addTask.isPending}
-          className="rounded px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 transition hover:bg-emerald-500/10 disabled:opacity-50"
+          className="rounded px-1.5 py-0.5 text-[10px] font-medium text-blue-400 transition hover:bg-blue-500/10 disabled:opacity-50"
         >
           OK
         </button>
@@ -493,7 +492,7 @@ function CreateGoalForm({ onClose }: { readonly onClose: () => void }): ReactEle
         <button
           type="submit"
           disabled={createGoal.isPending || title.trim().length === 0}
-          className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="ls-btn-block"
         >
           {createGoal.isPending ? "Criando..." : "Adicionar Meta"}
         </button>
@@ -558,7 +557,7 @@ export function Goals(): ReactElement {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
+            className="ls-btn"
           >
             <Plus className="h-4 w-4" />
             Nova Meta

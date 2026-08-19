@@ -92,4 +92,26 @@ export class Transaction {
   get installment(): Installment | null { return this.props.installment; }
   get date(): Date { return this.props.date; }
   get createdAt(): Date { return this.props.createdAt; }
+
+  /** Atualiza campos da ocorrência; parcelas e vínculo de série não são recriados. */
+  withUpdatedDetails(data: {
+    readonly title?: string;
+    readonly amount?: number;
+    readonly type?: TransactionType;
+    readonly category?: string;
+    readonly paymentMethod?: PaymentMethod;
+    readonly isFixed?: boolean;
+    readonly date?: Date;
+  }): CreateTransactionResult {
+    return Transaction.create({
+      ...this.props,
+      title: data.title ?? this.props.title,
+      amount: data.amount ?? this.props.amount,
+      type: data.type ?? this.props.type,
+      category: data.category ?? this.props.category,
+      paymentMethod: data.paymentMethod ?? this.props.paymentMethod,
+      isFixed: data.isFixed ?? this.props.isFixed,
+      date: data.date ?? this.props.date,
+    });
+  }
 }

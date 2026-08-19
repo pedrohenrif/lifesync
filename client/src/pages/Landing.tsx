@@ -39,7 +39,7 @@ import {
   User,
 } from "lucide-react";
 
-const MOCK_CARD = "rounded-2xl border border-zinc-800 bg-zinc-900";
+const MOCK_CARD = "ls-card";
 
 /* ─── Hero: mockup fiel ao Dashboard (visão de pássaro) ─── */
 
@@ -47,7 +47,7 @@ function HeroBentoMockup(): ReactElement {
   return (
     <div className="relative mx-auto mt-12 max-w-5xl sm:mt-16 perspective-[1400px]">
       <div className="pointer-events-none absolute -right-1 top-2 z-10 sm:right-4 sm:top-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-800/60 bg-emerald-950/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-400 shadow-lg shadow-black/40 ring-1 ring-emerald-500/20 sm:text-[11px]">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-800/60 bg-blue-950/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-blue-400 shadow-lg shadow-black/40 ring-1 ring-blue-500/20 sm:text-[11px]">
           <Smartphone className="h-3 w-3 shrink-0" />
           Web App · Celular
         </span>
@@ -94,7 +94,7 @@ function HeroBentoMockup(): ReactElement {
               <p className="text-lg font-bold tabular-nums leading-none text-zinc-100">R$ 2.820</p>
               <p className="mt-0.5 text-[8px] text-zinc-500">Saldo do mês</p>
               <div className="mt-2 flex gap-3 text-[9px]">
-                <span className="flex items-center gap-0.5 font-medium text-emerald-400">
+                <span className="flex items-center gap-0.5 font-medium text-blue-400">
                   <TrendingUp className="h-2.5 w-2.5" />
                   3.000
                 </span>
@@ -166,7 +166,7 @@ function HeroBentoMockup(): ReactElement {
           </div>
         </div>
       </div>
-      <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[2rem] bg-gradient-to-b from-emerald-500/8 via-transparent to-violet-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -inset-10 -z-10 rounded-[2rem] bg-gradient-to-b from-blue-500/8 via-transparent to-violet-500/10 blur-3xl" />
     </div>
   );
 }
@@ -187,7 +187,7 @@ function MockGoalCard(): ReactElement {
     <div className={`${MOCK_CARD} max-w-md overflow-hidden shadow-xl ring-1 ring-zinc-800/80`}>
         <div className="border-b border-zinc-800/80 p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+          <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
             Empresarial
           </span>
           <div className="flex items-center gap-1 text-xs font-medium text-amber-400">
@@ -216,7 +216,7 @@ function MockGoalCard(): ReactElement {
           {tasks.map((t) => (
             <li key={t.title} className="flex items-center gap-2 text-xs">
               {t.done ? (
-                <CheckSquare className="h-4 w-4 shrink-0 text-emerald-500" />
+                <CheckSquare className="h-4 w-4 shrink-0 text-blue-500" />
               ) : (
                 <Square className="h-4 w-4 shrink-0 text-zinc-600" />
               )}
@@ -239,14 +239,14 @@ function MockGamificationPanel(): ReactElement {
           <Sparkles className="h-4 w-4 text-amber-400" />
           <span className="text-sm font-semibold text-zinc-200">Cockpit de maestria</span>
         </div>
-        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+        <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
           Nv. 7
         </span>
       </div>
       <p className="mt-1 text-[10px] text-zinc-500">Seu perfil evolui com o que você cumpre no dia a dia.</p>
 
       <div className="relative mx-auto mt-4 h-40 w-40">
-        <svg viewBox="0 0 100 100" className="h-full w-full text-emerald-500/25" aria-hidden>
+        <svg viewBox="0 0 100 100" className="h-full w-full text-blue-500/25" aria-hidden>
           <polygon
             fill="currentColor"
             stroke="currentColor"
@@ -257,7 +257,7 @@ function MockGamificationPanel(): ReactElement {
           <polygon
             fill="currentColor"
             fillOpacity="0.5"
-            stroke="rgb(16,185,129)"
+            stroke="rgb(59,130,246)"
             strokeWidth="0.5"
             points="50,18 78,40 66,78 34,78 22,40"
           />
@@ -267,7 +267,7 @@ function MockGamificationPanel(): ReactElement {
           Saúde
         </span>
         <span className="absolute right-0 top-[38%] translate-x-1 text-[8px] font-medium text-zinc-500">
-          <Wallet className="mx-auto mb-0.5 h-3 w-3 text-emerald-400/90" />
+          <Wallet className="mx-auto mb-0.5 h-3 w-3 text-blue-400/90" />
           Finanças
         </span>
         <span className="absolute bottom-1 left-[18%] text-[8px] font-medium text-zinc-500">
@@ -334,7 +334,7 @@ function MockMetasVisual(): ReactElement {
           <p className="text-[10px] font-medium text-zinc-500">Checklist da meta</p>
           <ul className="mt-2 space-y-1.5 text-[10px] text-zinc-300">
             <li className="flex items-center gap-2">
-              <CheckSquare className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+              <CheckSquare className="h-3.5 w-3.5 shrink-0 text-blue-500" />
               <span className="text-zinc-500 line-through">Resumo do cap. 4</span>
             </li>
             <li className="flex items-center gap-2">
@@ -454,7 +454,7 @@ function MiniAnalyticsDonut(): ReactElement {
       className="relative mx-auto h-28 w-28 shrink-0 rounded-full"
       style={{
         background:
-          "conic-gradient(#34d399 0deg 130deg, #a78bfa 130deg 220deg, #fbbf24 220deg 290deg, #fb7185 290deg 360deg)",
+          "conic-gradient(#60a5fa 0deg 130deg, #a78bfa 130deg 220deg, #fbbf24 220deg 290deg, #fb7185 290deg 360deg)",
       }}
     >
       <div className="absolute inset-[22%] rounded-full bg-zinc-900 ring-1 ring-zinc-800" />
@@ -467,9 +467,9 @@ function MockFinancePanel(): ReactElement {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2">
         <div className={`${MOCK_CARD} p-3 text-center`}>
-          <TrendingUp className="mx-auto mb-1 h-4 w-4 text-emerald-400" />
+          <TrendingUp className="mx-auto mb-1 h-4 w-4 text-blue-400" />
           <p className="text-[9px] text-zinc-500">Receita</p>
-          <p className="text-xs font-bold text-emerald-400">R$ 8.500</p>
+          <p className="text-xs font-bold text-blue-400">R$ 8.500</p>
         </div>
         <div className={`${MOCK_CARD} p-3 text-center`}>
           <TrendingDown className="mx-auto mb-1 h-4 w-4 text-red-400" />
@@ -485,14 +485,14 @@ function MockFinancePanel(): ReactElement {
       <div className={`${MOCK_CARD} divide-y divide-zinc-800/80`}>
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />
+            <TrendingUp className="h-3.5 w-3.5 text-blue-400" />
             <div>
               <p className="text-xs font-medium text-zinc-200">Salário</p>
               <p className="text-[10px] text-zinc-500">Salário · fixo</p>
             </div>
             <Repeat className="h-3 w-3 text-orange-400/80" />
           </div>
-          <span className="text-xs font-semibold text-emerald-400">+ R$ 7.000</span>
+          <span className="text-xs font-semibold text-blue-400">+ R$ 7.000</span>
         </div>
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ function MockFinancePanel(): ReactElement {
       <div className={`${MOCK_CARD} p-4`}>
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-zinc-200">Tesouro Selic</p>
-          <span className="text-[10px] text-emerald-400">+4,2% lucro</span>
+          <span className="text-[10px] text-blue-400">+4,2% lucro</span>
         </div>
         <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px]">
           <div>
@@ -540,14 +540,14 @@ function MockFinancePanel(): ReactElement {
           </div>
           <div>
             <p className="text-zinc-500">Lucro</p>
-            <p className="font-semibold text-emerald-400">R$ 512</p>
+            <p className="font-semibold text-blue-400">R$ 512</p>
           </div>
         </div>
         <div className="mt-2 h-1 overflow-hidden rounded-full bg-zinc-800">
-          <div className="h-full w-[18%] rounded-full bg-emerald-500/80" />
+          <div className="h-full w-[18%] rounded-full bg-blue-500/80" />
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <span className="flex items-center justify-center gap-1 rounded-lg border border-emerald-800/40 py-2 text-[10px] font-medium text-emerald-400">
+          <span className="flex items-center justify-center gap-1 rounded-lg border border-blue-800/40 py-2 text-[10px] font-medium text-blue-400">
             <PiggyBank className="h-3 w-3" />
             Aportar
           </span>
@@ -568,7 +568,7 @@ function UnifiedCockpitMockup(): ReactElement {
     <div className={`${MOCK_CARD} overflow-hidden p-4 ring-1 ring-zinc-800/90 sm:p-5`}>
       <div className="mb-4 flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center gap-2">
-          <LayoutDashboard className="h-4 w-4 text-emerald-400" />
+          <LayoutDashboard className="h-4 w-4 text-blue-400" />
           <span className="text-sm font-semibold text-zinc-200">Cockpit unificado</span>
         </div>
         <span className="text-[10px] text-zinc-500">Um app · três dimensões</span>
@@ -580,7 +580,7 @@ function UnifiedCockpitMockup(): ReactElement {
           <p className="text-[10px] text-zinc-500">Saldo consolidado do mês</p>
           <div className="mt-4 space-y-2">
             <div className="h-1.5 rounded-full bg-zinc-800">
-              <div className="h-full w-3/5 rounded-full bg-emerald-500/70" />
+              <div className="h-full w-3/5 rounded-full bg-blue-500/70" />
             </div>
             <p className="text-[9px] text-zinc-600">Metas de gasto sob controle</p>
           </div>
@@ -623,7 +623,7 @@ function UnifiedCockpitMockup(): ReactElement {
           PWA · barra inferior no celular
         </span>
         <div className="flex gap-6 text-zinc-500">
-          <LayoutDashboard className="h-4 w-4 text-emerald-400" aria-hidden />
+          <LayoutDashboard className="h-4 w-4 text-blue-400" aria-hidden />
           <Target className="h-4 w-4" aria-hidden />
           <Activity className="h-4 w-4" aria-hidden />
           <Wallet className="h-4 w-4" aria-hidden />
@@ -674,17 +674,17 @@ function SectionShell({
 
 export function Landing(): ReactElement {
   return (
-    <div className="overflow-x-hidden bg-zinc-950">
+    <div className="overflow-x-hidden bg-navy-950">
       {/* Hero */}
       <section className="relative px-5 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(16,185,129,0.12),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(37,99,235,0.14),transparent)]" />
         <div className="relative mx-auto max-w-3xl text-center">
           <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
             <p className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-3 py-1 text-xs font-medium text-zinc-400">
               <Zap className="h-3.5 w-3.5 text-amber-400" />
               Organização com alma de RPG
             </p>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-900/50 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-400/90">
+            <p className="inline-flex items-center gap-2 rounded-full border border-blue-900/50 bg-blue-950/40 px-3 py-1 text-xs font-medium text-blue-400/90">
               <Smartphone className="h-3.5 w-3.5 shrink-0" />
               Disponível no celular (PWA)
             </p>
@@ -702,7 +702,7 @@ export function Landing(): ReactElement {
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               to="/register"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-8 py-3.5 text-sm font-semibold text-zinc-950 shadow-lg shadow-black/20 transition hover:bg-white sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:bg-blue-500 sm:w-auto"
             >
               Começar gratuitamente
               <ArrowRight className="h-4 w-4" />
@@ -850,8 +850,8 @@ export function Landing(): ReactElement {
         visual={<MockFinancePanel />}
       >
         <div className="flex items-center gap-3">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-2 ring-emerald-500/45 ring-offset-4 ring-offset-zinc-950">
-            <Wallet className="h-7 w-7 text-emerald-400" />
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 ring-2 ring-blue-500/45 ring-offset-4 ring-offset-zinc-950">
+            <Wallet className="h-7 w-7 text-blue-400" />
           </span>
           <p className="text-sm text-zinc-500">Resumo mensal, lista, donut de análise e card de investimento — como no app.</p>
         </div>
@@ -868,7 +868,7 @@ export function Landing(): ReactElement {
             <p className="mt-4 text-sm leading-relaxed text-zinc-400 sm:text-base">
               LifeSync é pensado para <strong className="font-medium text-zinc-300">alta performance e dados precisos</strong>
               : metas, hábitos e finanças orquestrados na mesma experiência, com a clareza de um cockpit — não um amontoado de
-              ferramentas desconectadas. Agora como <strong className="font-medium text-emerald-400/90">PWA completo</strong>:
+              ferramentas desconectadas. Agora como <strong className="font-medium text-blue-400/90">PWA completo</strong>:
               navegação <strong className="font-medium text-zinc-300">mobile-first</strong>,{" "}
               <strong className="font-medium text-zinc-300">barra inferior</strong> para alternar módulos no celular e{" "}
               <strong className="font-medium text-zinc-300">instalação direto na tela inicial</strong> — sem depender da App
@@ -882,28 +882,28 @@ export function Landing(): ReactElement {
           </div>
           <ul className="mx-auto mt-10 max-w-2xl space-y-3 text-sm text-zinc-500">
             <li className="flex gap-3">
-              <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500/80" />
+              <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-blue-500/80" />
               <span>
                 <strong className="text-zinc-400">PWA instalável</strong> — adicione à tela inicial como app; experiência
                 otimizada para polegar, com barra de navegação inferior no mobile. Sem loja de aplicativos no meio do caminho.
               </span>
             </li>
             <li className="flex gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500/80" />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-500/80" />
               <span>
                 <strong className="text-zinc-400">SPA + APIs REST</strong> — frontend ágil falando com microserviços
                 especializados, cada um com seu próprio dado isolado (padrão database-per-service).
               </span>
             </li>
             <li className="flex gap-3">
-              <PieChart className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500/80" />
+              <PieChart className="mt-0.5 h-5 w-5 shrink-0 text-blue-500/80" />
               <span>
                 A mesma <strong className="text-zinc-400">inteligência visual</strong> da aba Análise alimenta a narrativa do
                 mês — sem poluir a visão geral com projeções infinitas.
               </span>
             </li>
             <li className="flex gap-3">
-              <LayoutDashboard className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500/80" />
+              <LayoutDashboard className="mt-0.5 h-5 w-5 shrink-0 text-blue-500/80" />
               <span>
                 <strong className="text-zinc-400">Um login</strong>, um header (e bottom bar no celular), um lugar para
                 retornar todos os dias.
@@ -925,7 +925,7 @@ export function Landing(): ReactElement {
           </p>
           <Link
             to="/register"
-            className="mt-10 inline-flex w-full items-center justify-center rounded-xl bg-zinc-100 px-8 py-4 text-base font-bold text-zinc-950 shadow-xl shadow-black/30 transition hover:bg-white sm:w-auto sm:px-12 sm:py-4"
+            className="mt-10 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-xl shadow-blue-950/40 transition hover:bg-blue-500 sm:w-auto sm:px-12 sm:py-4"
           >
             Junte-se à elite da produtividade
           </Link>
@@ -945,34 +945,34 @@ export function Landing(): ReactElement {
               <p className="text-sm font-semibold tracking-tight text-zinc-200">LifeSync</p>
               <p className="mt-1 text-xs text-zinc-600">© 2026 Todos os direitos reservados.</p>
             </div>
-            <div className="w-full max-w-sm space-y-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 px-5 py-4 ring-1 ring-emerald-950/30">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/90">Contato</p>
+            <div className="w-full max-w-sm space-y-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 px-5 py-4 ring-1 ring-blue-950/30">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-600/90">Contato</p>
               <a
                 href="mailto:pedro.henrique.furtado.santos@gmail.com"
-                className="flex items-start gap-3 text-sm text-zinc-400 transition hover:text-emerald-400/90"
+                className="flex items-start gap-3 text-sm text-zinc-400 transition hover:text-blue-400/90"
               >
-                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-blue-500/70" aria-hidden />
                 <span className="break-all text-left">pedro.henrique.furtado.santos@gmail.com</span>
               </a>
               <div className="flex flex-col gap-1.5">
                 <a
                   href="tel:+5541987005383"
-                  className="flex items-center gap-3 text-sm text-zinc-400 transition hover:text-emerald-400/90"
+                  className="flex items-center gap-3 text-sm text-zinc-400 transition hover:text-blue-400/90"
                 >
-                  <Phone className="h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                  <Phone className="h-4 w-4 shrink-0 text-blue-500/70" aria-hidden />
                   <span className="tabular-nums">(41) 98700-5383</span>
                 </a>
                 <a
                   href="https://wa.me/5541987005383"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="pl-7 text-xs font-medium text-zinc-600 transition hover:text-emerald-500/90"
+                  className="pl-7 text-xs font-medium text-zinc-600 transition hover:text-blue-500/90"
                 >
                   Conversar no WhatsApp →
                 </a>
               </div>
               <p className="flex items-center gap-3 text-sm text-zinc-500">
-                <User className="h-4 w-4 shrink-0 text-emerald-500/70" aria-hidden />
+                <User className="h-4 w-4 shrink-0 text-blue-500/70" aria-hidden />
                 Pedro Henrique Furtado Santos
               </p>
             </div>

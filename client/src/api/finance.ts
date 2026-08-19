@@ -57,6 +57,33 @@ export type CreateTransactionInput = {
   readonly installments?: number;
 };
 
+export type UpdateTransactionInput = {
+  readonly title: string;
+  readonly amount: number;
+  readonly type: TransactionType;
+  readonly category: string;
+  readonly date: string;
+  readonly paymentMethod: PaymentMethod;
+  readonly isFixed: boolean;
+};
+
+const FINANCE_ERROR_MESSAGES: Record<string, string> = {
+  TRANSACTION_NOT_FOUND: "Transação não encontrada.",
+  INVESTMENT_NOT_FOUND: "Investimento não encontrado.",
+  FORBIDDEN: "Você não pode alterar este registro.",
+  INVALID_DATE: "Data inválida.",
+  INVALID_INSTALLMENTS: "Número de parcelas inválido.",
+  TITLE_REQUIRED: "Informe um título.",
+  INVALID_AMOUNT: "Informe um valor válido.",
+  CATEGORY_REQUIRED: "Informe uma categoria.",
+  INVALID_TYPE: "Tipo de transação inválido.",
+  INVALID_PAYMENT_METHOD: "Forma de pagamento inválida.",
+  NAME_REQUIRED: "Informe um nome.",
+  INVALID_BALANCE: "Saldo inválido.",
+  VALIDATION_ERROR: "Revise os campos e tente novamente.",
+  REQUEST_FAILED: "Não foi possível concluir esta ação.",
+};
+
 export class FinanceApiError extends Error {
   constructor(
     message: string,
@@ -75,10 +102,8 @@ export async function financeRequest<T>(
   if (!res.ok) {
     const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     const error = data.error as { code?: string } | undefined;
-    throw new FinanceApiError(
-      error?.code ?? "REQUEST_FAILED",
-      error?.code ?? "REQUEST_FAILED",
-    );
+    const code = error?.code ?? "REQUEST_FAILED";
+    throw new FinanceApiError(FINANCE_ERROR_MESSAGES[code] ?? FINANCE_ERROR_MESSAGES.REQUEST_FAILED, code);
   }
   if (res.status === 204) return null as T;
   return (await res.json()) as T;
@@ -108,4 +133,14 @@ export async function createTransaction(
 
 export async function deleteTransaction(id: string): Promise<null> {
   return financeRequest<null>(`/transactions/${id}`, { method: "DELETE" });
+}
+
+export async function updateTransaction(
+  id: string,
+  input: UpdateTransactionInput,
+): Promise<{ id: string }> {
+  return financeRequest<{ id: string }>(`/transactions/${id}`, {
+    method: "PATCH",
+    body: input,
+  });
 }

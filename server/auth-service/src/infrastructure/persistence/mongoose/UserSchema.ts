@@ -11,6 +11,18 @@ const attributesSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const pushSubscriptionSchema = new mongoose.Schema(
+  {
+    endpoint: { type: String, required: true },
+    expirationTime: { type: Number, default: null },
+    keys: {
+      p256dh: { type: String, required: true },
+      auth: { type: String, required: true },
+    },
+  },
+  { _id: false },
+);
+
 const personalRewardSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
@@ -45,6 +57,7 @@ const userSchema = new mongoose.Schema(
     coins: { type: Number, default: 0 },
     attributes: { type: attributesSchema, default: () => ({}) },
     personalRewards: { type: [personalRewardSchema], default: [] },
+    pushSubscriptions: { type: [pushSubscriptionSchema], default: [] },
     createdAt: { type: Date, required: true },
     updatedAt: { type: Date, required: true },
   },

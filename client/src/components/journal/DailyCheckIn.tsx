@@ -15,7 +15,7 @@ const MOOD_OPTIONS: readonly MoodOption[] = [
   { value: "TERRIBLE", emoji: "😢", label: "Péssimo", activeClass: "bg-red-500/20 border-red-500/50" },
   { value: "BAD", emoji: "😕", label: "Ruim", activeClass: "bg-orange-500/20 border-orange-500/50" },
   { value: "NEUTRAL", emoji: "😐", label: "Neutro", activeClass: "bg-zinc-500/20 border-zinc-400/50" },
-  { value: "GOOD", emoji: "🙂", label: "Bom", activeClass: "bg-emerald-500/20 border-emerald-500/50" },
+  { value: "GOOD", emoji: "🙂", label: "Bom", activeClass: "bg-blue-500/20 border-blue-500/50" },
   { value: "EXCELLENT", emoji: "🤩", label: "Ótimo", activeClass: "bg-amber-500/20 border-amber-500/50" },
 ];
 
@@ -77,7 +77,7 @@ export function DailyCheckIn(): ReactElement {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4 space-y-4 md:p-6"
+      className="ls-card space-y-4 p-4 md:p-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ export function DailyCheckIn(): ReactElement {
           <h2 className="text-sm font-semibold text-zinc-400">Diário de Bordo</h2>
         </div>
         {hasSavedToday && (
-          <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400">
+          <span className="flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-medium text-blue-400">
             <Check className="h-3 w-3" />
             Registrado hoje
           </span>
@@ -125,14 +125,14 @@ export function DailyCheckIn(): ReactElement {
         onChange={(e) => setNote(e.target.value)}
         placeholder="Como foi seu dia?"
         rows={2}
-        className="w-full resize-none rounded-lg border border-zinc-800 bg-transparent px-3 py-2.5 text-sm text-zinc-200 outline-none transition placeholder:text-zinc-600 focus:border-zinc-600"
+        className="ls-input resize-none"
       />
 
       {/* Submit */}
       <button
         type="submit"
         disabled={mood === null || saveMutation.isPending}
-        className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+        className="ls-btn-block"
       >
         {saveMutation.isPending ? "Salvando..." : hasSavedToday ? "Atualizar Registro" : "Salvar Registro"}
       </button>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useMe } from "../hooks/useMe";
 import { usePwaInstall } from "../hooks/usePwaInstall";
+import { PushNotificationPrompt } from "../components/notifications/PushNotificationPrompt";
 import { useAuthStore } from "../stores/authStore";
 
 const ONBOARDING_PATH = "/onboarding";
@@ -31,12 +32,13 @@ const BASE_NAV_ITEMS: readonly NavItem[] = [
 
 const ADMIN_NAV_ITEM: NavItem = { to: "/admin", label: "Backoffice", icon: ShieldCheck };
 
-/** Apenas os 4 módulos principais na bottom bar (mobile). */
+/** Navegação principal no PWA (polegar). */
 const BOTTOM_NAV_ITEMS: readonly NavItem[] = [
   { to: "/dashboard", label: "Home", icon: Home },
   { to: "/goals", label: "Metas", icon: Target },
   { to: "/habits", label: "Hábitos", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },
+  { to: "/profile", label: "Evolução", icon: Sparkles },
 ];
 
 export function AuthLayout(): ReactElement {
@@ -72,7 +74,7 @@ export function AuthLayout(): ReactElement {
 
   if (meQuery.isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-zinc-300">
+      <div className="flex min-h-screen items-center justify-center bg-navy-950 text-zinc-300">
         <div className="flex items-center gap-3">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
           <span className="text-sm">Carregando sessão...</span>
@@ -93,15 +95,18 @@ export function AuthLayout(): ReactElement {
 
   if (isOnboardingRoute) {
     return (
-      <div className="min-h-screen bg-black text-zinc-100">
+      <div className="min-h-screen bg-navy-950 text-zinc-100">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-zinc-100">
-      <header className="border-b border-zinc-800 bg-zinc-950">
+    <div className="flex min-h-screen flex-col bg-navy-950 text-zinc-100">
+      <header
+        className="sticky top-0 z-40 border-b border-blue-950/80 bg-navy-950/95 backdrop-blur-md"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         {/* Mobile: marca + atalhos Cofre / Admin / Sair */}
         <div className="flex items-center justify-between gap-2 px-4 py-3 md:hidden">
           <Link
@@ -115,29 +120,18 @@ export function AuthLayout(): ReactElement {
               <button
                 type="button"
                 onClick={() => void install()}
-                className="flex max-w-[7.5rem] items-center gap-1 rounded-lg border border-zinc-800 px-2 py-1.5 text-[10px] font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+                className="flex max-w-[7.5rem] items-center gap-1 rounded-lg border border-blue-900/50 bg-blue-950/40 px-2 py-1.5 text-[10px] font-medium text-blue-300 transition hover:border-blue-700 hover:text-blue-200"
               >
                 <Download className="h-3 w-3 shrink-0" />
                 <span className="truncate">Instalar app</span>
               </button>
             ) : null}
             <Link
-              to="/profile"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
-                location.pathname === "/profile"
-                  ? "bg-zinc-800 text-emerald-400"
-                  : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
-              }`}
-              aria-label="Evolução"
-            >
-              <Sparkles className="h-5 w-5" />
-            </Link>
-            <Link
               to="/vault"
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                 location.pathname === "/vault"
-                  ? "bg-zinc-800 text-emerald-400"
-                  : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                  ? "bg-blue-600/20 text-blue-400"
+                  : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
               }`}
               aria-label="Cofre"
             >
@@ -148,8 +142,8 @@ export function AuthLayout(): ReactElement {
                 to="/admin"
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                   location.pathname === "/admin"
-                    ? "bg-zinc-800 text-emerald-400"
-                    : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                    ? "bg-blue-600/20 text-blue-400"
+                    : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
                 }`}
                 aria-label="Backoffice"
               >
@@ -159,7 +153,7 @@ export function AuthLayout(): ReactElement {
             <button
               type="button"
               onClick={logout}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-900 hover:text-zinc-200"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-navy-800 hover:text-zinc-200"
               aria-label="Sair"
             >
               <LogOut className="h-5 w-5" />
@@ -178,8 +172,8 @@ export function AuthLayout(): ReactElement {
                   to={to}
                   className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
                     isActive
-                      ? "bg-zinc-800 text-zinc-100"
-                      : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                      ? "bg-blue-600/20 text-blue-300"
+                      : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -194,7 +188,7 @@ export function AuthLayout(): ReactElement {
               <button
                 type="button"
                 onClick={() => void install()}
-                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-blue-900/50 bg-blue-950/40 px-3 py-2 text-xs font-medium text-blue-300 transition hover:border-blue-700 hover:text-blue-200"
               >
                 <Download className="h-3.5 w-3.5" />
                 Instalar aplicativo
@@ -214,11 +208,14 @@ export function AuthLayout(): ReactElement {
       </header>
 
       <main className="flex-1 px-4 py-6 pb-24 md:px-6 md:py-8 md:pb-8">
+        <div className="mx-auto max-w-7xl">
+          <PushNotificationPrompt />
+        </div>
         <Outlet />
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-zinc-800 bg-zinc-950 px-2 pt-3 md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-blue-950/80 bg-navy-950/95 px-1 pt-2 backdrop-blur-md md:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
         aria-label="Navegação principal"
       >
@@ -228,11 +225,11 @@ export function AuthLayout(): ReactElement {
             <Link
               key={to}
               to={to}
-              className={`flex min-h-12 min-w-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-lg px-2 transition ${
-                isActive ? "text-emerald-400" : "text-zinc-500 hover:text-zinc-300"
+              className={`flex min-h-12 min-w-[3rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 transition ${
+                isActive ? "bg-blue-600/15 text-blue-400" : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
-              <Icon className={`h-5 w-5 ${isActive ? "text-emerald-400" : ""}`} />
+              <Icon className={`h-5 w-5 ${isActive ? "text-blue-400" : ""}`} />
               <span className="max-w-[4.5rem] truncate text-[10px] font-medium">{label}</span>
             </Link>
           );

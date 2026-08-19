@@ -6,6 +6,7 @@ import type { LoginUseCase } from "../../../application/use-cases/LoginUseCase.j
 import type { RegisterUserUseCase } from "../../../application/use-cases/RegisterUserUseCase.js";
 import type { CreatePersonalRewardUseCase } from "../../../application/use-cases/CreatePersonalRewardUseCase.js";
 import type { RedeemPersonalRewardUseCase } from "../../../application/use-cases/RedeemPersonalRewardUseCase.js";
+import type { SubscribePushUseCase } from "../../../application/use-cases/SubscribePushUseCase.js";
 
 const registerBodySchema = z.object({
   name: z.string().optional().default(""),
@@ -36,6 +37,8 @@ export class AuthController {
     private readonly completeOnboardingUseCase: CompleteOnboardingUseCase,
     private readonly createPersonalRewardUseCase: CreatePersonalRewardUseCase,
     private readonly redeemPersonalRewardUseCase: RedeemPersonalRewardUseCase,
+    private readonly subscribePushUseCase: SubscribePushUseCase,
+    private readonly vapidConfigured: boolean,
   ) {}
 
   async register(req: Request, res: Response): Promise<void> {
@@ -182,5 +185,29 @@ export class AuthController {
     }
 
     res.status(200).json({ coins: result.value.coins });
+  }
+
+  async subscribePush(req: Request, res: Response): Promise<void> {
+    if (!this.vapidConfigured) {
+      res.status(503).json({ error: { code: "PUSH_NOT_CONFIGURED" } });
+      return;
+    }
+    const userId = req.user?.id;
+    if (userId === undefined) {
+      res.status(401).json({ error: { code: "UNAUTHORIZED" } });
+      return;
+    }
+
+    const result = await this.subscribePushUseCase.execute(userId, req.body);
+    if (!result.ok) {
+      if (result.code === "USER_NOT_FOUND") {
+        res.status(404).json({ error: { code: result.code } });
+        return;
+      }
+      res.status(400).json({ error: { code: result.code, issues: result.issues } });
+      return;
+    }
+
+    res.status(204).send();
   }
 }

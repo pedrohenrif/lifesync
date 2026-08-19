@@ -5,12 +5,14 @@ import { MongoInvestmentRepository } from "./infrastructure/persistence/MongoInv
 import { CreateTransactionUseCase } from "./application/use-cases/CreateTransactionUseCase.js";
 import { GetFinancialSummaryUseCase } from "./application/use-cases/GetFinancialSummaryUseCase.js";
 import { DeleteTransactionUseCase } from "./application/use-cases/DeleteTransactionUseCase.js";
+import { UpdateTransactionUseCase } from "./application/use-cases/UpdateTransactionUseCase.js";
 import { GetFinanceAnalyticsUseCase } from "./application/use-cases/GetFinanceAnalyticsUseCase.js";
 import { CreateInvestmentUseCase } from "./application/use-cases/CreateInvestmentUseCase.js";
 import { ListInvestmentsUseCase } from "./application/use-cases/ListInvestmentsUseCase.js";
 import { UpdateInvestmentBalanceUseCase } from "./application/use-cases/UpdateInvestmentBalanceUseCase.js";
 import { AddInvestmentContributionUseCase } from "./application/use-cases/AddInvestmentContributionUseCase.js";
 import { DeleteInvestmentUseCase } from "./application/use-cases/DeleteInvestmentUseCase.js";
+import { RenameInvestmentUseCase } from "./application/use-cases/RenameInvestmentUseCase.js";
 import { createApp } from "./presentation/http/createApp.js";
 
 async function bootstrap(): Promise<void> {
@@ -23,6 +25,7 @@ async function bootstrap(): Promise<void> {
   const createTransactionUseCase = new CreateTransactionUseCase(transactionRepository);
   const getFinancialSummaryUseCase = new GetFinancialSummaryUseCase(transactionRepository);
   const deleteTransactionUseCase = new DeleteTransactionUseCase(transactionRepository);
+  const updateTransactionUseCase = new UpdateTransactionUseCase(transactionRepository);
   const getFinanceAnalyticsUseCase = new GetFinanceAnalyticsUseCase(transactionRepository);
 
   const createInvestmentUseCase = new CreateInvestmentUseCase(investmentRepository);
@@ -30,18 +33,21 @@ async function bootstrap(): Promise<void> {
   const updateInvestmentBalanceUseCase = new UpdateInvestmentBalanceUseCase(investmentRepository);
   const addInvestmentContributionUseCase = new AddInvestmentContributionUseCase(investmentRepository);
   const deleteInvestmentUseCase = new DeleteInvestmentUseCase(investmentRepository);
+  const renameInvestmentUseCase = new RenameInvestmentUseCase(investmentRepository);
 
   const app = createApp({
     jwtSecret: env.jwtSecret,
     createTransactionUseCase,
     getFinancialSummaryUseCase,
     deleteTransactionUseCase,
+    updateTransactionUseCase,
     getFinanceAnalyticsUseCase,
     createInvestmentUseCase,
     listInvestmentsUseCase,
     updateInvestmentBalanceUseCase,
     addInvestmentContributionUseCase,
     deleteInvestmentUseCase,
+    renameInvestmentUseCase,
   });
 
   app.listen(env.port, () => {

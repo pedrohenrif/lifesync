@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   PiggyBank,
+  Pencil,
   PieChart as PieChartIcon,
   Trophy,
 } from "lucide-react";
@@ -34,6 +35,7 @@ import {
   useFinancialSummary,
   useFinanceAnalytics,
   useCreateTransaction,
+  useUpdateTransaction,
   useDeleteTransaction,
 } from "../hooks/useFinance";
 import {
@@ -42,10 +44,12 @@ import {
   useUpdateInvestmentBalance,
   useAddContribution,
   useDeleteInvestment,
+  useRenameInvestment,
 } from "../hooks/useInvestments";
 import type { Transaction, TransactionType, PaymentMethod, ExpenseGroupId } from "../api/finance";
 import type { Investment } from "../api/investments";
 import { AppModalShell } from "../components/ui/AppModalShell";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 
 /* ─── Constantes ─── */
 
@@ -70,7 +74,7 @@ const MONTH_NAMES = [
 type TabId = "overview" | "investments" | "analysis";
 
 const GROUP_CHART_COLORS: Record<ExpenseGroupId, string> = {
-  FIXED: "#34d399",
+  FIXED: "#60a5fa",
   LEISURE: "#a78bfa",
   PERSONAL: "#fbbf24",
   OTHER: "#fb7185",
@@ -79,11 +83,11 @@ const GROUP_CHART_COLORS: Record<ExpenseGroupId, string> = {
 const CASH_FLOW_COLORS = { income: "#22d3ee", expense: "#f87171" } as const;
 
 const ANALYSIS_CARD =
-  "rounded-2xl bg-zinc-900 p-4 md:p-6 ring-1 ring-zinc-800/80";
+  "ls-card p-4 md:p-6";
 
 const CHART_TOOLTIP_STYLE = {
-  backgroundColor: "#18181b",
-  border: "1px solid #3f3f46",
+  backgroundColor: "#0f172a",
+  border: "1px solid #1e3a5f",
   borderRadius: "8px",
   color: "#f4f4f5",
 } as const;
@@ -95,7 +99,14 @@ function formatCurrency(value: number): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR");
+  const key = iso.slice(0, 10);
+  const [y, m, d] = key.split("-");
+  if (y === undefined || m === undefined || d === undefined) return iso;
+  return `${d}/${m}/${y}`;
+}
+
+function toDateInputValue(iso: string): string {
+  return iso.slice(0, 10);
 }
 
 function getCurrentMonth(): { year: number; month: number } {
@@ -103,8 +114,7 @@ function getCurrentMonth(): { year: number; month: number } {
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-zinc-600 placeholder:text-zinc-600";
+const INPUT_CLASS = "ls-input";
 
 /* ─── Seletor de Mês ─── */
 
@@ -163,9 +173,9 @@ function SummaryCard({
   readonly icon: React.ComponentType<{ className?: string }>;
   readonly accent: "green" | "red" | "neutral";
 }): ReactElement {
-  const bg = accent === "green" ? "bg-emerald-500/10" : accent === "red" ? "bg-red-500/10" : "bg-zinc-800";
-  const iconColor = accent === "green" ? "text-emerald-400" : accent === "red" ? "text-red-400" : "text-zinc-100";
-  const textColor = accent === "green" ? "text-emerald-400" : accent === "red" ? "text-red-400" : "text-zinc-100";
+  const bg = accent === "green" ? "bg-blue-500/10" : accent === "red" ? "bg-red-500/10" : "bg-zinc-800";
+  const iconColor = accent === "green" ? "text-blue-400" : accent === "red" ? "text-red-400" : "text-zinc-100";
+  const textColor = accent === "green" ? "text-blue-400" : accent === "red" ? "text-red-400" : "text-zinc-100";
 
   return (
     <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
@@ -180,121 +190,267 @@ function SummaryCard({
   );
 }
 
-/* ─── Formulário de Transação ─── */
+/* ─── Formulário de Transação (criar / editar) ─── */
 
-function CreateTransactionForm({ onClose }: { readonly onClose: () => void }): ReactElement {
-  const createMutation = useCreateTransaction();
+type TransactionFormValues = {
+  readonly title: string;
+  readonly amount: string;
+  readonly type: TransactionType;
+  readonly category: string;
+  readonly date: string;
+  readonly paymentMethod: PaymentMethod;
+  readonly isFixed: boolean;
+  readonly installments: string;
+};
 
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [type, setType] = useState<TransactionType>("EXPENSE");
-  const [category, setCategory] = useState<string>(CATEGORY_OPTIONS[0]);
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("DEBIT");
-  const [isFixed, setIsFixed] = useState(false);
+function TransactionForm({
+  mode,
+  initial,
+  pending,
+  onClose,
+  onSubmit,
+}: {
+  readonly mode: "create" | "edit";
+  readonly initial?: Transaction;
+  readonly pending: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: (values: TransactionFormValues) => void;
+}): ReactElement {
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [amount, setAmount] = useState(initial !== undefined ? String(initial.amount) : "");
+  const [type, setType] = useState<TransactionType>(initial?.type ?? "EXPENSE");
+  const [category, setCategory] = useState<string>(initial?.category ?? CATEGORY_OPTIONS[0]);
+  const [date, setDate] = useState(
+    initial !== undefined ? toDateInputValue(initial.date) : new Date().toISOString().slice(0, 10),
+  );
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(initial?.paymentMethod ?? "DEBIT");
+  const [isFixed, setIsFixed] = useState(initial?.isFixed ?? false);
   const [installments, setInstallments] = useState("");
+
+  const isEdit = mode === "edit";
+  const isInstallment = initial?.installment !== null && initial?.installment !== undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const numericAmount = Number.parseFloat(amount);
-    if (Number.isNaN(numericAmount) || numericAmount <= 0) return;
-
-    const parsedInstallments =
-      paymentMethod === "CREDIT" && installments.trim().length > 0
-        ? Number.parseInt(installments, 10)
-        : undefined;
-
-    createMutation.mutate(
-      { title: title.trim(), amount: numericAmount, type, category, date, paymentMethod, isFixed, installments: parsedInstallments },
-      { onSuccess: () => onClose() },
-    );
+    onSubmit({
+      title: title.trim(),
+      amount,
+      type,
+      category,
+      date,
+      paymentMethod,
+      isFixed,
+      installments,
+    });
   };
 
   return (
-    <AppModalShell title="Nova Transação" onClose={onClose} maxWidthClass="max-w-lg">
+    <AppModalShell title={isEdit ? "Editar transação" : "Nova transação"} onClose={onClose} maxWidthClass="max-w-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input className={INPUT_CLASS} placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} required />
-        <input className={INPUT_CLASS} placeholder="Valor (total)" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-      </div>
+        {isInstallment ? (
+          <p className="rounded-lg border border-blue-900/50 bg-blue-950/40 px-3 py-2 text-xs text-blue-300/90">
+            Parcela {initial.installment?.current}/{initial.installment?.total} — a alteração vale só para esta
+            ocorrência.
+          </p>
+        ) : null}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <select className={INPUT_CLASS} value={type} onChange={(e) => setType(e.target.value as TransactionType)}>
-          <option value="EXPENSE">Despesa</option>
-          <option value="INCOME">Receita</option>
-        </select>
-        <select className={INPUT_CLASS} value={category} onChange={(e) => setCategory(e.target.value)}>
-          {CATEGORY_OPTIONS.map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
-        </select>
-        <input className={INPUT_CLASS} type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <span className="shrink-0 text-xs font-medium text-zinc-500">Pagamento:</span>
-        <div className="flex flex-wrap gap-2">
-          {(["DEBIT", "CREDIT"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setPaymentMethod(m); if (m === "DEBIT") setInstallments(""); }}
-              className={`flex min-h-10 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
-                paymentMethod === m ? "bg-zinc-700 text-zinc-100" : "border border-zinc-800 text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              {m === "CREDIT" ? <CreditCard className="h-3.5 w-3.5" /> : <DollarSign className="h-3.5 w-3.5" />}
-              {m === "DEBIT" ? "Débito" : "Crédito"}
-            </button>
-          ))}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-zinc-500">Título</span>
+            <input className={INPUT_CLASS} placeholder="Ex.: Mercado" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-zinc-500">{isEdit ? "Valor" : "Valor (total)"}</span>
+            <input className={INPUT_CLASS} placeholder="0,00" type="number" step="0.01" min="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+          </label>
         </div>
-      </div>
 
-      {paymentMethod === "CREDIT" && (
-        <div>
-          <label className="text-xs text-zinc-500">Nº de Parcelas (deixe vazio para à vista)</label>
-          <input className={INPUT_CLASS + " mt-1"} type="number" min="2" max="48" placeholder="Ex: 12" value={installments} onChange={(e) => setInstallments(e.target.value)} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-zinc-500">Tipo</span>
+            <select className={INPUT_CLASS} value={type} onChange={(e) => setType(e.target.value as TransactionType)}>
+              <option value="EXPENSE">Despesa</option>
+              <option value="INCOME">Receita</option>
+            </select>
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-zinc-500">Categoria</span>
+            <select className={INPUT_CLASS} value={category} onChange={(e) => setCategory(e.target.value)}>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-medium text-zinc-500">Data</span>
+            <input className={INPUT_CLASS} type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </label>
         </div>
-      )}
 
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" checked={isFixed} onChange={(e) => setIsFixed(e.target.checked)} className="h-4 w-4 rounded border-zinc-700 bg-zinc-900 accent-orange-500" />
-        <span className="text-xs text-zinc-400">Receita/Despesa fixa (recorrente mensal)</span>
-        <Repeat className="h-3.5 w-3.5 text-zinc-600" />
-      </label>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+          <span className="shrink-0 text-xs font-medium text-zinc-500">Pagamento:</span>
+          <div className="flex flex-wrap gap-2">
+            {(["DEBIT", "CREDIT"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setPaymentMethod(m);
+                  if (m === "DEBIT") setInstallments("");
+                }}
+                className={`flex min-h-10 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                  paymentMethod === m ? "bg-blue-600 text-white" : "border border-zinc-800 text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {m === "CREDIT" ? <CreditCard className="h-3.5 w-3.5" /> : <DollarSign className="h-3.5 w-3.5" />}
+                {m === "DEBIT" ? "Débito" : "Crédito"}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      <button
-        type="submit"
-        disabled={createMutation.isPending}
-        className="min-h-11 w-full rounded-lg bg-zinc-100 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-50"
-      >
-        {createMutation.isPending ? "Salvando..." : "Adicionar Transação"}
-      </button>
+        {!isEdit && paymentMethod === "CREDIT" ? (
+          <div>
+            <label className="text-xs text-zinc-500">Nº de parcelas (vazio = à vista)</label>
+            <input className={`${INPUT_CLASS} mt-1`} type="number" min="2" max="48" placeholder="Ex: 12" value={installments} onChange={(e) => setInstallments(e.target.value)} />
+          </div>
+        ) : null}
+
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={isFixed}
+            onChange={(e) => setIsFixed(e.target.checked)}
+            className="h-4 w-4 rounded border-zinc-700 bg-zinc-900 accent-blue-500"
+          />
+          <span className="text-xs text-zinc-400">Receita/despesa fixa (recorrente mensal)</span>
+          <Repeat className="h-3.5 w-3.5 text-zinc-600" />
+        </label>
+        {!isEdit && isFixed ? (
+          <p className="text-[11px] text-zinc-600">Será projetada automaticamente nos próximos 12 meses.</p>
+        ) : null}
+
+        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="min-h-11 rounded-lg border border-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={pending}
+            className="min-h-11 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
+          >
+            {pending ? "Salvando…" : isEdit ? "Salvar alterações" : "Adicionar transação"}
+          </button>
+        </div>
       </form>
     </AppModalShell>
   );
 }
 
+function CreateTransactionForm({ onClose }: { readonly onClose: () => void }): ReactElement {
+  const createMutation = useCreateTransaction();
+
+  return (
+    <TransactionForm
+      mode="create"
+      pending={createMutation.isPending}
+      onClose={onClose}
+      onSubmit={(values) => {
+        const numericAmount = Number.parseFloat(values.amount);
+        if (Number.isNaN(numericAmount) || numericAmount <= 0) return;
+        const parsedInstallments =
+          values.paymentMethod === "CREDIT" && values.installments.trim().length > 0
+            ? Number.parseInt(values.installments, 10)
+            : undefined;
+        createMutation.mutate(
+          {
+            title: values.title,
+            amount: numericAmount,
+            type: values.type,
+            category: values.category,
+            date: values.date,
+            paymentMethod: values.paymentMethod,
+            isFixed: values.isFixed,
+            installments: parsedInstallments,
+          },
+          { onSuccess: () => onClose() },
+        );
+      }}
+    />
+  );
+}
+
+function EditTransactionForm({
+  transaction,
+  onClose,
+}: {
+  readonly transaction: Transaction;
+  readonly onClose: () => void;
+}): ReactElement {
+  const updateMutation = useUpdateTransaction();
+
+  return (
+    <TransactionForm
+      mode="edit"
+      initial={transaction}
+      pending={updateMutation.isPending}
+      onClose={onClose}
+      onSubmit={(values) => {
+        const numericAmount = Number.parseFloat(values.amount);
+        if (Number.isNaN(numericAmount) || numericAmount <= 0) return;
+        updateMutation.mutate(
+          {
+            id: transaction.id,
+            input: {
+              title: values.title,
+              amount: numericAmount,
+              type: values.type,
+              category: values.category,
+              date: values.date,
+              paymentMethod: values.paymentMethod,
+              isFixed: values.isFixed,
+            },
+          },
+          { onSuccess: () => onClose() },
+        );
+      }}
+    />
+  );
+}
+
 /* ─── Linha de Transação ─── */
 
-function TransactionRow({ transaction }: { readonly transaction: Transaction }): ReactElement {
-  const deleteMutation = useDeleteTransaction();
+function TransactionRow({
+  transaction,
+  onEdit,
+  onAskDelete,
+}: {
+  readonly transaction: Transaction;
+  readonly onEdit: (tx: Transaction) => void;
+  readonly onAskDelete: (tx: Transaction) => void;
+}): ReactElement {
   const isIncome = transaction.type === "INCOME";
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-3 transition hover:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between sm:px-4">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isIncome ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${isIncome ? "bg-blue-500/10 text-blue-400" : "bg-red-500/10 text-red-400"}`}>
           {isIncome ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-zinc-200">
             {transaction.title}
-            {transaction.isFixed && <Repeat className="ml-1.5 inline h-3 w-3 shrink-0 text-orange-400" />}
-            {transaction.paymentMethod === "CREDIT" && <CreditCard className="ml-1.5 inline h-3 w-3 shrink-0 text-blue-400" />}
+            {transaction.isFixed && <Repeat className="ml-1.5 inline h-3 w-3 shrink-0 text-blue-400" />}
+            {transaction.paymentMethod === "CREDIT" && <CreditCard className="ml-1.5 inline h-3 w-3 shrink-0 text-sky-400" />}
           </p>
           <p className="truncate text-xs text-zinc-500">
             {transaction.category} &middot; {formatDate(transaction.date)}
             {transaction.installment !== null && (
-              <span className="ml-1 text-blue-400">
+              <span className="ml-1 text-sky-400">
                 ({transaction.installment.current}/{transaction.installment.total})
               </span>
             )}
@@ -302,15 +458,22 @@ function TransactionRow({ transaction }: { readonly transaction: Transaction }):
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end sm:gap-4">
-        <span className={`text-sm font-semibold tabular-nums ${isIncome ? "text-emerald-400" : "text-red-400"}`}>
+      <div className="flex shrink-0 items-center justify-end gap-1">
+        <span className={`mr-2 text-sm font-semibold tabular-nums ${isIncome ? "text-blue-400" : "text-red-400"}`}>
           {isIncome ? "+" : "-"} {formatCurrency(transaction.amount)}
         </span>
         <button
           type="button"
-          onClick={() => deleteMutation.mutate(transaction.id)}
-          disabled={deleteMutation.isPending}
-          className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+          onClick={() => onEdit(transaction)}
+          className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-500 transition hover:bg-blue-500/10 hover:text-blue-400"
+          aria-label="Editar transação"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onAskDelete(transaction)}
+          className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400"
           aria-label="Excluir transação"
         >
           <Trash2 className="h-4 w-4" />
@@ -327,11 +490,15 @@ function TransactionSection({
   icon: Icon,
   transactions,
   emptyText,
+  onEdit,
+  onAskDelete,
 }: {
   readonly title: string;
   readonly icon: React.ComponentType<{ className?: string }>;
   readonly transactions: readonly Transaction[];
   readonly emptyText: string;
+  readonly onEdit: (tx: Transaction) => void;
+  readonly onAskDelete: (tx: Transaction) => void;
 }): ReactElement {
   return (
     <div className="space-y-2">
@@ -346,7 +513,7 @@ function TransactionSection({
         <div className="min-w-0 overflow-x-auto">
           <div className="min-w-0 space-y-1.5">
             {transactions.map((tx) => (
-              <TransactionRow key={tx.id} transaction={tx} />
+              <TransactionRow key={tx.id} transaction={tx} onEdit={onEdit} onAskDelete={onAskDelete} />
             ))}
           </div>
         </div>
@@ -359,7 +526,10 @@ function TransactionSection({
 
 function OverviewTab(): ReactElement {
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth);
+  const deleteMutation = useDeleteTransaction();
 
   const { data, isPending, isError } = useFinancialSummary(selectedMonth.year, selectedMonth.month);
 
@@ -382,8 +552,8 @@ function OverviewTab(): ReactElement {
         />
         <button
           type="button"
-          onClick={() => setShowForm((v) => !v)}
-          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 sm:w-auto"
+          onClick={() => setShowForm(true)}
+          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Nova Transação
@@ -406,11 +576,27 @@ function OverviewTab(): ReactElement {
             <SummaryCard label="Saldo do Mês" value={data.balance} icon={DollarSign} accent="neutral" />
           </div>
 
-          {showForm && <CreateTransactionForm onClose={() => setShowForm(false)} />}
+          {showForm ? <CreateTransactionForm onClose={() => setShowForm(false)} /> : null}
+          {editing !== null ? <EditTransactionForm transaction={editing} onClose={() => setEditing(null)} /> : null}
+          {pendingDelete !== null ? (
+            <ConfirmDialog
+              title="Excluir transação"
+              description={`Remover “${pendingDelete.title}” (${formatCurrency(pendingDelete.amount)})? Esta ação não pode ser desfeita.`}
+              confirmLabel="Excluir"
+              danger
+              pending={deleteMutation.isPending}
+              onClose={() => setPendingDelete(null)}
+              onConfirm={() => {
+                deleteMutation.mutate(pendingDelete.id, {
+                  onSuccess: () => setPendingDelete(null),
+                });
+              }}
+            />
+          ) : null}
 
-          <TransactionSection title="Receitas" icon={TrendingUp} transactions={incomes} emptyText="Nenhuma receita neste mês." />
-          <TransactionSection title="Despesas Fixas" icon={Repeat} transactions={fixedExpenses} emptyText="Nenhuma despesa fixa neste mês." />
-          <TransactionSection title="Despesas Variáveis / Parceladas" icon={CreditCard} transactions={variableExpenses} emptyText="Nenhuma despesa variável neste mês." />
+          <TransactionSection title="Receitas" icon={TrendingUp} transactions={incomes} emptyText="Nenhuma receita neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
+          <TransactionSection title="Despesas Fixas" icon={Repeat} transactions={fixedExpenses} emptyText="Nenhuma despesa fixa neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
+          <TransactionSection title="Despesas Variáveis / Parceladas" icon={CreditCard} transactions={variableExpenses} emptyText="Nenhuma despesa variável neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
         </>
       )}
     </div>
@@ -597,12 +783,15 @@ function AnalysisTab(): ReactElement {
 /* ─── Card de Investimento ─── */
 
 function InvestmentCard({ investment }: { readonly investment: Investment }): ReactElement {
-  const [editMode, setEditMode] = useState<"none" | "balance" | "contribute">("none");
+  const [editMode, setEditMode] = useState<"none" | "balance" | "contribute" | "rename">("none");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [balance, setBalance] = useState(String(investment.currentBalance));
   const [contributeAmount, setContributeAmount] = useState("");
+  const [nameDraft, setNameDraft] = useState(investment.name);
   const updateMutation = useUpdateInvestmentBalance();
   const contributeMutation = useAddContribution();
   const deleteMutation = useDeleteInvestment();
+  const renameMutation = useRenameInvestment();
 
   const isPositive = investment.profitAmount >= 0;
 
@@ -620,25 +809,55 @@ function InvestmentCard({ investment }: { readonly investment: Investment }): Re
     });
   };
 
+  const handleRename = () => {
+    const next = nameDraft.trim();
+    if (next.length === 0) return;
+    renameMutation.mutate({ id: investment.id, name: next }, { onSuccess: () => setEditMode("none") });
+  };
+
   const handleCancel = () => {
     setEditMode("none");
     setBalance(String(investment.currentBalance));
     setContributeAmount("");
+    setNameDraft(investment.name);
   };
 
   return (
     <div className="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
+      {confirmDelete ? (
+        <ConfirmDialog
+          title="Excluir investimento"
+          description={`Remover “${investment.name}”? O histórico de aportes deste item será perdido.`}
+          confirmLabel="Excluir"
+          danger
+          pending={deleteMutation.isPending}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            deleteMutation.mutate(investment.id, { onSuccess: () => setConfirmDelete(false) });
+          }}
+        />
+      ) : null}
+
       <div className="flex items-start justify-between gap-2">
         <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-200">{investment.name}</h3>
-        <button
-          type="button"
-          onClick={() => deleteMutation.mutate(investment.id)}
-          disabled={deleteMutation.isPending}
-          className="flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-md text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
-          aria-label="Excluir investimento"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        <div className="flex shrink-0">
+          <button
+            type="button"
+            onClick={() => setEditMode("rename")}
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-500 transition hover:bg-blue-500/10 hover:text-blue-400"
+            aria-label="Renomear investimento"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="flex min-h-10 min-w-10 items-center justify-center rounded-md text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400"
+            aria-label="Excluir investimento"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3">
@@ -652,18 +871,28 @@ function InvestmentCard({ investment }: { readonly investment: Investment }): Re
         </div>
         <div>
           <p className="text-xs text-zinc-500">Lucro/Prejuízo</p>
-          <p className={`text-sm font-semibold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+          <p className={`text-sm font-semibold ${isPositive ? "text-blue-400" : "text-red-400"}`}>
             {isPositive ? "+" : ""}{formatCurrency(investment.profitAmount)}{" "}
             <span className="text-xs">({isPositive ? "+" : ""}{investment.profitPercent.toFixed(2)}%)</span>
           </p>
         </div>
       </div>
 
+      {editMode === "rename" && (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input className={`${INPUT_CLASS} min-w-0 flex-1`} value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} placeholder="Nome do investimento" />
+          <div className="flex shrink-0 gap-2">
+            <button type="button" onClick={handleRename} disabled={renameMutation.isPending} className="min-h-10 flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50 sm:flex-none">Salvar</button>
+            <button type="button" onClick={handleCancel} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-zinc-800 text-zinc-400 transition hover:text-zinc-200" aria-label="Cancelar"><X className="h-3.5 w-3.5" /></button>
+          </div>
+        </div>
+      )}
+
       {editMode === "balance" && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input className={INPUT_CLASS + " min-w-0 flex-1"} type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Novo saldo total" />
+          <input className={`${INPUT_CLASS} min-w-0 flex-1`} type="number" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Novo saldo total" />
           <div className="flex shrink-0 gap-2">
-            <button type="button" onClick={handleSaveBalance} disabled={updateMutation.isPending} className="min-h-10 flex-1 rounded-lg bg-zinc-100 px-4 py-2.5 text-xs font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-50 sm:flex-none">Salvar</button>
+            <button type="button" onClick={handleSaveBalance} disabled={updateMutation.isPending} className="min-h-10 flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50 sm:flex-none">Salvar</button>
             <button type="button" onClick={handleCancel} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-zinc-800 text-zinc-400 transition hover:text-zinc-200" aria-label="Cancelar"><X className="h-3.5 w-3.5" /></button>
           </div>
         </div>
@@ -671,9 +900,9 @@ function InvestmentCard({ investment }: { readonly investment: Investment }): Re
 
       {editMode === "contribute" && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input className={INPUT_CLASS + " min-w-0 flex-1"} type="number" step="0.01" min="0.01" value={contributeAmount} onChange={(e) => setContributeAmount(e.target.value)} placeholder="Valor do aporte" />
+          <input className={`${INPUT_CLASS} min-w-0 flex-1`} type="number" step="0.01" min="0.01" value={contributeAmount} onChange={(e) => setContributeAmount(e.target.value)} placeholder="Valor do aporte" />
           <div className="flex shrink-0 gap-2">
-            <button type="button" onClick={handleContribute} disabled={contributeMutation.isPending} className="min-h-10 flex-1 rounded-lg bg-emerald-600/20 px-4 py-2.5 text-xs font-semibold text-emerald-400 transition hover:bg-emerald-600/30 disabled:opacity-50 sm:flex-none">Aportar</button>
+            <button type="button" onClick={handleContribute} disabled={contributeMutation.isPending} className="min-h-10 flex-1 rounded-lg bg-blue-600/20 px-4 py-2.5 text-xs font-semibold text-blue-400 transition hover:bg-blue-600/30 disabled:opacity-50 sm:flex-none">Aportar</button>
             <button type="button" onClick={handleCancel} className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-zinc-800 text-zinc-400 transition hover:text-zinc-200" aria-label="Cancelar"><X className="h-3.5 w-3.5" /></button>
           </div>
         </div>
@@ -684,7 +913,7 @@ function InvestmentCard({ investment }: { readonly investment: Investment }): Re
           <button
             type="button"
             onClick={() => setEditMode("contribute")}
-            className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-emerald-800/50 py-2.5 text-xs font-medium text-emerald-400 transition hover:border-emerald-600 hover:bg-emerald-600/10"
+            className="flex min-h-10 items-center justify-center gap-2 rounded-lg border border-blue-800/50 py-2.5 text-xs font-medium text-blue-400 transition hover:border-blue-600 hover:bg-blue-600/10"
           >
             <PiggyBank className="h-3.5 w-3.5" />
             Aportar
@@ -727,7 +956,7 @@ function CreateInvestmentForm({ onClose }: { readonly onClose: () => void }): Re
       <button
         type="submit"
         disabled={createMutation.isPending}
-        className="min-h-11 w-full rounded-lg bg-zinc-100 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:opacity-50"
+        className="min-h-11 w-full rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:opacity-50"
       >
         {createMutation.isPending ? "Salvando..." : "Adicionar Investimento"}
       </button>
@@ -764,8 +993,8 @@ function InvestmentsTab(): ReactElement {
       <div className="flex justify-stretch sm:justify-end">
         <button
           type="button"
-          onClick={() => setShowForm((v) => !v)}
-          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 sm:w-auto"
+          onClick={() => setShowForm(true)}
+          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Novo Investimento
@@ -776,12 +1005,12 @@ function InvestmentsTab(): ReactElement {
         <SummaryCard label="Total Investido" value={data.totalInvested} icon={BarChart3} accent="neutral" />
         <SummaryCard label="Saldo Total" value={data.totalBalance} icon={Wallet} accent="green" />
         <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${isUp ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${isUp ? "bg-blue-500/10 text-blue-400" : "bg-red-500/10 text-red-400"}`}>
             {isUp ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
           </div>
           <div>
             <p className="text-sm text-zinc-500">Rendimento</p>
-            <p className={`text-xl font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
+            <p className={`text-xl font-bold ${isUp ? "text-blue-400" : "text-red-400"}`}>
               {isUp ? "+" : ""}{formatCurrency(totalProfit)}{" "}
               <span className="text-sm font-medium">({isUp ? "+" : ""}{totalPercent.toFixed(2)}%)</span>
             </p>
@@ -822,14 +1051,14 @@ export function Finance(): ReactElement {
         <h1 className="text-xl font-bold text-zinc-100">Finanças</h1>
       </div>
 
-      <div className="-mx-1 flex w-full max-w-2xl gap-1 overflow-x-auto rounded-xl bg-zinc-900 p-1 pb-2 ring-1 ring-zinc-800/80 sm:mx-0 sm:flex-wrap sm:pb-1">
+      <div className="-mx-1 flex w-full max-w-2xl gap-1 overflow-x-auto rounded-xl bg-navy-900 p-1 pb-2 ring-1 ring-slate-800/80 sm:mx-0 sm:flex-wrap sm:pb-1">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => setTab(id)}
             className={`flex min-h-10 shrink-0 items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${
-              tab === id ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
+              tab === id ? "bg-blue-600 text-white" : "text-zinc-500 hover:text-zinc-300"
             }`}
           >
             <Icon className="h-4 w-4" />

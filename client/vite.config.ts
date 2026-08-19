@@ -9,14 +9,20 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       injectRegister: null,
       includeAssets: ["favicon.svg", "pwa-192x192.png", "pwa-512x512.png"],
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      },
       manifest: {
         name: "LifeSync - Gestão de Vida",
         short_name: "LifeSync",
         description: "Sincronize suas metas, hábitos e finanças em um só lugar.",
-        theme_color: "#09090b",
-        background_color: "#09090b",
+        theme_color: "#0b1220",
+        background_color: "#0b1220",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
@@ -37,9 +43,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallback: "index.html",
+      devOptions: {
+        enabled: false,
       },
     }),
   ],

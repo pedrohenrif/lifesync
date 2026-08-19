@@ -55,7 +55,7 @@ function UserCard({
           type="button"
           disabled={isLoading}
           onClick={onApprove}
-          className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-emerald-600/20 px-4 py-2.5 text-xs font-medium text-emerald-400 transition hover:bg-emerald-600/30 disabled:opacity-50 sm:justify-start"
+          className="flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-blue-600/20 px-4 py-2.5 text-xs font-medium text-blue-400 transition hover:bg-blue-600/30 disabled:opacity-50 sm:justify-start"
         >
           <UserCheck className="h-3.5 w-3.5" />
           Aprovar

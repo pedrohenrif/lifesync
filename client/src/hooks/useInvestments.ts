@@ -6,6 +6,7 @@ import {
   updateInvestmentBalance,
   addInvestmentContribution,
   deleteInvestment,
+  renameInvestment,
   FinanceApiError,
   type CreateInvestmentInput,
 } from "../api/investments";
@@ -73,6 +74,25 @@ export function useAddContribution() {
         error instanceof FinanceApiError
           ? error.message
           : "Não foi possível registrar o aporte.";
+      toast.error(message);
+    },
+  });
+}
+
+export function useRenameInvestment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => renameInvestment(id, name),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: INVESTMENTS_KEY });
+      toast.success("Nome atualizado.");
+    },
+    onError: (error) => {
+      const message =
+        error instanceof FinanceApiError
+          ? error.message
+          : "Não foi possível renomear o investimento.";
       toast.error(message);
     },
   });

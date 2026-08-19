@@ -28,7 +28,7 @@ import { HabitGlyph } from "../components/habits/HabitGlyph";
 const TOTAL_STEPS = 4;
 
 const INPUT_CLASS =
-  "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-600/60 focus:ring-1 focus:ring-emerald-600/30";
+  "ls-input rounded-xl px-4 py-3";
 
 const FOCUS_OPTIONS: readonly {
   readonly id: PrimaryFocus;
@@ -214,18 +214,18 @@ export function Onboarding(): ReactElement {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-zinc-950 px-4 py-8 text-zinc-100 md:py-12">
+    <div className="relative min-h-screen overflow-x-hidden bg-navy-950 px-4 py-8 text-zinc-100 md:py-12">
       <div
         className="pointer-events-none absolute inset-0 opacity-50"
         style={{
           background:
-            "radial-gradient(ellipse 70% 45% at 50% -15%, rgba(16, 185, 129, 0.18), transparent), radial-gradient(ellipse 50% 35% at 100% 40%, rgba(139, 92, 246, 0.1), transparent)",
+            "radial-gradient(ellipse 70% 45% at 50% -15%, rgba(37, 99, 235, 0.22), transparent), radial-gradient(ellipse 50% 35% at 100% 40%, rgba(30, 58, 95, 0.35), transparent)",
         }}
       />
 
       <div className="relative mx-auto w-full max-w-2xl">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Sparkles className="h-6 w-6 text-emerald-400" />
+          <Sparkles className="h-6 w-6 text-blue-400" />
           <span className="text-sm font-semibold tracking-tight text-zinc-200">
             LifeSync Concierge
           </span>
@@ -238,18 +238,18 @@ export function Onboarding(): ReactElement {
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-blue-800 to-blue-400 transition-all duration-500 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-xl shadow-black/30 md:p-8">
+        <div className="ls-card p-5 shadow-xl shadow-black/30 md:p-8">
           {step === 1 ? (
             <StepPanel stepKey={step}>
               <div className="space-y-6">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-emerald-500/90">
+                  <p className="text-xs font-medium uppercase tracking-wider text-blue-500/90">
                     Passo 1 de {TOTAL_STEPS}
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-50">
@@ -277,7 +277,7 @@ export function Onboarding(): ReactElement {
                   type="button"
                   disabled={displayName.trim().length === 0}
                   onClick={() => goToStep(2)}
-                  className="min-h-11 w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="min-h-11 w-full rounded-xl bg-blue-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Continuar
                 </button>
@@ -289,7 +289,7 @@ export function Onboarding(): ReactElement {
             <StepPanel stepKey={step}>
               <div className="space-y-6">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-emerald-500/90">
+                  <p className="text-xs font-medium uppercase tracking-wider text-blue-500/90">
                     Passo 2 de {TOTAL_STEPS}
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-50">
@@ -309,13 +309,13 @@ export function Onboarding(): ReactElement {
                         onClick={() => setExperienceLevel(id)}
                         className={`flex min-h-[5.5rem] flex-1 flex-col items-start rounded-xl border p-4 text-left transition-all duration-300 ${
                           active
-                            ? "border-emerald-500/60 bg-emerald-500/10 ring-1 ring-emerald-500/35"
+                            ? "border-blue-500/60 bg-blue-500/10 ring-1 ring-blue-500/35"
                             : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-700"
                         }`}
                       >
                         <div
                           className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${
-                            active ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-400"
+                            active ? "bg-blue-500/20 text-blue-400" : "bg-zinc-800 text-zinc-400"
                           }`}
                         >
                           <Icon className="h-4 w-4" />
@@ -338,7 +338,7 @@ export function Onboarding(): ReactElement {
                     type="button"
                     disabled={experienceLevel === null}
                     onClick={() => goToStep(3)}
-                    className="min-h-11 flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 flex-1 rounded-xl bg-blue-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Continuar
                   </button>
@@ -351,7 +351,7 @@ export function Onboarding(): ReactElement {
             <StepPanel stepKey={step}>
               <div className="space-y-6">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-emerald-500/90">
+                  <p className="text-xs font-medium uppercase tracking-wider text-blue-500/90">
                     Passo 3 de {TOTAL_STEPS}
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-50">
@@ -371,13 +371,13 @@ export function Onboarding(): ReactElement {
                         onClick={() => setFocus(id)}
                         className={`flex min-h-[9rem] flex-col items-start rounded-xl border p-4 text-left transition-all duration-300 ${
                           active
-                            ? "border-emerald-500/60 bg-emerald-500/10 ring-1 ring-emerald-500/35"
+                            ? "border-blue-500/60 bg-blue-500/10 ring-1 ring-blue-500/35"
                             : "border-zinc-800 bg-zinc-950/60 hover:border-zinc-700"
                         }`}
                       >
                         <div
                           className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
-                            active ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-zinc-400"
+                            active ? "bg-blue-500/20 text-blue-400" : "bg-zinc-800 text-zinc-400"
                           }`}
                         >
                           <Icon className="h-5 w-5" />
@@ -403,7 +403,7 @@ export function Onboarding(): ReactElement {
                       initPackSelection();
                       goToStep(4);
                     }}
-                    className="min-h-11 flex-1 rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="min-h-11 flex-1 rounded-xl bg-blue-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Ver meu pacote inicial
                   </button>
@@ -416,7 +416,7 @@ export function Onboarding(): ReactElement {
             <StepPanel stepKey={step}>
               <div className="space-y-6">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-emerald-500/90">
+                  <p className="text-xs font-medium uppercase tracking-wider text-blue-500/90">
                     Passo 4 de {TOTAL_STEPS}
                   </p>
                   <h1 className="mt-1 text-2xl font-semibold tracking-tight text-zinc-50">
@@ -456,7 +456,7 @@ export function Onboarding(): ReactElement {
                               type="checkbox"
                               checked={selectedPackIds.has(h.id)}
                               onChange={() => togglePackId(h.id)}
-                              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 bg-zinc-900 accent-emerald-500"
+                              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 bg-zinc-900 accent-blue-500"
                             />
                             <div className="flex min-w-0 flex-1 items-start gap-2">
                               <HabitGlyph icon={h.icon} />
@@ -487,7 +487,7 @@ export function Onboarding(): ReactElement {
                               type="checkbox"
                               checked={selectedPackIds.has(g.id)}
                               onChange={() => togglePackId(g.id)}
-                              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 bg-zinc-900 accent-emerald-500"
+                              className="mt-1 h-4 w-4 shrink-0 rounded border-zinc-600 bg-zinc-900 accent-blue-500"
                             />
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium text-zinc-100">{g.title}</p>
@@ -525,7 +525,7 @@ export function Onboarding(): ReactElement {
                     type="button"
                     disabled={submitting}
                     onClick={() => void handleFinish()}
-                    className="min-h-11 flex-[2] rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/15 transition hover:from-emerald-400 hover:to-teal-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="min-h-11 flex-[2] rounded-xl bg-gradient-to-r from-blue-700 to-blue-500 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/40 transition hover:from-blue-600 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {submitting ? "Montando seu cockpit..." : "Montar meu Cockpit"}
                   </button>

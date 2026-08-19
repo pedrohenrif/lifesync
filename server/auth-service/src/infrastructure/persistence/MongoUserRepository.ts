@@ -1,4 +1,4 @@
-import type { IUserRepository } from "../../domain/repositories/IUserRepository.js";
+import type { IUserRepository, StoredPushSubscription } from "../../domain/repositories/IUserRepository.js";
 import {
   User,
   type PersonalReward,
@@ -108,13 +108,34 @@ function userToDoc(user: User): Record<string, unknown> {
   };
 }
 
+function isStoredPushSubscription(value: unknown): value is StoredPushSubscription {
+  if (value === null || typeof value !== "object") return false;
+  const o = value as Record<string, unknown>;
+  if (typeof o.endpoint !== "string" || o.endpoint.length === 0) return false;
+  const exp = o.expirationTime;
+  if (exp !== null && typeof exp !== "number") return false;
+  const keys = o.keys;
+  if (keys === null || typeof keys !== "object") return false;
+  const k = keys as Record<string, unknown>;
+  return typeof k.p256dh === "string" && typeof k.auth === "string";
+}
+
 export class MongoUserRepository implements IUserRepository {
   async save(user: User): Promise<void> {
-    await UserModel.create(userToDoc(user));
+    await UserModel.create({ ...userToDoc(user), pushSubscriptions: [] });
   }
 
   async updateUser(user: User): Promise<void> {
-    await UserModel.replaceOne({ _id: user.id }, userToDoc(user)).exec();
+    const existing = await UserModel.findById(user.id).select("pushSubscriptions").lean().exec();
+    const rawSubs = existing !== null && typeof existing === "object" ? (existing as { pushSubscriptions?: unknown }).pushSubscriptions : undefined;
+    const pushSubscriptions = Array.isArray(rawSubs)
+      ? rawSubs.filter(isStoredPushSubscription).map((s) => ({
+          endpoint: s.endpoint,
+          expirationTime: s.expirationTime,
+          keys: { p256dh: s.keys.p256dh, auth: s.keys.auth },
+        }))
+      : [];
+    await UserModel.replaceOne({ _id: user.id }, { ...userToDoc(user), pushSubscriptions }).exec();
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -186,5 +207,47 @@ export class MongoUserRepository implements IUserRepository {
       throw new Error(`Invalid user persisted: ${result.error.code}`);
     }
     return result.user;
+  }
+
+  async upsertPushSubscription(userId: string, subscription: StoredPushSubscription): Promise<void> {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $pull: { pushSubscriptions: { endpoint: subscription.endpoint } } },
+    ).exec();
+    await UserModel.updateOne(
+      { _id: userId },
+      {
+        $push: { pushSubscriptions: subscription },
+        $set: { updatedAt: new Date() },
+      },
+    ).exec();
+  }
+
+  async removePushSubscriptionByEndpoint(userId: string, endpoint: string): Promise<void> {
+    await UserModel.updateOne(
+      { _id: userId },
+      { $pull: { pushSubscriptions: { endpoint } }, $set: { updatedAt: new Date() } },
+    ).exec();
+  }
+
+  async findPushSubscriptionsForUserIds(
+    userIds: readonly string[],
+  ): Promise<Map<string, StoredPushSubscription[]>> {
+    const map = new Map<string, StoredPushSubscription[]>();
+    if (userIds.length === 0) return map;
+    const docs = await UserModel.find({ _id: { $in: userIds } }, { pushSubscriptions: 1 })
+      .lean()
+      .exec();
+    for (const doc of docs) {
+      if (doc === null || typeof doc !== "object") continue;
+      const id = (doc as { _id?: string })._id;
+      const raw = (doc as { pushSubscriptions?: unknown }).pushSubscriptions;
+      if (typeof id !== "string") continue;
+      const list = Array.isArray(raw) ? raw.filter(isStoredPushSubscription) : [];
+      if (list.length > 0) {
+        map.set(id, list);
+      }
+    }
+    return map;
   }
 }

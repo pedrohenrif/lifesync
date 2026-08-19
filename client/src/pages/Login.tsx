@@ -49,7 +49,7 @@ export function Login(): ReactElement {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 px-8 py-10 shadow-xl shadow-black/40">
+      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-navy-900 px-8 py-10 shadow-xl shadow-black/40">
         <h1 className="text-center text-2xl font-semibold tracking-tight text-zinc-100">
           Entrar
         </h1>
@@ -70,7 +70,7 @@ export function Login(): ReactElement {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900"
+              className="ls-input"
               placeholder="voce@email.com"
               required
             />
@@ -90,7 +90,7 @@ export function Login(): ReactElement {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900"
+              className="ls-input"
               placeholder="Sua senha"
               required
             />
@@ -117,7 +117,7 @@ export function Login(): ReactElement {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-lg bg-white py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="ls-btn-block"
           >
             {isPending ? "Entrando..." : "Entrar"}
           </button>

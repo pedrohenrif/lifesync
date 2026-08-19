@@ -1,10 +1,38 @@
 @import "tailwindcss";
 
+/* Paleta LifeSync — navy + azul, usada no PWA e no restante do app */
+@theme {
+  --color-navy-950: #0b1220;
+  --color-navy-900: #0f172a;
+  --color-navy-800: #162033;
+  --color-navy-700: #1e3a5f;
+}
+
 @layer base {
   html,
   body,
   #root {
-    @apply min-h-screen bg-black text-zinc-100 antialiased;
+    @apply min-h-screen bg-navy-950 text-zinc-100 antialiased;
+    color-scheme: dark;
+    background-color: #0b1220;
+  }
+}
+
+@layer components {
+  .ls-input {
+    @apply w-full rounded-lg border border-slate-800 bg-navy-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30;
+  }
+
+  .ls-btn {
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto;
+  }
+
+  .ls-btn-block {
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ls-card {
+    @apply rounded-2xl border border-slate-800/90 bg-navy-900/80;
   }
 }
 

@@ -45,7 +45,7 @@ function formatTargetDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
-const CARD_CLASS = "rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:p-6";
+const CARD_CLASS = "ls-card p-4 md:p-6";
 
 /* ─── Skeletons ─── */
 
@@ -107,8 +107,8 @@ function FinancePanel(): ReactElement {
 
       <div className="mt-4 flex flex-wrap items-center gap-4 sm:gap-6">
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="h-4 w-4 text-emerald-400" />
-          <span className="text-sm font-medium text-emerald-400">{formatCurrency(data.totalIncome)}</span>
+          <TrendingUp className="h-4 w-4 text-blue-400" />
+          <span className="text-sm font-medium text-blue-400">{formatCurrency(data.totalIncome)}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <TrendingDown className="h-4 w-4 text-red-400" />
@@ -161,7 +161,7 @@ function HabitsPanel(): ReactElement {
               <li key={habit.id} className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2.5">
                   {done ? (
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/90">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/90">
                       <Check className="h-3.5 w-3.5 text-zinc-950" strokeWidth={2.5} />
                     </div>
                   ) : (
@@ -287,7 +287,7 @@ function WelcomeConfettiOverlay(): ReactElement | null {
         recycle={false}
         numberOfPieces={260}
         gravity={0.11}
-        colors={["#34d399", "#a78bfa", "#22d3ee", "#fbbf24", "#e4e4e7"]}
+        colors={["#60a5fa", "#a78bfa", "#22d3ee", "#fbbf24", "#e4e4e7"]}
       />
     </div>
   );

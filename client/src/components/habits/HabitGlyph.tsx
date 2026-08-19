@@ -69,7 +69,7 @@ export function HabitGlyph({
   const resolved = icon.trim().length > 0 ? icon.trim() : "Activity";
   const LucideIconComp = isLucideHabitIcon(resolved) ? LUCIDE_MAP[resolved] : null;
 
-  const color = active ? "text-emerald-400" : "text-zinc-400";
+  const color = active ? "text-blue-400" : "text-zinc-400";
   const popClass = pop ? "habit-icon-pop" : "";
 
   if (LucideIconComp !== null && LucideIconComp !== undefined) {

@@ -31,8 +31,7 @@ import {
 } from "../components/habits/habitVisuals";
 import { useAuthStore } from "../stores/authStore";
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
+const INPUT_CLASS = "ls-input";
 
 function CategoryBadge({ category }: { readonly category: HabitCategory }): ReactElement {
   return (
@@ -180,7 +179,7 @@ function HabitRow({ habit }: { readonly habit: Habit }): ReactElement {
             disabled={isToggling}
             className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 transition disabled:opacity-50 ${
               isDoneToday
-                ? "border-emerald-500/90 bg-emerald-500 text-zinc-950 shadow-[0_0_20px_-4px_rgba(16,185,129,0.5)]"
+                ? "border-blue-500/90 bg-blue-500 text-zinc-950 shadow-[0_0_20px_-4px_rgba(59,130,246,0.5)]"
                 : "border-zinc-700 text-zinc-600 hover:border-zinc-500 hover:text-zinc-400"
             }`}
             aria-label={isDoneToday ? "Desmarcar hábito" : "Marcar hábito como feito"}
@@ -323,7 +322,7 @@ function CreateHabitForm({
                   key={t.name}
                   type="button"
                   onClick={() => applyTemplate(t)}
-                  className="rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-left text-xs text-zinc-300 transition hover:border-emerald-600/40 hover:bg-zinc-900"
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-2 text-left text-xs text-zinc-300 transition hover:border-blue-600/40 hover:bg-zinc-900"
                 >
                   <span className="font-medium text-zinc-100">{t.name}</span>
                   <span className="mt-0.5 block text-[10px] text-zinc-600">
@@ -385,7 +384,7 @@ function CreateHabitForm({
                 max={6}
                 value={targetDays}
                 onChange={(e) => setTargetDays(Number(e.target.value))}
-                className="w-16 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-center text-sm text-zinc-100 outline-none transition focus:border-zinc-100 focus:bg-zinc-900"
+                className="w-16 ls-input px-3 text-center"
               />
               <span className="text-xs text-zinc-500">dias/sem</span>
             </div>
@@ -395,7 +394,7 @@ function CreateHabitForm({
         <button
           type="submit"
           disabled={createHabit.isPending || name.trim().length === 0}
-          className="min-h-11 w-full rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+          className="ls-btn-block"
         >
           {createHabit.isPending ? "Criando..." : "Adicionar Hábito"}
         </button>
@@ -436,7 +435,7 @@ export function Habits(): ReactElement {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
+            className="ls-btn"
           >
             <Plus className="h-4 w-4" />
             Novo Hábito

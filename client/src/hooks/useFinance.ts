@@ -4,9 +4,11 @@ import {
   getFinancialSummary,
   getFinanceAnalytics,
   createTransaction,
+  updateTransaction,
   deleteTransaction,
   FinanceApiError,
   type CreateTransactionInput,
+  type UpdateTransactionInput,
 } from "../api/finance";
 
 export function financeKey(year?: number, month?: number) {
@@ -50,6 +52,27 @@ export function useCreateTransaction() {
         error instanceof FinanceApiError
           ? error.message
           : "Não foi possível criar a transação.";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateTransactionInput }) =>
+      updateTransaction(id, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
+      void queryClient.invalidateQueries({ queryKey: ["finance-analytics"] });
+      toast.success("Transação atualizada.");
+    },
+    onError: (error) => {
+      const message =
+        error instanceof FinanceApiError
+          ? error.message
+          : "Não foi possível atualizar a transação.";
       toast.error(message);
     },
   });

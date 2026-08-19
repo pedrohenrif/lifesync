@@ -16,7 +16,7 @@ import type { AuthUser } from "../../stores/authStore";
 import { createPersonalReward, redeemPersonalReward } from "../../api/auth";
 
 const CARD =
-  "rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 md:p-5";
+  "ls-card p-4 md:p-5";
 
 type GamificationCockpitProps = {
   readonly user: AuthUser;
@@ -69,7 +69,7 @@ export function LevelProgressBar({
       </div>
       <div className={`mt-2 overflow-hidden rounded-full bg-zinc-800 ${large ? "h-3 md:h-3.5" : "h-2"}`}>
         <div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-emerald-400 transition-all duration-500"
+          className="h-full rounded-full bg-gradient-to-r from-blue-700 via-blue-500 to-blue-400 transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -111,7 +111,7 @@ export function EvolutionRadar({
   return (
     <div className={`${CARD} flex ${large ? "min-h-[320px] lg:min-h-[420px]" : "min-h-[280px]"} flex-col`}>
       <div className="mb-2 flex items-center gap-2">
-        <Sparkles className={`text-emerald-500/80 ${large ? "h-5 w-5" : "h-4 w-4"}`} />
+        <Sparkles className={`text-blue-500/80 ${large ? "h-5 w-5" : "h-4 w-4"}`} />
         <h2 className={`font-semibold text-zinc-300 ${large ? "text-base md:text-lg" : "text-sm"}`}>
           {large ? "Gráfico de atributos" : "Perfil de evolução"}
         </h2>
@@ -129,7 +129,7 @@ export function EvolutionRadar({
               className="rounded-lg border border-zinc-800/80 bg-zinc-900/40 px-2 py-1.5 text-center"
             >
               <span className="block text-zinc-500">{d.subject}</span>
-              <span className="font-semibold tabular-nums text-emerald-400/90">{d.value}</span>
+              <span className="font-semibold tabular-nums text-blue-400/90">{d.value}</span>
             </li>
           ))}
         </ul>
@@ -145,8 +145,8 @@ export function EvolutionRadar({
             <Radar
               name="XP"
               dataKey="value"
-              stroke="#10b981"
-              fill="#10b981"
+              stroke="#3b82f6"
+              fill="#3b82f6"
               fillOpacity={fillOp}
               strokeWidth={strokeW}
             />
@@ -206,7 +206,7 @@ export function PersonalRewardsPanel({ user }: { readonly user: AuthUser }): Rea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Ex.: Assistir filme, descanso sem telas"
-          className="min-h-10 flex-1 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-700/50"
+          className="ls-input min-h-10 flex-1"
         />
         <div className="flex gap-2">
           <input
@@ -215,12 +215,12 @@ export function PersonalRewardsPanel({ user }: { readonly user: AuthUser }): Rea
             value={cost}
             onChange={(e) => setCost(e.target.value)}
             placeholder="Custo"
-            className="w-24 min-h-10 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-700/50"
+            className="ls-input min-h-10 w-24"
           />
           <button
             type="submit"
             disabled={createMut.isPending}
-            className="min-h-10 shrink-0 rounded-lg bg-emerald-600/90 px-3 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+            className="min-h-10 shrink-0 rounded-lg bg-blue-600/90 px-3 text-xs font-medium text-white transition hover:bg-blue-500 disabled:opacity-50"
           >
             Adicionar
           </button>
@@ -243,7 +243,7 @@ export function PersonalRewardsPanel({ user }: { readonly user: AuthUser }): Rea
                   type="button"
                   disabled={redeemMut.isPending || user.coins < r.costCoins}
                   onClick={() => redeemMut.mutate(r.id)}
-                  className="rounded-md border border-zinc-700 px-2 py-1 text-[10px] font-medium text-zinc-300 transition hover:border-emerald-600/50 hover:text-emerald-400 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-md border border-zinc-700 px-2 py-1 text-[10px] font-medium text-zinc-300 transition hover:border-blue-600/50 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Resgatar
                 </button>
@@ -280,9 +280,9 @@ function LevelUpOverlay(): ReactElement | null {
         recycle={false}
         numberOfPieces={320}
         gravity={0.1}
-        colors={["#10b981", "#34d399", "#6ee7b7", "#d1fae5", "#e4e4e7"]}
+        colors={["#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe", "#e4e4e7"]}
       />
-      <p className="relative z-[111] text-center text-lg font-semibold tracking-tight text-emerald-400 drop-shadow-lg">
+      <p className="relative z-[111] text-center text-lg font-semibold tracking-tight text-blue-400 drop-shadow-lg">
         NÍVEL AUMENTADO!
       </p>
     </div>
@@ -313,7 +313,7 @@ export function GamificationCockpit({ user }: GamificationCockpitProps): ReactEl
         <EvolutionRadar user={user} variant="default" />
         <Link
           to="/profile"
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/50 py-2.5 text-xs font-medium text-emerald-500/90 transition hover:border-emerald-800/60 hover:bg-zinc-900 hover:text-emerald-400"
+          className="flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/50 py-2.5 text-xs font-medium text-blue-500/90 transition hover:border-blue-800/60 hover:bg-zinc-900 hover:text-blue-400"
         >
           Ficha de personagem e loja
           <ArrowRight className="h-3.5 w-3.5" />

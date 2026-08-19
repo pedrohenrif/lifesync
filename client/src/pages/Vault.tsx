@@ -13,8 +13,7 @@ import { useNotes, useCreateNote, useDeleteNote } from "../hooks/useVault";
 import { useGoals } from "../hooks/useGoals";
 import { AppModalShell } from "../components/ui/AppModalShell";
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
+const INPUT_CLASS = "ls-input";
 
 /* ─── Modal de Criação ─── */
 
@@ -71,7 +70,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
               onClick={() => setType("NOTE")}
               className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition ${
                 type === "NOTE"
-                  ? "border-zinc-600 bg-zinc-800 text-zinc-100"
+                  ? "border-blue-600 bg-blue-600/20 text-blue-300"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
               }`}
             >
@@ -83,7 +82,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
               onClick={() => setType("LINK")}
               className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition ${
                 type === "LINK"
-                  ? "border-zinc-600 bg-zinc-800 text-zinc-100"
+                  ? "border-blue-600 bg-blue-600/20 text-blue-300"
                   : "border-zinc-800 text-zinc-500 hover:border-zinc-700"
               }`}
             >
@@ -141,7 +140,7 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
             <button
               type="submit"
               disabled={createNote.isPending || title.trim().length === 0 || content.trim().length === 0}
-              className="min-h-11 flex-1 rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+              className="ls-btn-block flex-1"
             >
               {createNote.isPending ? "Salvando..." : "Salvar"}
             </button>
@@ -213,7 +212,7 @@ function NoteCard({
           {new Date(note.createdAt).toLocaleDateString("pt-BR")}
         </span>
         {goalTitle !== null && (
-          <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+          <span className="flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">
             <Target className="h-2.5 w-2.5" />
             {goalTitle}
           </span>
@@ -250,7 +249,7 @@ export function Vault(): ReactElement {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black transition hover:bg-zinc-200 sm:w-auto"
+          className="ls-btn"
         >
           <Plus className="h-4 w-4" />
           Nova Nota

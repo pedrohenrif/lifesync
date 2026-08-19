@@ -22,7 +22,7 @@ export function Profile(): ReactElement {
     <div className="mx-auto max-w-7xl space-y-8">
       <div>
         <div className="flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-emerald-500/90" />
+          <Sparkles className="h-6 w-6 text-blue-500/90" />
           <h1 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">Ficha de personagem</h1>
         </div>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-500">

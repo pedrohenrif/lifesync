@@ -1,6 +1,13 @@
 import { ok, type Result } from "../result.js";
 import type { ITransactionRepository } from "../../domain/repositories/ITransactionRepository.js";
 
+function toLocalDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export type TransactionSummaryItem = {
   readonly id: string;
   readonly title: string;
@@ -53,7 +60,7 @@ export class GetFinancialSummaryUseCase {
         paymentMethod: tx.paymentMethod,
         isFixed: tx.isFixed,
         installment: tx.installment,
-        date: tx.date.toISOString(),
+        date: toLocalDateKey(tx.date),
         createdAt: tx.createdAt.toISOString(),
       };
     });

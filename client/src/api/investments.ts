@@ -60,3 +60,13 @@ export async function addInvestmentContribution(
 export async function deleteInvestment(id: string): Promise<null> {
   return financeRequest<null>(`/investments/${id}`, { method: "DELETE" });
 }
+
+export async function renameInvestment(
+  id: string,
+  name: string,
+): Promise<{ id: string; name: string }> {
+  return financeRequest(`/investments/${id}/name`, {
+    method: "PATCH",
+    body: { name },
+  });
+}

@@ -6,8 +6,7 @@ import { AppModalShell } from "../ui/AppModalShell";
 import { HabitIconPicker } from "./HabitIconPicker";
 import { HABIT_CATEGORIES, CATEGORY_LABELS } from "./habitVisuals";
 
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-zinc-100 focus:bg-zinc-900";
+const INPUT_CLASS = "ls-input";
 
 export function EditHabitForm({
   habit,
@@ -98,7 +97,7 @@ export function EditHabitForm({
                 max={6}
                 value={targetDays}
                 onChange={(e) => setTargetDays(Number(e.target.value))}
-                className="w-16 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-center text-sm text-zinc-100 outline-none transition focus:border-zinc-100 focus:bg-zinc-900"
+                className="w-16 ls-input px-3 text-center"
               />
               <span className="text-xs text-zinc-500">dias/sem</span>
             </div>
@@ -116,7 +115,7 @@ export function EditHabitForm({
           <button
             type="submit"
             disabled={updateHabit.isPending || name.trim().length === 0}
-            className="min-h-11 flex-1 rounded-lg bg-white py-3 text-sm font-medium text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-70"
+            className="ls-btn-block flex-1"
           >
             {updateHabit.isPending ? "Salvando..." : "Salvar"}
           </button>

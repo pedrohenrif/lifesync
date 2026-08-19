@@ -10,7 +10,7 @@ export function PublicLayout(): ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-black text-zinc-100">
+    <div className="min-h-screen bg-navy-950 text-zinc-100">
       <Outlet />
     </div>
   );

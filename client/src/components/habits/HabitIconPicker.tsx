@@ -67,7 +67,7 @@ export function HabitIconPicker({
               onClick={() => onChange(emoji)}
               className={`flex h-10 w-10 items-center justify-center rounded-lg border text-lg transition ${
                 selected
-                  ? "border-emerald-500/60 bg-emerald-500/15 ring-1 ring-emerald-500/40"
+                  ? "border-blue-500/60 bg-blue-500/15 ring-1 ring-blue-500/40"
                   : "border-zinc-800 bg-zinc-950 hover:border-zinc-600"
               }`}
               aria-label={`Emoji ${emoji}`}
@@ -89,7 +89,7 @@ export function HabitIconPicker({
               title={name}
               className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${
                 selected
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/40"
+                  ? "border-blue-500/60 bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/40"
                   : "border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300"
               }`}
               aria-label={name}

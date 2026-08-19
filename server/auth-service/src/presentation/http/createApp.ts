@@ -9,6 +9,7 @@ import type { ReviewUserUseCase } from "../../application/use-cases/ReviewUserUs
 import type { CreatePersonalRewardUseCase } from "../../application/use-cases/CreatePersonalRewardUseCase.js";
 import type { RedeemPersonalRewardUseCase } from "../../application/use-cases/RedeemPersonalRewardUseCase.js";
 import type { ApplyInternalGamificationEventUseCase } from "../../application/use-cases/ApplyInternalGamificationEventUseCase.js";
+import type { SubscribePushUseCase } from "../../application/use-cases/SubscribePushUseCase.js";
 import { AuthController } from "./controllers/AuthController.js";
 import { AdminController } from "./controllers/AdminController.js";
 import { InternalGamificationController } from "./controllers/InternalGamificationController.js";
@@ -26,8 +27,10 @@ export type AppDependencies = {
   readonly createPersonalRewardUseCase: CreatePersonalRewardUseCase;
   readonly redeemPersonalRewardUseCase: RedeemPersonalRewardUseCase;
   readonly applyInternalGamificationEventUseCase: ApplyInternalGamificationEventUseCase;
+  readonly subscribePushUseCase: SubscribePushUseCase;
   readonly jwtSecret: string;
   readonly internalGamificationKey: string;
+  readonly vapidConfigured: boolean;
 };
 
 function handleAsyncError(
@@ -70,6 +73,8 @@ export function createApp(deps: AppDependencies): Express {
     deps.completeOnboardingUseCase,
     deps.createPersonalRewardUseCase,
     deps.redeemPersonalRewardUseCase,
+    deps.subscribePushUseCase,
+    deps.vapidConfigured,
   );
 
   const adminController = new AdminController(
@@ -103,6 +108,10 @@ export function createApp(deps: AppDependencies): Express {
   });
   app.post("/auth/users/me/rewards/:id/redeem", authMiddleware, (req, res, next) => {
     void authController.redeemPersonalReward(req, res).catch(next);
+  });
+
+  app.post("/auth/push/subscribe", authMiddleware, (req, res, next) => {
+    void authController.subscribePush(req, res).catch(next);
   });
 
   app.post("/auth/internal/gamification/events", internalMiddleware, (req, res, next) => {

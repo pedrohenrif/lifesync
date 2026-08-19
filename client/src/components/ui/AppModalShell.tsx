@@ -22,14 +22,14 @@ export function AppModalShell({
   const titleId = useId();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-navy-950/70 p-0 sm:items-center sm:p-4">
       <div
-        className={`flex max-h-[calc(100svh-40px)] w-full ${maxWidthClass} flex-col overflow-hidden rounded-t-2xl border border-zinc-800 border-b-0 bg-zinc-950 sm:max-h-[min(96svh,calc(100svh-40px))] sm:rounded-xl sm:border-b`}
+        className={`flex max-h-[calc(100svh-40px)] w-full ${maxWidthClass} flex-col overflow-hidden rounded-t-3xl border border-slate-800 border-b-0 bg-navy-900 sm:max-h-[min(96svh,calc(100svh-40px))] sm:rounded-xl sm:border-b`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950 px-4 py-3 sm:px-6">
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-800/80 bg-navy-900 px-4 py-3 sm:px-6">
           <h2 id={titleId} className="text-sm font-semibold text-zinc-200">
             {title}
           </h2>

@@ -4,6 +4,7 @@ import { ListHabitsUseCase } from "./application/use-cases/ListHabitsUseCase.js"
 import { ToggleHabitUseCase } from "./application/use-cases/ToggleHabitUseCase.js";
 import { UpdateHabitUseCase } from "./application/use-cases/UpdateHabitUseCase.js";
 import { DeleteHabitUseCase } from "./application/use-cases/DeleteHabitUseCase.js";
+import { ListUserIdsWithPendingHabitsTodayUseCase } from "./application/use-cases/ListUserIdsWithPendingHabitsTodayUseCase.js";
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoHabitRepository } from "./infrastructure/persistence/MongoHabitRepository.js";
@@ -22,6 +23,9 @@ const listHabitsUseCase = new ListHabitsUseCase(habitRepository);
 const toggleHabitUseCase = new ToggleHabitUseCase(habitRepository, gamificationNotifier);
 const updateHabitUseCase = new UpdateHabitUseCase(habitRepository);
 const deleteHabitUseCase = new DeleteHabitUseCase(habitRepository);
+const listUserIdsWithPendingHabitsTodayUseCase = new ListUserIdsWithPendingHabitsTodayUseCase(
+  habitRepository,
+);
 
 const app = createApp({
   createHabitUseCase,
@@ -29,7 +33,9 @@ const app = createApp({
   toggleHabitUseCase,
   updateHabitUseCase,
   deleteHabitUseCase,
+  listUserIdsWithPendingHabitsTodayUseCase,
   jwtSecret: env.jwtSecret,
+  internalServiceKey: env.internalGamificationKey,
 });
 const server = createServer(app);
 

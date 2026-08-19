@@ -1,4 +1,4 @@
-import type { IHabitRepository } from "../../domain/repositories/IHabitRepository.js";
+import type { HabitReminderRow, IHabitRepository } from "../../domain/repositories/IHabitRepository.js";
 import {
   Habit,
   isHabitCategory,
@@ -91,6 +91,35 @@ export class MongoHabitRepository implements IHabitRepository {
 
   async delete(id: string): Promise<void> {
     await HabitModel.deleteOne({ _id: id }).exec();
+  }
+
+  async findAllForReminderProjection(): Promise<readonly HabitReminderRow[]> {
+    const docs = await HabitModel.find(
+      {},
+      { userId: 1, frequencyType: 1, completedDates: 1, targetDaysPerWeek: 1 },
+    )
+      .lean()
+      .exec();
+    const out: HabitReminderRow[] = [];
+    for (const doc of docs) {
+      if (doc === null || typeof doc !== "object") continue;
+      const o = doc as Record<string, unknown>;
+      if (typeof o.userId !== "string" || typeof o.frequencyType !== "string") continue;
+      const completedDates = Array.isArray(o.completedDates)
+        ? o.completedDates.filter((x): x is string => typeof x === "string")
+        : [];
+      const targetDaysPerWeek =
+        typeof o.targetDaysPerWeek === "number" && Number.isFinite(o.targetDaysPerWeek)
+          ? o.targetDaysPerWeek
+          : null;
+      out.push({
+        userId: o.userId,
+        frequencyType: o.frequencyType,
+        completedDates,
+        targetDaysPerWeek,
+      });
+    }
+    return out;
   }
 
   private toDomain(doc: PersistedHabit): Habit {

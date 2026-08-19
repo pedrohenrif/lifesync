@@ -39,6 +39,20 @@ function toDocument(tx: Transaction) {
   };
 }
 
+function toUpdateSet(tx: Transaction) {
+  return {
+    userId: tx.userId,
+    title: tx.title,
+    amount: tx.amount,
+    type: tx.type,
+    category: tx.category,
+    paymentMethod: tx.paymentMethod,
+    isFixed: tx.isFixed,
+    installment: tx.installment,
+    date: tx.date,
+  };
+}
+
 export class MongoTransactionRepository implements ITransactionRepository {
   async save(tx: Transaction): Promise<void> {
     await TransactionModel.create(toDocument(tx));
@@ -86,6 +100,10 @@ export class MongoTransactionRepository implements ITransactionRepository {
       result.push(this.toDomain(doc));
     }
     return result;
+  }
+
+  async update(tx: Transaction): Promise<void> {
+    await TransactionModel.updateOne({ _id: tx.id }, { $set: toUpdateSet(tx) }).exec();
   }
 
   async delete(id: string): Promise<void> {
