@@ -181,6 +181,23 @@ O frontend estará disponível em `http://localhost:5173`.
 
 ## Endpoints da API
 
+### Paginação
+
+Todas as rotas de listagem são paginadas. Elas aceitam `?page=` (1-based, padrão `1`) e
+`?pageSize=` (padrão `20`, máximo `100`), e respondem com a lista sob a chave do recurso mais
+um bloco `pagination`:
+
+```json
+{
+  "notes": [],
+  "pagination": { "page": 1, "pageSize": 20, "total": 57, "hasMore": true }
+}
+```
+
+Valores inválidos de paginação retornam `400 INVALID_QUERY`. Nos endpoints financeiros, os
+totais (`totalIncome`, `totalExpense`, `balance`, `totalInvested`, `totalBalance`) são
+agregados no banco e refletem o período inteiro, não a página carregada.
+
 ### Auth Service (`:4000`)
 
 | Método | Rota | Descrição |
@@ -194,7 +211,7 @@ O frontend estará disponível em `http://localhost:5173`.
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | POST | `/goals` | Criar meta |
-| GET | `/goals` | Listar metas (filtro `?category=`) |
+| GET | `/goals` | Listar metas (filtros `?category=` e `?status=` aceitando lista separada por vírgula) |
 | PATCH | `/goals/:id` | Atualizar meta |
 | DELETE | `/goals/:id` | Excluir meta |
 | POST | `/goals/:id/tasks` | Adicionar sub-tarefa |

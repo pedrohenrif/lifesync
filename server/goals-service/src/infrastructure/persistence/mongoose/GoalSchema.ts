@@ -34,6 +34,11 @@ const goalSchema = new mongoose.Schema(
   { collection: "goals" },
 );
 
+// Suportam as listagens paginadas do Kanban (todas as metas e filtro por status/categoria).
+goalSchema.index({ userId: 1, createdAt: -1 });
+goalSchema.index({ userId: 1, status: 1, createdAt: -1 });
+goalSchema.index({ userId: 1, category: 1, createdAt: -1 });
+
 export type PersistedGoalTask = {
   readonly id: string;
   readonly title: string;

@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { ShieldCheck, UserCheck, UserX, Clock, Users } from "lucide-react";
 import { usePendingUsers, useReviewUser } from "../hooks/useAdmin";
 import type { PendingUser } from "../api/admin";
+import { LoadMoreButton } from "../components/ui/LoadMoreButton";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -75,10 +76,15 @@ function UserCard({
 }
 
 export function AdminDashboard(): ReactElement {
-  const { data, isPending: isLoadingUsers } = usePendingUsers();
+  const {
+    items: pendingUsers,
+    total,
+    isPending: isLoadingUsers,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = usePendingUsers();
   const reviewMutation = useReviewUser();
-
-  const pendingUsers = data?.users ?? [];
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -97,7 +103,7 @@ export function AdminDashboard(): ReactElement {
         <span>
           {isLoadingUsers
             ? "Carregando..."
-            : `${pendingUsers.length} usuário${pendingUsers.length !== 1 ? "s" : ""} pendente${pendingUsers.length !== 1 ? "s" : ""}`}
+            : `${total} usuário${total !== 1 ? "s" : ""} pendente${total !== 1 ? "s" : ""}`}
         </span>
       </div>
 
@@ -114,15 +120,24 @@ export function AdminDashboard(): ReactElement {
             <p className="mt-3 text-sm text-zinc-500">Nenhum usuário pendente de aprovação.</p>
           </div>
         ) : (
-          pendingUsers.map((user) => (
-            <UserCard
-              key={user.id}
-              user={user}
-              isLoading={reviewMutation.isPending}
-              onApprove={() => reviewMutation.mutate({ userId: user.id, status: "ACTIVE" })}
-              onReject={() => reviewMutation.mutate({ userId: user.id, status: "REJECTED" })}
+          <>
+            {pendingUsers.map((user) => (
+              <UserCard
+                key={user.id}
+                user={user}
+                isLoading={reviewMutation.isPending}
+                onApprove={() => reviewMutation.mutate({ userId: user.id, status: "ACTIVE" })}
+                onReject={() => reviewMutation.mutate({ userId: user.id, status: "REJECTED" })}
+              />
+            ))}
+            <LoadMoreButton
+              hasMore={hasNextPage}
+              isLoading={isFetchingNextPage}
+              onLoadMore={() => void fetchNextPage()}
+              loadedCount={pendingUsers.length}
+              total={total}
             />
-          ))
+          </>
         )}
       </div>
     </div>

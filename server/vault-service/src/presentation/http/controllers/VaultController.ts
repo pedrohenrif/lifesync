@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { CreateNoteUseCase } from "../../../application/use-cases/CreateNoteUseCase.js";
 import type { GetNotesByUserUseCase } from "../../../application/use-cases/GetNotesByUserUseCase.js";
 import type { DeleteNoteUseCase } from "../../../application/use-cases/DeleteNoteUseCase.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const createNoteBodySchema = z.object({
   title: z.string().min(1),
@@ -58,13 +59,23 @@ export class VaultController {
     const userId = extractUserId(req, res);
     if (userId === undefined) return;
 
-    const result = await this.getNotesUseCase.execute(userId);
+    const parsedQuery = paginationQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", issues: parsedQuery.error.flatten() } });
+      return;
+    }
+
+    const result = await this.getNotesUseCase.execute(userId, parsedQuery.data);
     if (!result.ok) {
       res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
       return;
     }
 
-    res.status(200).json({ notes: result.value });
+    res
+      .status(200)
+      .json({ notes: result.value.items, pagination: toPaginationMeta(result.value) });
   }
 
   async remove(req: Request, res: Response): Promise<void> {

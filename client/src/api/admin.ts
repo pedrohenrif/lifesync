@@ -1,4 +1,10 @@
 import { apiRequest } from "./client";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 
 export type PendingUser = {
   readonly id: string;
@@ -10,6 +16,8 @@ export type PendingUser = {
 export type PendingUsersResponse = {
   readonly users: PendingUser[];
 };
+
+export type PendingUsersPage = Page<PendingUser>;
 
 export type ReviewDecision = "ACTIVE" | "REJECTED";
 
@@ -56,8 +64,12 @@ async function adminRequest<T>(
   return data as T;
 }
 
-export async function getPendingUsers(): Promise<PendingUsersResponse> {
-  return adminRequest<PendingUsersResponse>("/auth/admin/users/pending");
+export async function getPendingUsers(request: PageRequest = {}): Promise<PendingUsersPage> {
+  const data = await adminRequest<PendingUsersResponse>(
+    `/auth/admin/users/pending${buildPageQuery(request)}`,
+  );
+  const items = data.users ?? [];
+  return { items, pagination: readPaginationMeta(data, items.length) };
 }
 
 export async function reviewUser(

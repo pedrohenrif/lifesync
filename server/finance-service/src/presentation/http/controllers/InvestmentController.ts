@@ -7,6 +7,7 @@ import type { AddInvestmentContributionUseCase } from "../../../application/use-
 import type { DeleteInvestmentUseCase } from "../../../application/use-cases/DeleteInvestmentUseCase.js";
 import type { RenameInvestmentUseCase } from "../../../application/use-cases/RenameInvestmentUseCase.js";
 import { extractUserId, ERROR_STATUS_MAP } from "./FinanceController.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const createInvestmentBodySchema = z.object({
   name: z.string().min(1),
@@ -59,13 +60,26 @@ export class InvestmentController {
     const userId = extractUserId(req, res);
     if (userId === null) return;
 
-    const result = await this.listInvestments.execute(userId);
+    const parsedQuery = paginationQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", details: parsedQuery.error.flatten() } });
+      return;
+    }
+
+    const result = await this.listInvestments.execute(userId, parsedQuery.data);
     if (!result.ok) {
       res.status(500).json({ error: { code: "UNKNOWN_ERROR" } });
       return;
     }
 
-    res.status(200).json(result.value);
+    const { investments, ...totals } = result.value;
+    res.status(200).json({
+      ...totals,
+      investments: investments.items,
+      pagination: toPaginationMeta(investments),
+    });
   };
 
   readonly updateCurrentBalance = async (req: Request, res: Response): Promise<void> => {

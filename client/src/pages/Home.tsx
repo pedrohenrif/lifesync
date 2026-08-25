@@ -18,9 +18,15 @@ import { useAuthStore } from "../stores/authStore";
 import { useFinancialSummary } from "../hooks/useFinance";
 import { useHabits } from "../hooks/useHabits";
 import { useGoals } from "../hooks/useGoals";
+import type { GoalStatus } from "../api/goals";
 import { DailyCheckIn } from "../components/journal/DailyCheckIn";
 import { HabitGlyph } from "../components/habits/HabitGlyph";
 import { GamificationCockpit } from "../components/gamification/GamificationCockpit";
+
+const ACTIVE_GOAL_STATUSES: readonly GoalStatus[] = ["PENDING", "IN_PROGRESS"];
+
+/** O painel da Home lista os hábitos do dia; o volume por usuário é pequeno. */
+const HOME_HABITS_PAGE_SIZE = 50;
 
 /* ─── Utilitários ─── */
 
@@ -82,10 +88,15 @@ function CardLink({ to, label }: { readonly to: string; readonly label: string }
 
 function FinancePanel(): ReactElement {
   const now = new Date();
-  const { data, isPending, isError } = useFinancialSummary(now.getFullYear(), now.getMonth() + 1);
+  // A Home só exibe os totais agregados; basta uma página mínima de transações.
+  const { totalIncome, totalExpense, balance, isPending, isError } = useFinancialSummary(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1,
+  );
 
   if (isPending) return <SkeletonCard lines={4} />;
-  if (isError || data === undefined) {
+  if (isError) {
     return (
       <div className={CARD_CLASS}>
         <p className="text-sm text-red-400">Erro ao carregar finanças.</p>
@@ -101,18 +112,18 @@ function FinancePanel(): ReactElement {
       </div>
 
       <p className="text-2xl font-bold tracking-tight text-zinc-100 md:text-3xl">
-        {formatCurrency(data.balance)}
+        {formatCurrency(balance)}
       </p>
       <p className="text-xs text-zinc-500 mt-1">Saldo atual do mês</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-4 sm:gap-6">
         <div className="flex items-center gap-1.5">
           <TrendingUp className="h-4 w-4 text-blue-400" />
-          <span className="text-sm font-medium text-blue-400">{formatCurrency(data.totalIncome)}</span>
+          <span className="text-sm font-medium text-blue-400">{formatCurrency(totalIncome)}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <TrendingDown className="h-4 w-4 text-red-400" />
-          <span className="text-sm font-medium text-red-400">{formatCurrency(data.totalExpense)}</span>
+          <span className="text-sm font-medium text-red-400">{formatCurrency(totalExpense)}</span>
         </div>
       </div>
 
@@ -124,10 +135,10 @@ function FinancePanel(): ReactElement {
 /* ─── Painel de Hábitos ─── */
 
 function HabitsPanel(): ReactElement {
-  const { data, isPending, isError } = useHabits();
+  const { items: habits, total, isPending, isError } = useHabits(HOME_HABITS_PAGE_SIZE);
 
   if (isPending) return <SkeletonCard lines={5} />;
-  if (isError || data === undefined) {
+  if (isError) {
     return (
       <div className={CARD_CLASS}>
         <p className="text-sm text-red-400">Erro ao carregar hábitos.</p>
@@ -136,7 +147,6 @@ function HabitsPanel(): ReactElement {
   }
 
   const today = todayISO();
-  const habits = data.habits;
   const doneCount = habits.filter((h) => h.completedDates.includes(today)).length;
 
   return (
@@ -147,7 +157,7 @@ function HabitsPanel(): ReactElement {
           <h2 className="text-sm font-semibold text-zinc-400">Hábitos de Hoje</h2>
         </div>
         <span className="text-xs text-zinc-500">
-          {doneCount}/{habits.length} feitos
+          {doneCount}/{total} feitos
         </span>
       </div>
 
@@ -196,22 +206,22 @@ function HabitsPanel(): ReactElement {
 const MAX_GOALS_SHOWN = 4;
 
 function GoalsPanel(): ReactElement {
-  const { data, isPending, isError } = useGoals();
+  // O servidor já devolve só as metas ativas, na quantidade exibida no card.
+  const {
+    items: active,
+    total,
+    isPending,
+    isError,
+  } = useGoals({ statuses: ACTIVE_GOAL_STATUSES, pageSize: MAX_GOALS_SHOWN });
 
   if (isPending) return <SkeletonCard lines={4} />;
-  if (isError || data === undefined) {
+  if (isError) {
     return (
       <div className={CARD_CLASS}>
         <p className="text-sm text-red-400">Erro ao carregar metas.</p>
       </div>
     );
   }
-
-  const active = data.goals
-    .filter((g) => g.status === "PENDING" || g.status === "IN_PROGRESS")
-    .slice(0, MAX_GOALS_SHOWN);
-
-  const total = data.goals.filter((g) => g.status === "PENDING" || g.status === "IN_PROGRESS").length;
 
   return (
     <div className={`${CARD_CLASS} flex flex-col`}>

@@ -28,6 +28,9 @@ const habitSchema = new mongoose.Schema(
   },
 );
 
+// Suporta a listagem paginada de hábitos do usuário.
+habitSchema.index({ userId: 1, createdAt: -1 });
+
 export type PersistedHabit = {
   readonly _id: string;
   readonly userId: string;

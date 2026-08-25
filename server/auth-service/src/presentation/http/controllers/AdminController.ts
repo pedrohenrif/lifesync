@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import type { ListPendingUsersUseCase } from "../../../application/use-cases/ListPendingUsersUseCase.js";
 import type { ReviewUserUseCase } from "../../../application/use-cases/ReviewUserUseCase.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const reviewBodySchema = z.object({
   status: z.enum(["ACTIVE", "REJECTED"]),
@@ -13,13 +14,23 @@ export class AdminController {
     private readonly reviewUserUseCase: ReviewUserUseCase,
   ) {}
 
-  async listPending(_req: Request, res: Response): Promise<void> {
-    const result = await this.listPendingUsersUseCase.execute();
+  async listPending(req: Request, res: Response): Promise<void> {
+    const parsedQuery = paginationQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", issues: parsedQuery.error.flatten() } });
+      return;
+    }
+
+    const result = await this.listPendingUsersUseCase.execute(parsedQuery.data);
     if (!result.ok) {
       res.status(500).json({ error: { code: "INTERNAL_ERROR" } });
       return;
     }
-    res.status(200).json(result.value);
+    res
+      .status(200)
+      .json({ users: result.value.users.items, pagination: toPaginationMeta(result.value.users) });
   }
 
   async reviewUser(req: Request, res: Response): Promise<void> {

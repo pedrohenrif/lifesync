@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   createGoal,
@@ -12,15 +12,26 @@ import {
   type CreateGoalInput,
   type UpdateGoalInput,
   type GoalCategory,
+  type GoalStatus,
+  type Goal,
+  type GoalsPage,
 } from "../api/goals";
+import { useInfiniteList } from "./useInfiniteList";
 
 const GOALS_KEY = ["goals"] as const;
 const ME_KEY = ["auth", "me"] as const;
 
-export function useGoals(category?: GoalCategory) {
-  return useQuery({
-    queryKey: category !== undefined ? [...GOALS_KEY, category] : GOALS_KEY,
-    queryFn: () => getGoals(category),
+type UseGoalsOptions = {
+  readonly category?: GoalCategory;
+  readonly statuses?: readonly GoalStatus[];
+  readonly pageSize?: number;
+};
+
+export function useGoals({ category, statuses, pageSize }: UseGoalsOptions = {}) {
+  return useInfiniteList<Goal, GoalsPage>({
+    queryKey: [...GOALS_KEY, { category, statuses }],
+    fetchPage: (request) => getGoals(request, { category, statuses }),
+    pageSize,
   });
 }
 

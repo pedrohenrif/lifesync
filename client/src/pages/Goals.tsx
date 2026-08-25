@@ -27,6 +27,10 @@ import {
   useRemoveGoalTask,
 } from "../hooks/useGoals";
 import { AppModalShell } from "../components/ui/AppModalShell";
+import { LoadMoreButton } from "../components/ui/LoadMoreButton";
+
+/** Metas carregadas por vez em cada coluna do Kanban. */
+const COLUMN_PAGE_SIZE = 15;
 
 /* ─── Mapeamentos de Categoria ─── */
 
@@ -382,14 +386,24 @@ function GoalCard({
 
 /* ─── Coluna Kanban ─── */
 
+/** Cada coluna pagina de forma independente, filtrando por status no servidor. */
 function KanbanColumn({
   column,
-  goals,
+  category,
 }: {
   readonly column: ColumnConfig;
-  readonly goals: Goal[];
+  readonly category: GoalCategory | undefined;
 }): ReactElement {
   const Icon = column.icon;
+  const {
+    items: goals,
+    total,
+    isPending,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGoals({ category, statuses: [column.status], pageSize: COLUMN_PAGE_SIZE });
 
   return (
     <div className="flex flex-col">
@@ -397,15 +411,30 @@ function KanbanColumn({
         <Icon className={`h-4 w-4 ${column.iconColor}`} />
         <h2 className="text-sm font-semibold text-zinc-200">{column.label}</h2>
         <span className="ml-auto rounded-full bg-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-400">
-          {goals.length}
+          {total}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col gap-2.5">
-        {goals.length === 0 ? (
+        {isPending ? (
+          <p className="py-8 text-center text-xs text-zinc-600">Carregando...</p>
+        ) : isError ? (
+          <p className="py-8 text-center text-xs text-red-400/90">Erro ao carregar.</p>
+        ) : goals.length === 0 ? (
           <p className="py-8 text-center text-xs text-zinc-600">{column.emptyText}</p>
         ) : (
-          goals.map((goal) => <GoalCard key={goal.id} goal={goal} column={column} />)
+          <>
+            {goals.map((goal) => (
+              <GoalCard key={goal.id} goal={goal} column={column} />
+            ))}
+            <LoadMoreButton
+              hasMore={hasNextPage}
+              isLoading={isFetchingNextPage}
+              onLoadMore={() => void fetchNextPage()}
+              loadedCount={goals.length}
+              total={total}
+            />
+          </>
         )}
       </div>
     </div>
@@ -542,8 +571,6 @@ function CategoryFilterBar({
 export function Goals(): ReactElement {
   const [showForm, setShowForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<GoalCategory | undefined>(undefined);
-  const { data, isPending, isError } = useGoals(selectedCategory);
-  const goals = data?.goals ?? [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -569,28 +596,11 @@ export function Goals(): ReactElement {
 
       {showForm && <CreateGoalForm onClose={() => setShowForm(false)} />}
 
-      {isPending ? (
-        <div className="flex justify-center py-16">
-          <div className="flex items-center gap-3 text-zinc-500">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
-            <span className="text-sm">Carregando metas...</span>
-          </div>
-        </div>
-      ) : isError ? (
-        <p className="py-16 text-center text-sm text-red-400/90">
-          Erro ao carregar metas. Tente recarregar a página.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {COLUMNS.map((column) => (
-            <KanbanColumn
-              key={column.status}
-              column={column}
-              goals={goals.filter((g) => g.status === column.status)}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {COLUMNS.map((column) => (
+          <KanbanColumn key={column.status} column={column} category={selectedCategory} />
+        ))}
+      </div>
     </div>
   );
 }

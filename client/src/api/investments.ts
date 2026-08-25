@@ -1,4 +1,10 @@
 import { financeRequest, FinanceApiError } from "./finance";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 
 export { FinanceApiError };
 
@@ -13,19 +19,31 @@ export type Investment = {
   readonly updatedAt: string;
 };
 
-export type InvestmentsListResponse = {
-  readonly investments: readonly Investment[];
+export type InvestmentTotals = {
   readonly totalInvested: number;
   readonly totalBalance: number;
 };
+
+export type InvestmentsPage = Page<Investment> & InvestmentTotals;
 
 export type CreateInvestmentInput = {
   readonly name: string;
   readonly investedAmount: number;
 };
 
-export async function getInvestments(): Promise<InvestmentsListResponse> {
-  return financeRequest<InvestmentsListResponse>("/investments");
+type InvestmentsResponse = InvestmentTotals & { readonly investments: readonly Investment[] };
+
+export async function getInvestments(request: PageRequest = {}): Promise<InvestmentsPage> {
+  const data = await financeRequest<InvestmentsResponse>(
+    `/investments${buildPageQuery(request)}`,
+  );
+  const items = data.investments ?? [];
+  return {
+    items,
+    pagination: readPaginationMeta(data, items.length),
+    totalInvested: data.totalInvested,
+    totalBalance: data.totalBalance,
+  };
 }
 
 export async function createInvestment(

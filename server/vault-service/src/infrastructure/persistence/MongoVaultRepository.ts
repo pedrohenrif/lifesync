@@ -2,6 +2,12 @@ import type { IVaultRepository } from "../../domain/repositories/IVaultRepositor
 import { VaultNote } from "../../domain/entities/VaultNote.js";
 import type { NoteType } from "../../domain/entities/VaultNote.js";
 import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
+import {
   VaultNoteModel,
   type PersistedVaultNote,
 } from "./mongoose/VaultNoteSchema.js";
@@ -41,36 +47,45 @@ export class MongoVaultRepository implements IVaultRepository {
     return this.toDomain(doc);
   }
 
-  async findByUserId(userId: string): Promise<VaultNote[]> {
-    const docs = await VaultNoteModel.find({ userId })
-      .sort({ createdAt: -1 })
-      .lean()
-      .exec();
-
-    const notes: VaultNote[] = [];
-    for (const doc of docs) {
-      if (!isPersisted(doc)) throw new Error("Unexpected vault note document shape");
-      notes.push(this.toDomain(doc));
-    }
-    return notes;
+  async findByUserId(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<Paginated<VaultNote>> {
+    return this.findPage({ userId }, pagination);
   }
 
-  async findByGoalId(userId: string, goalId: string): Promise<VaultNote[]> {
-    const docs = await VaultNoteModel.find({ userId, goalId })
-      .sort({ createdAt: -1 })
-      .lean()
-      .exec();
-
-    const notes: VaultNote[] = [];
-    for (const doc of docs) {
-      if (!isPersisted(doc)) throw new Error("Unexpected vault note document shape");
-      notes.push(this.toDomain(doc));
-    }
-    return notes;
+  async findByGoalId(
+    userId: string,
+    goalId: string,
+    pagination: PaginationParams,
+  ): Promise<Paginated<VaultNote>> {
+    return this.findPage({ userId, goalId }, pagination);
   }
 
   async delete(id: string): Promise<void> {
     await VaultNoteModel.deleteOne({ _id: id }).exec();
+  }
+
+  private async findPage(
+    filter: Record<string, unknown>,
+    pagination: PaginationParams,
+  ): Promise<Paginated<VaultNote>> {
+    const [docs, total] = await Promise.all([
+      VaultNoteModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      VaultNoteModel.countDocuments(filter).exec(),
+    ]);
+
+    const notes: VaultNote[] = [];
+    for (const doc of docs) {
+      if (!isPersisted(doc)) throw new Error("Unexpected vault note document shape");
+      notes.push(this.toDomain(doc));
+    }
+    return buildPaginated(notes, total, pagination);
   }
 
   private toDomain(doc: PersistedVaultNote): VaultNote {

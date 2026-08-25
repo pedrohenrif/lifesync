@@ -18,6 +18,9 @@ const vaultNoteSchema = new mongoose.Schema(
   { collection: "vault_notes" },
 );
 
+// Suporta a listagem paginada padrão (notas do usuário, mais recentes primeiro).
+vaultNoteSchema.index({ userId: 1, createdAt: -1 });
+
 export type PersistedVaultNote = {
   readonly _id: string;
   readonly userId: string;

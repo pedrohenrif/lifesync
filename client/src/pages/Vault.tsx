@@ -9,11 +9,19 @@ import {
   Trash2,
 } from "lucide-react";
 import type { VaultNote, NoteType } from "../api/vault";
+import type { GoalStatus } from "../api/goals";
 import { useNotes, useCreateNote, useDeleteNote } from "../hooks/useVault";
 import { useGoals } from "../hooks/useGoals";
 import { AppModalShell } from "../components/ui/AppModalShell";
+import { LoadMoreButton } from "../components/ui/LoadMoreButton";
 
 const INPUT_CLASS = "ls-input";
+
+const ACTIVE_GOAL_STATUSES: readonly GoalStatus[] = ["PENDING", "IN_PROGRESS"];
+
+/** Metas carregadas para o select de vínculo e para resolver o nome no card. */
+const GOAL_SELECT_PAGE_SIZE = 100;
+const NOTES_PAGE_SIZE = 24;
 
 /* ─── Modal de Criação ─── */
 
@@ -24,10 +32,10 @@ function CreateNoteModal({ onClose }: { readonly onClose: () => void }): ReactEl
   const [goalId, setGoalId] = useState("");
   const createNote = useCreateNote();
 
-  const { data: goalsData } = useGoals();
-  const activeGoals = (goalsData?.goals ?? []).filter(
-    (g) => g.status === "PENDING" || g.status === "IN_PROGRESS",
-  );
+  const { items: activeGoals } = useGoals({
+    statuses: ACTIVE_GOAL_STATUSES,
+    pageSize: GOAL_SELECT_PAGE_SIZE,
+  });
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -226,13 +234,18 @@ function NoteCard({
 
 export function Vault(): ReactElement {
   const [showModal, setShowModal] = useState(false);
-  const { data, isPending, isError } = useNotes();
-  const { data: goalsData } = useGoals();
+  const {
+    items: notes,
+    total,
+    isPending,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useNotes(NOTES_PAGE_SIZE);
+  const { items: goals } = useGoals({ pageSize: GOAL_SELECT_PAGE_SIZE });
 
-  const notes = data?.notes ?? [];
-  const goalsMap = new Map(
-    (goalsData?.goals ?? []).map((g) => [g.id, g.title]),
-  );
+  const goalsMap = new Map<string, string>(goals.map((g) => [g.id, g.title]));
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -279,14 +292,23 @@ export function Vault(): ReactElement {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {notes.map((note) => (
-            <NoteCard
-              key={note.id}
-              note={note}
-              goalTitle={note.goalId !== null ? (goalsMap.get(note.goalId) ?? null) : null}
-            />
-          ))}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {notes.map((note) => (
+              <NoteCard
+                key={note.id}
+                note={note}
+                goalTitle={note.goalId !== null ? (goalsMap.get(note.goalId) ?? null) : null}
+              />
+            ))}
+          </div>
+          <LoadMoreButton
+            hasMore={hasNextPage}
+            isLoading={isFetchingNextPage}
+            onLoadMore={() => void fetchNextPage()}
+            loadedCount={notes.length}
+            total={total}
+          />
         </div>
       )}
     </div>

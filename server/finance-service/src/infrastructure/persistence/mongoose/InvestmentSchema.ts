@@ -13,6 +13,9 @@ const investmentSchema = new mongoose.Schema(
   { collection: "investments" },
 );
 
+// Suporta a listagem paginada de investimentos do usuário.
+investmentSchema.index({ userId: 1, createdAt: -1 });
+
 export type PersistedInvestment = {
   readonly _id: string;
   readonly userId: string;

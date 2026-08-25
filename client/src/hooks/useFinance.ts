@@ -9,17 +9,32 @@ import {
   FinanceApiError,
   type CreateTransactionInput,
   type UpdateTransactionInput,
+  type Transaction,
+  type FinancialSummaryPage,
 } from "../api/finance";
+import { useInfiniteList } from "./useInfiniteList";
 
 export function financeKey(year?: number, month?: number) {
   return ["finance-summary", year, month] as const;
 }
 
-export function useFinancialSummary(year?: number, month?: number) {
-  return useQuery({
+export function useFinancialSummary(year?: number, month?: number, pageSize?: number) {
+  const query = useInfiniteList<Transaction, FinancialSummaryPage>({
     queryKey: financeKey(year, month),
-    queryFn: () => getFinancialSummary(year, month),
+    fetchPage: (request) => getFinancialSummary(request, year, month),
+    pageSize,
   });
+
+  // Os totais são agregados no servidor, então qualquer página traz o valor do período.
+  const totals = query.firstPage;
+
+  return {
+    ...query,
+    transactions: query.items,
+    totalIncome: totals?.totalIncome ?? 0,
+    totalExpense: totals?.totalExpense ?? 0,
+    balance: totals?.balance ?? 0,
+  };
 }
 
 export function financeAnalyticsKey(year: number, month: number) {

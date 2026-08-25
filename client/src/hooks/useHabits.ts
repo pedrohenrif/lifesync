@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Trophy } from "lucide-react";
 import { createElement } from "react";
@@ -12,15 +12,19 @@ import {
   type CreateHabitInput,
   type UpdateHabitInput,
   type HabitToggleResponse,
+  type Habit,
+  type HabitsPage,
 } from "../api/habits";
+import { useInfiniteList } from "./useInfiniteList";
 
 const HABITS_KEY = ["habits"] as const;
 const ME_KEY = ["auth", "me"] as const;
 
-export function useHabits() {
-  return useQuery({
+export function useHabits(pageSize?: number) {
+  return useInfiniteList<Habit, HabitsPage>({
     queryKey: HABITS_KEY,
-    queryFn: getHabits,
+    fetchPage: getHabits,
+    pageSize,
   });
 }
 

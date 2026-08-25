@@ -1,4 +1,10 @@
 import { apiRequest } from "./client";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 import { isHabitCategory, type HabitCategory } from "../lib/habitMeta";
 
 export type HabitFrequencyType = "DAILY" | "WEEKLY_TARGET";
@@ -39,8 +45,9 @@ export type UpdateHabitInput = {
   readonly targetDaysPerWeek?: number | null;
 };
 
-type HabitsListResponse = { readonly habits: Habit[] };
 type HabitResponse = { readonly habit: Habit };
+
+export type HabitsPage = Page<Habit>;
 
 export type HabitToggleResponse = {
   readonly habit: {
@@ -148,15 +155,13 @@ async function habitsRequest<T>(
   return data as T;
 }
 
-export async function getHabits(): Promise<HabitsListResponse> {
-  const data: unknown = await habitsRequest<unknown>("/habits");
+export async function getHabits(request: PageRequest = {}): Promise<HabitsPage> {
+  const data: unknown = await habitsRequest<unknown>(`/habits${buildPageQuery(request)}`);
   if (!isRecord(data) || !Array.isArray(data.habits)) {
     throw new HabitsApiError(500, "INVALID_RESPONSE", "Lista de hábitos inválida.");
   }
-  const habits = data.habits
-    .filter(isRecord)
-    .map((h) => normalizeHabit(h));
-  return { habits };
+  const items = data.habits.filter(isRecord).map((h) => normalizeHabit(h));
+  return { items, pagination: readPaginationMeta(data, items.length) };
 }
 
 export async function createHabit(input: CreateHabitInput): Promise<HabitResponse> {

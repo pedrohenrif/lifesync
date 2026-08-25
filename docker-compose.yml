@@ -1,6 +1,7 @@
 services:
   mongo-auth:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
@@ -10,6 +11,7 @@ services:
 
   mongo-goals:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27018:27017"
     volumes:
@@ -19,6 +21,7 @@ services:
 
   mongo-habits:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27019:27017"
     volumes:
@@ -28,6 +31,7 @@ services:
 
   mongo-finance:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27020:27017"
     volumes:
@@ -37,6 +41,7 @@ services:
 
   mongo-journal:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27021:27017"
     volumes:
@@ -46,6 +51,7 @@ services:
 
   mongo-vault:
     image: mongo:7
+    restart: unless-stopped
     ports:
       - "27022:27017"
     volumes:

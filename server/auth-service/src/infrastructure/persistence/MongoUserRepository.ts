@@ -8,6 +8,12 @@ import {
   DEFAULT_USER_ATTRIBUTES,
 } from "../../domain/entities/User.js";
 import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
+import {
   UserModel,
   type PersistedUser,
 } from "./mongoose/UserSchema.js";
@@ -153,9 +159,22 @@ export class MongoUserRepository implements IUserRepository {
     return this.toDomain(doc);
   }
 
-  async findByStatus(status: UserStatus): Promise<User[]> {
-    const docs = await UserModel.find({ status }).sort({ createdAt: -1 }).lean().exec();
-    return docs.filter(isPersistedUser).map((doc) => this.toDomain(doc));
+  async findByStatus(
+    status: UserStatus,
+    pagination: PaginationParams,
+  ): Promise<Paginated<User>> {
+    const [docs, total] = await Promise.all([
+      UserModel.find({ status })
+        .sort({ createdAt: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      UserModel.countDocuments({ status }).exec(),
+    ]);
+
+    const users = docs.filter(isPersistedUser).map((doc) => this.toDomain(doc));
+    return buildPaginated(users, total, pagination);
   }
 
   async updateStatus(id: string, status: UserStatus): Promise<void> {

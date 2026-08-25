@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getInvestments,
@@ -9,15 +9,28 @@ import {
   renameInvestment,
   FinanceApiError,
   type CreateInvestmentInput,
+  type Investment,
+  type InvestmentsPage,
 } from "../api/investments";
+import { useInfiniteList } from "./useInfiniteList";
 
 const INVESTMENTS_KEY = ["investments"] as const;
 
-export function useInvestments() {
-  return useQuery({
+export function useInvestments(pageSize?: number) {
+  const query = useInfiniteList<Investment, InvestmentsPage>({
     queryKey: INVESTMENTS_KEY,
-    queryFn: getInvestments,
+    fetchPage: getInvestments,
+    pageSize,
   });
+
+  const totals = query.firstPage;
+
+  return {
+    ...query,
+    investments: query.items,
+    totalInvested: totals?.totalInvested ?? 0,
+    totalBalance: totals?.totalBalance ?? 0,
+  };
 }
 
 export function useCreateInvestment() {

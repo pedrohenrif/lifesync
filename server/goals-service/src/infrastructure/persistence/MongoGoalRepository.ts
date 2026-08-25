@@ -2,6 +2,12 @@ import type { IGoalRepository, GoalFilter } from "../../domain/repositories/IGoa
 import { Goal } from "../../domain/entities/Goal.js";
 import type { GoalStatus, GoalCategory, GoalTask } from "../../domain/entities/Goal.js";
 import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
+import {
   GoalModel,
   type PersistedGoal,
 } from "./mongoose/GoalSchema.js";
@@ -53,19 +59,35 @@ export class MongoGoalRepository implements IGoalRepository {
     return this.toDomain(doc);
   }
 
-  async findAllByUserId(userId: string, filter?: GoalFilter): Promise<Goal[]> {
+  async findAllByUserId(
+    userId: string,
+    pagination: PaginationParams,
+    filter?: GoalFilter,
+  ): Promise<Paginated<Goal>> {
     const query: Record<string, unknown> = { userId };
     if (filter?.category !== undefined && filter.category.length > 0) {
       query.category = filter.category;
     }
+    if (filter?.statuses !== undefined && filter.statuses.length > 0) {
+      query.status = { $in: [...filter.statuses] };
+    }
 
-    const docs = await GoalModel.find(query).lean().exec();
+    const [docs, total] = await Promise.all([
+      GoalModel.find(query)
+        .sort({ createdAt: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      GoalModel.countDocuments(query).exec(),
+    ]);
+
     const goals: Goal[] = [];
     for (const doc of docs) {
       if (!isPersistedGoal(doc)) throw new Error("Unexpected goal document shape from persistence");
       goals.push(this.toDomain(doc));
     }
-    return goals;
+    return buildPaginated(goals, total, pagination);
   }
 
   async update(goal: Goal): Promise<void> {

@@ -1,4 +1,10 @@
 import { apiRequest } from "./client";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 
 export type TransactionType = "INCOME" | "EXPENSE";
 export type PaymentMethod = "DEBIT" | "CREDIT";
@@ -21,12 +27,14 @@ export type Transaction = {
   readonly createdAt: string;
 };
 
-export type FinancialSummary = {
+export type FinancialTotals = {
   readonly totalIncome: number;
   readonly totalExpense: number;
   readonly balance: number;
-  readonly transactions: readonly Transaction[];
 };
+
+/** Página de transações + totais agregados do período (independem da página). */
+export type FinancialSummaryPage = Page<Transaction> & FinancialTotals;
 
 export type ExpenseGroupId = "FIXED" | "LEISURE" | "PERSONAL" | "OTHER";
 
@@ -114,12 +122,23 @@ export async function getFinanceAnalytics(year: number, month: number): Promise<
   return financeRequest<FinanceAnalytics>(`/finance/analytics?${params.toString()}`);
 }
 
-export async function getFinancialSummary(year?: number, month?: number): Promise<FinancialSummary> {
-  const params = new URLSearchParams();
-  if (year !== undefined) params.set("year", String(year));
-  if (month !== undefined) params.set("month", String(month));
-  const qs = params.toString();
-  return financeRequest<FinancialSummary>(`/transactions/summary${qs.length > 0 ? `?${qs}` : ""}`);
+type SummaryResponse = FinancialTotals & { readonly transactions: readonly Transaction[] };
+
+export async function getFinancialSummary(
+  request: PageRequest = {},
+  year?: number,
+  month?: number,
+): Promise<FinancialSummaryPage> {
+  const query = buildPageQuery(request, { year, month });
+  const data = await financeRequest<SummaryResponse>(`/transactions/summary${query}`);
+  const items = data.transactions ?? [];
+  return {
+    items,
+    pagination: readPaginationMeta(data, items.length),
+    totalIncome: data.totalIncome,
+    totalExpense: data.totalExpense,
+    balance: data.balance,
+  };
 }
 
 export async function createTransaction(

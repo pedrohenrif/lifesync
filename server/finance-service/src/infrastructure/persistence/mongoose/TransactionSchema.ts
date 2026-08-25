@@ -25,6 +25,9 @@ const transactionSchema = new mongoose.Schema(
   { collection: "transactions" },
 );
 
+// Suporta a listagem paginada por período e a agregação de totais.
+transactionSchema.index({ userId: 1, date: -1 });
+
 export type PersistedInstallment = {
   readonly current: number;
   readonly total: number;

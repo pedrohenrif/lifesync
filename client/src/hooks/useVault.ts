@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getNotes,
@@ -6,14 +6,18 @@ import {
   deleteNote,
   VaultApiError,
   type CreateNoteInput,
+  type NotesPage,
+  type VaultNote,
 } from "../api/vault";
+import { useInfiniteList } from "./useInfiniteList";
 
 const VAULT_KEY = ["vault"] as const;
 
-export function useNotes() {
-  return useQuery({
+export function useNotes(pageSize?: number) {
+  return useInfiniteList<VaultNote, NotesPage>({
     queryKey: VAULT_KEY,
-    queryFn: getNotes,
+    fetchPage: getNotes,
+    pageSize,
   });
 }
 

@@ -1,4 +1,5 @@
 import type { PrimaryFocus, User, UserStatus } from "../entities/User.js";
+import type { Paginated, PaginationParams } from "../pagination.js";
 
 /** Assinatura Web Push (formato compatível com `web-push` / Push API). */
 export type StoredPushSubscription = {
@@ -12,7 +13,10 @@ export interface IUserRepository {
   updateUser(user: User): Promise<void>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
-  findByStatus(status: UserStatus): Promise<User[]>;
+  findByStatus(
+    status: UserStatus,
+    pagination: PaginationParams,
+  ): Promise<Paginated<User>>;
   updateStatus(id: string, status: UserStatus): Promise<void>;
   completeOnboarding(
     id: string,

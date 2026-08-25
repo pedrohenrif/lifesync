@@ -7,8 +7,27 @@ import type { DeleteGoalUseCase } from "../../../application/use-cases/DeleteGoa
 import type { AddTaskToGoalUseCase } from "../../../application/use-cases/AddTaskToGoalUseCase.js";
 import type { ToggleGoalTaskUseCase } from "../../../application/use-cases/ToggleGoalTaskUseCase.js";
 import type { RemoveTaskFromGoalUseCase } from "../../../application/use-cases/RemoveTaskFromGoalUseCase.js";
+import { GOAL_STATUSES } from "../../../domain/entities/Goal.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const VALID_CATEGORIES = ["STUDY", "PERSONAL", "BUSINESS", "FAMILY", "DREAMS", "OTHER"] as const;
+
+// `status` aceita lista separada por vírgula (ex.: PENDING,IN_PROGRESS).
+const listGoalsQuerySchema = paginationQuerySchema.extend({
+  category: z.enum(VALID_CATEGORIES).optional(),
+  status: z
+    .string()
+    .optional()
+    .transform((raw) =>
+      raw === undefined
+        ? []
+        : raw
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0),
+    )
+    .pipe(z.array(z.enum(GOAL_STATUSES))),
+});
 
 const createGoalBodySchema = z.object({
   title: z.string().min(1),
@@ -92,18 +111,27 @@ export class GoalsController {
     const userId = extractUserId(req, res);
     if (userId === undefined) return;
 
-    const rawCategory = req.query.category;
-    const category =
-      typeof rawCategory === "string" && rawCategory.length > 0
-        ? rawCategory
-        : undefined;
+    const parsedQuery = listGoalsQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", issues: parsedQuery.error.flatten() } });
+      return;
+    }
 
-    const result = await this.listUserGoalsUseCase.execute(userId, { category });
+    const { page, pageSize, category, status } = parsedQuery.data;
+    const result = await this.listUserGoalsUseCase.execute(
+      userId,
+      { page, pageSize },
+      { category, statuses: status },
+    );
     if (!result.ok) {
       res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
       return;
     }
-    res.status(200).json({ goals: result.value });
+    res
+      .status(200)
+      .json({ goals: result.value.items, pagination: toPaginationMeta(result.value) });
   }
 
   async update(req: Request, res: Response): Promise<void> {

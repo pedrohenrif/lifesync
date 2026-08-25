@@ -5,6 +5,7 @@ import type { ListHabitsUseCase } from "../../../application/use-cases/ListHabit
 import type { ToggleHabitUseCase } from "../../../application/use-cases/ToggleHabitUseCase.js";
 import type { UpdateHabitUseCase } from "../../../application/use-cases/UpdateHabitUseCase.js";
 import type { DeleteHabitUseCase } from "../../../application/use-cases/DeleteHabitUseCase.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const habitCategorySchema = z.enum(["SAUDE", "FOCO", "FINANCAS", "PESSOAL"]);
 
@@ -90,12 +91,22 @@ export class HabitsController {
     const userId = extractUserId(req, res);
     if (userId === undefined) return;
 
-    const result = await this.listHabitsUseCase.execute(userId);
+    const parsedQuery = paginationQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", issues: parsedQuery.error.flatten() } });
+      return;
+    }
+
+    const result = await this.listHabitsUseCase.execute(userId, parsedQuery.data);
     if (!result.ok) {
       res.status(500).json({ error: { code: "INTERNAL_SERVER_ERROR" } });
       return;
     }
-    res.status(200).json({ habits: result.value });
+    res
+      .status(200)
+      .json({ habits: result.value.items, pagination: toPaginationMeta(result.value) });
   }
 
   async toggle(req: Request, res: Response): Promise<void> {

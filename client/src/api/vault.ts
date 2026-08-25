@@ -1,4 +1,10 @@
 import { apiRequest } from "./client";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 
 export type NoteType = "NOTE" | "LINK";
 
@@ -22,6 +28,8 @@ export type CreateNoteInput = {
 
 type NotesListResponse = { readonly notes: VaultNote[] };
 type NoteResponse = { readonly note: VaultNote };
+
+export type NotesPage = Page<VaultNote>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -61,8 +69,10 @@ async function vaultRequest<T>(
   return data as T;
 }
 
-export async function getNotes(): Promise<NotesListResponse> {
-  return vaultRequest<NotesListResponse>("/vault");
+export async function getNotes(request: PageRequest = {}): Promise<NotesPage> {
+  const data = await vaultRequest<NotesListResponse>(`/vault${buildPageQuery(request)}`);
+  const items = data.notes ?? [];
+  return { items, pagination: readPaginationMeta(data, items.length) };
 }
 
 export async function createNote(input: CreateNoteInput): Promise<NoteResponse> {

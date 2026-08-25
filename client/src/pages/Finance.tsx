@@ -50,6 +50,7 @@ import type { Transaction, TransactionType, PaymentMethod, ExpenseGroupId } from
 import type { Investment } from "../api/investments";
 import { AppModalShell } from "../components/ui/AppModalShell";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { LoadMoreButton } from "../components/ui/LoadMoreButton";
 
 /* ─── Constantes ─── */
 
@@ -115,6 +116,9 @@ function getCurrentMonth(): { year: number; month: number } {
 }
 
 const INPUT_CLASS = "ls-input";
+
+/** Transações carregadas por vez na Visão Geral. */
+const TRANSACTIONS_PAGE_SIZE = 30;
 
 /* ─── Seletor de Mês ─── */
 
@@ -531,16 +535,27 @@ function OverviewTab(): ReactElement {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth);
   const deleteMutation = useDeleteTransaction();
 
-  const { data, isPending, isError } = useFinancialSummary(selectedMonth.year, selectedMonth.month);
+  const {
+    transactions,
+    total,
+    totalIncome,
+    totalExpense,
+    balance,
+    isPending,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useFinancialSummary(selectedMonth.year, selectedMonth.month, TRANSACTIONS_PAGE_SIZE);
 
-  const { incomes, fixedExpenses, variableExpenses } = useMemo(() => {
-    if (data === undefined) return { incomes: [], fixedExpenses: [], variableExpenses: [] };
-    return {
-      incomes: data.transactions.filter((tx) => tx.type === "INCOME"),
-      fixedExpenses: data.transactions.filter((tx) => tx.type === "EXPENSE" && tx.isFixed),
-      variableExpenses: data.transactions.filter((tx) => tx.type === "EXPENSE" && !tx.isFixed),
-    };
-  }, [data]);
+  const { incomes, fixedExpenses, variableExpenses } = useMemo(
+    () => ({
+      incomes: transactions.filter((tx) => tx.type === "INCOME"),
+      fixedExpenses: transactions.filter((tx) => tx.type === "EXPENSE" && tx.isFixed),
+      variableExpenses: transactions.filter((tx) => tx.type === "EXPENSE" && !tx.isFixed),
+    }),
+    [transactions],
+  );
 
   return (
     <div className="space-y-8">
@@ -566,14 +581,14 @@ function OverviewTab(): ReactElement {
             <div key={i} className="h-24 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900" />
           ))}
         </div>
-      ) : isError || data === undefined ? (
+      ) : isError ? (
         <div className="py-24 text-center text-sm text-red-400">Erro ao carregar os dados financeiros.</div>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <SummaryCard label="Receitas" value={data.totalIncome} icon={TrendingUp} accent="green" />
-            <SummaryCard label="Despesas" value={data.totalExpense} icon={TrendingDown} accent="red" />
-            <SummaryCard label="Saldo do Mês" value={data.balance} icon={DollarSign} accent="neutral" />
+            <SummaryCard label="Receitas" value={totalIncome} icon={TrendingUp} accent="green" />
+            <SummaryCard label="Despesas" value={totalExpense} icon={TrendingDown} accent="red" />
+            <SummaryCard label="Saldo do Mês" value={balance} icon={DollarSign} accent="neutral" />
           </div>
 
           {showForm ? <CreateTransactionForm onClose={() => setShowForm(false)} /> : null}
@@ -597,6 +612,15 @@ function OverviewTab(): ReactElement {
           <TransactionSection title="Receitas" icon={TrendingUp} transactions={incomes} emptyText="Nenhuma receita neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
           <TransactionSection title="Despesas Fixas" icon={Repeat} transactions={fixedExpenses} emptyText="Nenhuma despesa fixa neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
           <TransactionSection title="Despesas Variáveis / Parceladas" icon={CreditCard} transactions={variableExpenses} emptyText="Nenhuma despesa variável neste mês." onEdit={setEditing} onAskDelete={setPendingDelete} />
+
+          <LoadMoreButton
+            hasMore={hasNextPage}
+            isLoading={isFetchingNextPage}
+            onLoadMore={() => void fetchNextPage()}
+            loadedCount={transactions.length}
+            total={total}
+            label="Carregar mais transações"
+          />
         </>
       )}
     </div>
@@ -969,7 +993,17 @@ function CreateInvestmentForm({ onClose }: { readonly onClose: () => void }): Re
 
 function InvestmentsTab(): ReactElement {
   const [showForm, setShowForm] = useState(false);
-  const { data, isPending, isError } = useInvestments();
+  const {
+    investments,
+    total,
+    totalInvested,
+    totalBalance,
+    isPending,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInvestments();
 
   if (isPending) {
     return (
@@ -980,12 +1014,15 @@ function InvestmentsTab(): ReactElement {
     );
   }
 
-  if (isError || data === undefined) {
+  if (isError) {
     return <div className="py-24 text-center text-sm text-red-400">Erro ao carregar investimentos.</div>;
   }
 
-  const totalProfit = Math.round((data.totalBalance - data.totalInvested) * 100) / 100;
-  const totalPercent = data.totalInvested > 0 ? Math.round(((data.totalBalance - data.totalInvested) / data.totalInvested) * 10000) / 100 : 0;
+  const totalProfit = Math.round((totalBalance - totalInvested) * 100) / 100;
+  const totalPercent =
+    totalInvested > 0
+      ? Math.round(((totalBalance - totalInvested) / totalInvested) * 10000) / 100
+      : 0;
   const isUp = totalProfit >= 0;
 
   return (
@@ -1002,8 +1039,8 @@ function InvestmentsTab(): ReactElement {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <SummaryCard label="Total Investido" value={data.totalInvested} icon={BarChart3} accent="neutral" />
-        <SummaryCard label="Saldo Total" value={data.totalBalance} icon={Wallet} accent="green" />
+        <SummaryCard label="Total Investido" value={totalInvested} icon={BarChart3} accent="neutral" />
+        <SummaryCard label="Saldo Total" value={totalBalance} icon={Wallet} accent="green" />
         <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4 md:p-5">
           <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${isUp ? "bg-blue-500/10 text-blue-400" : "bg-red-500/10 text-red-400"}`}>
             {isUp ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
@@ -1020,13 +1057,22 @@ function InvestmentsTab(): ReactElement {
 
       {showForm && <CreateInvestmentForm onClose={() => setShowForm(false)} />}
 
-      {data.investments.length === 0 ? (
+      {investments.length === 0 ? (
         <p className="py-12 text-center text-sm text-zinc-600">Nenhum investimento registrado ainda.</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.investments.map((inv) => (
-            <InvestmentCard key={inv.id} investment={inv} />
-          ))}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {investments.map((inv) => (
+              <InvestmentCard key={inv.id} investment={inv} />
+            ))}
+          </div>
+          <LoadMoreButton
+            hasMore={hasNextPage}
+            isLoading={isFetchingNextPage}
+            onLoadMore={() => void fetchNextPage()}
+            loadedCount={investments.length}
+            total={total}
+          />
         </div>
       )}
     </div>

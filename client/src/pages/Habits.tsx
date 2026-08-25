@@ -23,6 +23,7 @@ import { HabitGlyph } from "../components/habits/HabitGlyph";
 import { HabitIconPicker } from "../components/habits/HabitIconPicker";
 import { EditHabitForm } from "../components/habits/EditHabitForm";
 import { AppModalShell } from "../components/ui/AppModalShell";
+import { LoadMoreButton } from "../components/ui/LoadMoreButton";
 import {
   CATEGORY_LABELS,
   HABIT_CATEGORIES,
@@ -407,8 +408,15 @@ function CreateHabitForm({
 
 export function Habits(): ReactElement {
   const [showForm, setShowForm] = useState(false);
-  const { data, isPending, isError } = useHabits();
-  const habits = data?.habits ?? [];
+  const {
+    items: habits,
+    total,
+    isPending,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useHabits();
 
   const doneCount = habits.filter((h) =>
     h.completedDates.includes(getTodayKey()),
@@ -426,6 +434,7 @@ export function Habits(): ReactElement {
             {habits.length > 0 && (
               <p className="text-xs text-zinc-600">
                 {doneCount}/{habits.length} feitos hoje
+                {habits.length < total ? ` (${total} no total)` : ""}
               </p>
             )}
           </div>
@@ -467,6 +476,13 @@ export function Habits(): ReactElement {
           {habits.map((habit) => (
             <HabitRow key={habit.id} habit={habit} />
           ))}
+          <LoadMoreButton
+            hasMore={hasNextPage}
+            isLoading={isFetchingNextPage}
+            onLoadMore={() => void fetchNextPage()}
+            loadedCount={habits.length}
+            total={total}
+          />
         </div>
       )}
     </div>

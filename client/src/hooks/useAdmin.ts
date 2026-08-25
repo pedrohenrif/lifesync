@@ -1,16 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getPendingUsers,
   reviewUser,
   type ReviewDecision,
+  type PendingUser,
+  type PendingUsersPage,
   AdminApiError,
 } from "../api/admin";
+import { useInfiniteList } from "./useInfiniteList";
 
-export function usePendingUsers() {
-  return useQuery({
+export function usePendingUsers(pageSize?: number) {
+  return useInfiniteList<PendingUser, PendingUsersPage>({
     queryKey: ["admin", "pending-users"],
-    queryFn: getPendingUsers,
+    fetchPage: getPendingUsers,
+    pageSize,
   });
 }
 

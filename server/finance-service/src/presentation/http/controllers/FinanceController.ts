@@ -5,6 +5,7 @@ import type { GetFinancialSummaryUseCase } from "../../../application/use-cases/
 import type { DeleteTransactionUseCase } from "../../../application/use-cases/DeleteTransactionUseCase.js";
 import type { UpdateTransactionUseCase } from "../../../application/use-cases/UpdateTransactionUseCase.js";
 import type { GetFinanceAnalyticsUseCase } from "../../../application/use-cases/GetFinanceAnalyticsUseCase.js";
+import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const createTransactionBodySchema = z.object({
   title: z.string().min(1),
@@ -96,13 +97,31 @@ export class FinanceController {
     const validYear = year !== undefined && Number.isFinite(year) ? year : undefined;
     const validMonth = month !== undefined && Number.isFinite(month) && month >= 1 && month <= 12 ? month : undefined;
 
-    const result = await this.getFinancialSummary.execute(userId, validYear, validMonth);
+    const parsedQuery = paginationQuerySchema.safeParse(req.query);
+    if (!parsedQuery.success) {
+      res
+        .status(400)
+        .json({ error: { code: "INVALID_QUERY", details: parsedQuery.error.flatten() } });
+      return;
+    }
+
+    const result = await this.getFinancialSummary.execute(
+      userId,
+      parsedQuery.data,
+      validYear,
+      validMonth,
+    );
     if (!result.ok) {
       res.status(500).json({ error: { code: "UNKNOWN_ERROR" } });
       return;
     }
 
-    res.status(200).json(result.value);
+    const { transactions, ...totals } = result.value;
+    res.status(200).json({
+      ...totals,
+      transactions: transactions.items,
+      pagination: toPaginationMeta(transactions),
+    });
   };
 
   readonly analytics = async (req: Request, res: Response): Promise<void> => {

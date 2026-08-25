@@ -1,4 +1,10 @@
 import { apiRequest } from "./client";
+import {
+  buildPageQuery,
+  readPaginationMeta,
+  type Page,
+  type PageRequest,
+} from "./pagination";
 
 export type GoalStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED";
 export type GoalCategory = "STUDY" | "PERSONAL" | "BUSINESS" | "FAMILY" | "DREAMS" | "OTHER";
@@ -39,6 +45,13 @@ export type UpdateGoalInput = {
 };
 
 type GoalsListResponse = { readonly goals: Goal[] };
+
+export type GoalsPage = Page<Goal>;
+
+export type GoalsFilter = {
+  readonly category?: GoalCategory;
+  readonly statuses?: readonly GoalStatus[];
+};
 type GoalResponse = { readonly goal: Goal };
 type TasksResponse = { readonly tasks: readonly GoalTask[] };
 
@@ -80,9 +93,20 @@ async function goalsRequest<T>(
   return data as T;
 }
 
-export async function getGoals(category?: GoalCategory): Promise<GoalsListResponse> {
-  const query = category !== undefined ? `?category=${category}` : "";
-  return goalsRequest<GoalsListResponse>(`/goals${query}`);
+export async function getGoals(
+  request: PageRequest = {},
+  filter: GoalsFilter = {},
+): Promise<GoalsPage> {
+  const query = buildPageQuery(request, {
+    category: filter.category,
+    status:
+      filter.statuses !== undefined && filter.statuses.length > 0
+        ? filter.statuses.join(",")
+        : undefined,
+  });
+  const data = await goalsRequest<GoalsListResponse>(`/goals${query}`);
+  const items = data.goals ?? [];
+  return { items, pagination: readPaginationMeta(data, items.length) };
 }
 
 export async function createGoal(input: CreateGoalInput): Promise<GoalResponse> {

@@ -1,11 +1,24 @@
 import { ok, type Result } from "../result.js";
-import type { ITransactionRepository } from "../../domain/repositories/ITransactionRepository.js";
+import type {
+  ITransactionRepository,
+  TransactionPeriod,
+} from "../../domain/repositories/ITransactionRepository.js";
+import type { Transaction } from "../../domain/entities/Transaction.js";
+import {
+  mapPaginated,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
 
 function toLocalDateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+function round(value: number): number {
+  return Math.round(value * 100) / 100;
 }
 
 export type TransactionSummaryItem = {
@@ -25,51 +38,47 @@ export type FinancialSummary = {
   readonly totalIncome: number;
   readonly totalExpense: number;
   readonly balance: number;
-  readonly transactions: readonly TransactionSummaryItem[];
+  readonly transactions: Paginated<TransactionSummaryItem>;
 };
+
+function toSummaryItem(tx: Transaction): TransactionSummaryItem {
+  return {
+    id: tx.id,
+    title: tx.title,
+    amount: tx.amount,
+    type: tx.type,
+    category: tx.category,
+    paymentMethod: tx.paymentMethod,
+    isFixed: tx.isFixed,
+    installment: tx.installment,
+    date: toLocalDateKey(tx.date),
+    createdAt: tx.createdAt.toISOString(),
+  };
+}
 
 export class GetFinancialSummaryUseCase {
   constructor(private readonly transactions: ITransactionRepository) {}
 
   async execute(
     userId: string,
+    pagination: PaginationParams,
     year?: number,
     month?: number,
   ): Promise<Result<FinancialSummary, never>> {
-    const all =
-      year !== undefined && month !== undefined
-        ? await this.transactions.findByUserIdAndMonth(userId, year, month)
-        : await this.transactions.findAllByUserId(userId);
+    const period: TransactionPeriod | undefined =
+      year !== undefined && month !== undefined ? { year, month } : undefined;
 
-    let totalIncome = 0;
-    let totalExpense = 0;
-
-    const transactions: TransactionSummaryItem[] = all.map((tx) => {
-      if (tx.type === "INCOME") {
-        totalIncome += tx.amount;
-      } else {
-        totalExpense += tx.amount;
-      }
-
-      return {
-        id: tx.id,
-        title: tx.title,
-        amount: tx.amount,
-        type: tx.type,
-        category: tx.category,
-        paymentMethod: tx.paymentMethod,
-        isFixed: tx.isFixed,
-        installment: tx.installment,
-        date: toLocalDateKey(tx.date),
-        createdAt: tx.createdAt.toISOString(),
-      };
-    });
+    // Os totais vêm de agregação no banco para não dependerem da página carregada.
+    const [page, totals] = await Promise.all([
+      this.transactions.findPageByUserId(userId, pagination, period),
+      this.transactions.sumTotalsByUserId(userId, period),
+    ]);
 
     return ok({
-      totalIncome: Math.round(totalIncome * 100) / 100,
-      totalExpense: Math.round(totalExpense * 100) / 100,
-      balance: Math.round((totalIncome - totalExpense) * 100) / 100,
-      transactions,
+      totalIncome: round(totals.totalIncome),
+      totalExpense: round(totals.totalExpense),
+      balance: round(totals.totalIncome - totals.totalExpense),
+      transactions: mapPaginated(page, toSummaryItem),
     });
   }
 }

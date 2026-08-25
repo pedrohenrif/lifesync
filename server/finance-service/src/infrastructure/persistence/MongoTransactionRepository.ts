@@ -1,10 +1,29 @@
-import type { ITransactionRepository } from "../../domain/repositories/ITransactionRepository.js";
+import type {
+  ITransactionRepository,
+  TransactionPeriod,
+  TransactionTotals,
+} from "../../domain/repositories/ITransactionRepository.js";
 import { Transaction } from "../../domain/entities/Transaction.js";
 import type { TransactionType, PaymentMethod } from "../../domain/entities/Transaction.js";
+import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
 import {
   TransactionModel,
   type PersistedTransaction,
 } from "./mongoose/TransactionSchema.js";
+
+function buildFilter(userId: string, period?: TransactionPeriod): Record<string, unknown> {
+  if (period === undefined) {
+    return { userId };
+  }
+  const start = new Date(period.year, period.month - 1, 1);
+  const end = new Date(period.year, period.month, 0, 23, 59, 59, 999);
+  return { userId, date: { $gte: start, $lte: end } };
+}
 
 function isPersisted(value: unknown): value is PersistedTransaction {
   if (value === null || typeof value !== "object") return false;
@@ -71,26 +90,54 @@ export class MongoTransactionRepository implements ITransactionRepository {
     return this.toDomain(doc);
   }
 
-  async findAllByUserId(userId: string): Promise<Transaction[]> {
-    const docs = await TransactionModel.find({ userId })
-      .sort({ date: -1 })
-      .lean()
-      .exec();
+  async findPageByUserId(
+    userId: string,
+    pagination: PaginationParams,
+    period?: TransactionPeriod,
+  ): Promise<Paginated<Transaction>> {
+    const filter = buildFilter(userId, period);
+    const [docs, total] = await Promise.all([
+      TransactionModel.find(filter)
+        .sort({ date: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      TransactionModel.countDocuments(filter).exec(),
+    ]);
+
     const result: Transaction[] = [];
     for (const doc of docs) {
       if (!isPersisted(doc)) throw new Error("Unexpected transaction document shape");
       result.push(this.toDomain(doc));
     }
-    return result;
+    return buildPaginated(result, total, pagination);
+  }
+
+  async sumTotalsByUserId(
+    userId: string,
+    period?: TransactionPeriod,
+  ): Promise<TransactionTotals> {
+    const rows = await TransactionModel.aggregate<{ _id: unknown; total: unknown }>([
+      { $match: buildFilter(userId, period) },
+      { $group: { _id: "$type", total: { $sum: "$amount" } } },
+    ]).exec();
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const row of rows) {
+      const amount = typeof row.total === "number" ? row.total : 0;
+      if (row._id === "INCOME") {
+        totalIncome += amount;
+      } else if (row._id === "EXPENSE") {
+        totalExpense += amount;
+      }
+    }
+    return { totalIncome, totalExpense };
   }
 
   async findByUserIdAndMonth(userId: string, year: number, month: number): Promise<Transaction[]> {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0, 23, 59, 59, 999);
-    const docs = await TransactionModel.find({
-      userId,
-      date: { $gte: start, $lte: end },
-    })
+    const docs = await TransactionModel.find(buildFilter(userId, { year, month }))
       .sort({ date: -1 })
       .lean()
       .exec();

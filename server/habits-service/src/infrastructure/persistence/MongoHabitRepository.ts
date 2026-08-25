@@ -6,6 +6,12 @@ import {
   type HabitFrequencyType,
 } from "../../domain/entities/Habit.js";
 import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
+import {
   HabitModel,
   type PersistedHabit,
 } from "./mongoose/HabitSchema.js";
@@ -56,10 +62,21 @@ export class MongoHabitRepository implements IHabitRepository {
     return this.toDomain(doc);
   }
 
-  async findAllByUserId(userId: string): Promise<Habit[]> {
-    const docs = await HabitModel.find({ userId }).lean().exec();
-    const habits: Habit[] = [];
+  async findAllByUserId(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<Paginated<Habit>> {
+    const [docs, total] = await Promise.all([
+      HabitModel.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      HabitModel.countDocuments({ userId }).exec(),
+    ]);
 
+    const habits: Habit[] = [];
     for (const doc of docs) {
       if (!isPersistedHabit(doc)) {
         throw new Error("Unexpected habit document shape from persistence");
@@ -67,7 +84,7 @@ export class MongoHabitRepository implements IHabitRepository {
       habits.push(this.toDomain(doc));
     }
 
-    return habits;
+    return buildPaginated(habits, total, pagination);
   }
 
   async update(habit: Habit): Promise<void> {

@@ -1,5 +1,14 @@
-import type { IInvestmentRepository } from "../../domain/repositories/IInvestmentRepository.js";
+import type {
+  IInvestmentRepository,
+  InvestmentTotals,
+} from "../../domain/repositories/IInvestmentRepository.js";
 import { Investment } from "../../domain/entities/Investment.js";
+import {
+  buildPaginated,
+  toSkip,
+  type Paginated,
+  type PaginationParams,
+} from "../../domain/pagination.js";
 import {
   InvestmentModel,
   type PersistedInvestment,
@@ -39,14 +48,48 @@ export class MongoInvestmentRepository implements IInvestmentRepository {
     return this.toDomain(doc);
   }
 
-  async findAllByUserId(userId: string): Promise<Investment[]> {
-    const docs = await InvestmentModel.find({ userId }).sort({ createdAt: -1 }).lean().exec();
+  async findPageByUserId(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<Paginated<Investment>> {
+    const [docs, total] = await Promise.all([
+      InvestmentModel.find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(toSkip(pagination))
+        .limit(pagination.pageSize)
+        .lean()
+        .exec(),
+      InvestmentModel.countDocuments({ userId }).exec(),
+    ]);
+
     const result: Investment[] = [];
     for (const doc of docs) {
       if (!isPersisted(doc)) throw new Error("Unexpected investment document shape");
       result.push(this.toDomain(doc));
     }
-    return result;
+    return buildPaginated(result, total, pagination);
+  }
+
+  async sumTotalsByUserId(userId: string): Promise<InvestmentTotals> {
+    const rows = await InvestmentModel.aggregate<{
+      totalInvested: unknown;
+      totalBalance: unknown;
+    }>([
+      { $match: { userId } },
+      {
+        $group: {
+          _id: null,
+          totalInvested: { $sum: "$investedAmount" },
+          totalBalance: { $sum: "$currentBalance" },
+        },
+      },
+    ]).exec();
+
+    const row = rows[0];
+    return {
+      totalInvested: typeof row?.totalInvested === "number" ? row.totalInvested : 0,
+      totalBalance: typeof row?.totalBalance === "number" ? row.totalBalance : 0,
+    };
   }
 
   async update(inv: Investment): Promise<void> {
