@@ -17,4 +17,5 @@ export const env = {
   financeUrl: process.env.FINANCE_URL ?? "http://localhost:4003",
   journalUrl: process.env.JOURNAL_URL ?? "http://localhost:4004",
   vaultUrl: process.env.VAULT_URL ?? "http://localhost:4005",
+  aiUrl: process.env.AI_URL ?? "http://localhost:4006",
 } as const;

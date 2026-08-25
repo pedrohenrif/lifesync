@@ -17,6 +17,7 @@ import {
   Pencil,
   PieChart as PieChartIcon,
   Trophy,
+  Sparkles,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -46,8 +47,10 @@ import {
   useDeleteInvestment,
   useRenameInvestment,
 } from "../hooks/useInvestments";
+import { useAiUsage } from "../hooks/useAi";
 import type { Transaction, TransactionType, PaymentMethod, ExpenseGroupId } from "../api/finance";
 import type { Investment } from "../api/investments";
+import { AiFinanceCommand } from "../components/ai/AiFinanceCommand";
 import { AppModalShell } from "../components/ui/AppModalShell";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { LoadMoreButton } from "../components/ui/LoadMoreButton";
@@ -530,10 +533,13 @@ function TransactionSection({
 
 function OverviewTab(): ReactElement {
   const [showForm, setShowForm] = useState(false);
+  const [showAiCommand, setShowAiCommand] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth);
   const deleteMutation = useDeleteTransaction();
+  const { data: aiUsage } = useAiUsage();
+  const isAiEnabled = aiUsage?.enabled === true;
 
   const {
     transactions,
@@ -565,15 +571,29 @@ function OverviewTab(): ReactElement {
           month={selectedMonth.month}
           onChange={(year, month) => setSelectedMonth({ year, month })}
         />
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 sm:w-auto"
-        >
-          <Plus className="h-4 w-4" />
-          Nova Transação
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          {isAiEnabled && (
+            <button
+              type="button"
+              onClick={() => setShowAiCommand(true)}
+              className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-violet-600/50 bg-violet-600/10 px-4 py-2.5 text-sm font-medium text-violet-300 transition hover:bg-violet-600/20 sm:w-auto"
+            >
+              <Sparkles className="h-4 w-4" />
+              Lançar com IA
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-500 sm:w-auto"
+          >
+            <Plus className="h-4 w-4" />
+            Nova Transação
+          </button>
+        </div>
       </div>
+
+      {showAiCommand && <AiFinanceCommand onClose={() => setShowAiCommand(false)} />}
 
       {isPending ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

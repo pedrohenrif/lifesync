@@ -1,26 +1,29 @@
 import { randomUUID } from "node:crypto";
 import { err, ok, type Result } from "../result.js";
 import { VaultNote } from "../../domain/entities/VaultNote.js";
-import type { VaultNoteValidationError, NoteType } from "../../domain/entities/VaultNote.js";
+import type {
+  NoteCategory,
+  NoteStage,
+  NoteType,
+  VaultNoteValidationError,
+} from "../../domain/entities/VaultNote.js";
 import type { IVaultRepository } from "../../domain/repositories/IVaultRepository.js";
+import { toNoteSummary, type NoteSummary } from "./shared.js";
 
 export type CreateNoteDto = {
   readonly title: string;
   readonly content: string;
   readonly type: string;
+  readonly category?: string;
+  readonly stage?: string;
+  readonly summary?: string;
+  readonly tags?: readonly string[];
+  readonly sourceUrl?: string;
+  readonly isFavorite?: boolean;
   readonly goalId?: string;
 };
 
-export type CreateNoteSuccess = {
-  readonly id: string;
-  readonly userId: string;
-  readonly title: string;
-  readonly content: string;
-  readonly type: string;
-  readonly goalId: string | null;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-};
+export type CreateNoteSuccess = NoteSummary;
 
 export type CreateNoteError = VaultNoteValidationError;
 
@@ -38,7 +41,14 @@ export class CreateNoteUseCase {
       userId,
       title: dto.title,
       content: dto.content,
+      summary: dto.summary ?? null,
       type: dto.type as NoteType,
+      category: (dto.category ?? "IDEA") as NoteCategory,
+      stage: (dto.stage ?? "SEED") as NoteStage,
+      tags: dto.tags ?? [],
+      sourceUrl: dto.sourceUrl ?? null,
+      isFavorite: dto.isFavorite ?? false,
+      isArchived: false,
       goalId: dto.goalId?.trim() ?? null,
       createdAt: now,
       updatedAt: now,
@@ -46,18 +56,7 @@ export class CreateNoteUseCase {
 
     if (!result.ok) return err(result.error);
 
-    const note = result.note;
-    await this.vault.save(note);
-
-    return ok({
-      id: note.id,
-      userId: note.userId,
-      title: note.title,
-      content: note.content,
-      type: note.type,
-      goalId: note.goalId,
-      createdAt: note.createdAt.toISOString(),
-      updatedAt: note.updatedAt.toISOString(),
-    });
+    await this.vault.save(result.note);
+    return ok(toNoteSummary(result.note));
   }
 }

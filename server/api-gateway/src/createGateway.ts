@@ -15,6 +15,7 @@ const buildRoutes = (): Record<string, string> => ({
   '/api/investments': env.financeUrl,
   '/api/journal': env.journalUrl,
   '/api/vault': env.vaultUrl,
+  '/api/ai': env.aiUrl,
 });
 
 export const createGateway = () => {

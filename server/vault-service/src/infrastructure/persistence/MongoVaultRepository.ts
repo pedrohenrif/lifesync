@@ -1,6 +1,14 @@
-import type { IVaultRepository } from "../../domain/repositories/IVaultRepository.js";
+import type {
+  IVaultRepository,
+  TagCount,
+  VaultNoteFilter,
+} from "../../domain/repositories/IVaultRepository.js";
 import { VaultNote } from "../../domain/entities/VaultNote.js";
-import type { NoteType } from "../../domain/entities/VaultNote.js";
+import type {
+  NoteCategory,
+  NoteStage,
+  NoteType,
+} from "../../domain/entities/VaultNote.js";
 import {
   buildPaginated,
   toSkip,
@@ -26,18 +34,68 @@ function isPersisted(value: unknown): value is PersistedVaultNote {
   );
 }
 
+function toDocument(note: VaultNote) {
+  return {
+    userId: note.userId,
+    title: note.title,
+    content: note.content,
+    summary: note.summary,
+    type: note.type,
+    category: note.category,
+    stage: note.stage,
+    tags: [...note.tags],
+    sourceUrl: note.sourceUrl,
+    isFavorite: note.isFavorite,
+    isArchived: note.isArchived,
+    goalId: note.goalId,
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
+  };
+}
+
+function buildQuery(userId: string, filter?: VaultNoteFilter): Record<string, unknown> {
+  const query: Record<string, unknown> = { userId };
+
+  if (filter === undefined) {
+    query.isArchived = { $ne: true };
+    return query;
+  }
+
+  if (filter.includeArchived !== true) {
+    query.isArchived = { $ne: true };
+  }
+  if (filter.type !== undefined) {
+    query.type = filter.type;
+  }
+  if (filter.category !== undefined) {
+    query.category = filter.category;
+  }
+  if (filter.stage !== undefined) {
+    query.stage = filter.stage;
+  }
+  if (filter.tags !== undefined && filter.tags.length > 0) {
+    query.tags = { $all: [...filter.tags] };
+  }
+  if (filter.goalId !== undefined) {
+    query.goalId = filter.goalId;
+  }
+  if (filter.onlyFavorites === true) {
+    query.isFavorite = true;
+  }
+  if (filter.search !== undefined && filter.search.trim().length > 0) {
+    query.$text = { $search: filter.search.trim() };
+  }
+
+  return query;
+}
+
 export class MongoVaultRepository implements IVaultRepository {
   async save(note: VaultNote): Promise<void> {
-    await VaultNoteModel.create({
-      _id: note.id,
-      userId: note.userId,
-      title: note.title,
-      content: note.content,
-      type: note.type,
-      goalId: note.goalId,
-      createdAt: note.createdAt,
-      updatedAt: note.updatedAt,
-    });
+    await VaultNoteModel.create({ _id: note.id, ...toDocument(note) });
+  }
+
+  async update(note: VaultNote): Promise<void> {
+    await VaultNoteModel.updateOne({ _id: note.id }, { $set: toDocument(note) }).exec();
   }
 
   async findById(id: string): Promise<VaultNote | null> {
@@ -50,8 +108,9 @@ export class MongoVaultRepository implements IVaultRepository {
   async findByUserId(
     userId: string,
     pagination: PaginationParams,
+    filter?: VaultNoteFilter,
   ): Promise<Paginated<VaultNote>> {
-    return this.findPage({ userId }, pagination);
+    return this.findPage(buildQuery(userId, filter), pagination, filter?.search);
   }
 
   async findByGoalId(
@@ -62,22 +121,52 @@ export class MongoVaultRepository implements IVaultRepository {
     return this.findPage({ userId, goalId }, pagination);
   }
 
+  async countTagsByUserId(userId: string): Promise<readonly TagCount[]> {
+    const rows = await VaultNoteModel.aggregate<{ _id: unknown; count: unknown }>([
+      { $match: { userId, isArchived: { $ne: true } } },
+      { $unwind: "$tags" },
+      { $group: { _id: "$tags", count: { $sum: 1 } } },
+      { $sort: { count: -1, _id: 1 } },
+      { $limit: 50 },
+    ]).exec();
+
+    const tags: TagCount[] = [];
+    for (const row of rows) {
+      if (typeof row._id === "string" && typeof row.count === "number") {
+        tags.push({ tag: row._id, count: row.count });
+      }
+    }
+    return tags;
+  }
+
   async delete(id: string): Promise<void> {
     await VaultNoteModel.deleteOne({ _id: id }).exec();
   }
 
   private async findPage(
-    filter: Record<string, unknown>,
+    query: Record<string, unknown>,
     pagination: PaginationParams,
+    search?: string,
   ): Promise<Paginated<VaultNote>> {
+    // Com busca textual a ordenação por relevância é mais útil que a cronológica.
+    const isTextSearch = search !== undefined && search.trim().length > 0;
+    const sort: Record<string, 1 | -1 | { $meta: "textScore" }> = isTextSearch
+      ? { score: { $meta: "textScore" } }
+      : { createdAt: -1 };
+
+    const baseQuery = VaultNoteModel.find(query);
+    if (isTextSearch) {
+      baseQuery.select({ score: { $meta: "textScore" } });
+    }
+
     const [docs, total] = await Promise.all([
-      VaultNoteModel.find(filter)
-        .sort({ createdAt: -1 })
+      baseQuery
+        .sort(sort)
         .skip(toSkip(pagination))
         .limit(pagination.pageSize)
         .lean()
         .exec(),
-      VaultNoteModel.countDocuments(filter).exec(),
+      VaultNoteModel.countDocuments(query).exec(),
     ]);
 
     const notes: VaultNote[] = [];
@@ -88,13 +177,25 @@ export class MongoVaultRepository implements IVaultRepository {
     return buildPaginated(notes, total, pagination);
   }
 
+  /** Notas criadas antes da expansão do cofre não têm os campos novos; aplicamos os padrões aqui. */
   private toDomain(doc: PersistedVaultNote): VaultNote {
+    const tags = Array.isArray(doc.tags)
+      ? doc.tags.filter((t): t is string => typeof t === "string")
+      : [];
+
     const result = VaultNote.create({
       id: doc._id,
       userId: doc.userId,
       title: doc.title,
       content: doc.content,
+      summary: doc.summary ?? null,
       type: doc.type as NoteType,
+      category: (doc.category ?? "IDEA") as NoteCategory,
+      stage: (doc.stage ?? "SEED") as NoteStage,
+      tags,
+      sourceUrl: doc.sourceUrl ?? null,
+      isFavorite: doc.isFavorite ?? false,
+      isArchived: doc.isArchived ?? false,
       goalId: doc.goalId,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,

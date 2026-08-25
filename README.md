@@ -30,8 +30,9 @@ lifesync-monorepo/
 │   ├── habits-service/      # :4002  →  MongoDB :27019
 │   ├── finance-service/     # :4003  →  MongoDB :27020
 │   ├── journal-service/     # :4004  →  MongoDB :27021
-│   └── vault-service/       # :4005  →  MongoDB :27022
-└── docker-compose.yml       # 6 instâncias MongoDB isoladas
+│   ├── vault-service/       # :4005  →  MongoDB :27022
+│   └── ai-service/          # :4006  →  MongoDB :27023
+└── docker-compose.yml       # 7 instâncias MongoDB isoladas
 ```
 
 Cada microserviço segue a mesma estrutura DDD interna:
@@ -133,8 +134,18 @@ cp server/auth-service/.env.example server/auth-service/.env
 | finance-service | 4003 | `mongodb://localhost:27020/lifesync_finance` | lifesync_finance |
 | journal-service | 4004 | `mongodb://localhost:27021/lifesync_journal` | lifesync_journal |
 | vault-service | 4005 | `mongodb://localhost:27022/lifesync_vault` | lifesync_vault |
+| ai-service | 4006 | `mongodb://localhost:27023/lifesync_ai` | lifesync_ai |
 
 Todos os serviços compartilham o mesmo `JWT_SECRET` para autenticação distribuída.
+
+O `ai-service` ainda precisa das variáveis da OpenAI (veja `server/ai-service/.env.example`):
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `OPENAI_API_KEY` | — | Sem ela o serviço sobe normalmente, mas responde `AI_DISABLED` e o frontend esconde os botões de IA |
+| `OPENAI_MODEL` | `gpt-5-mini` | Equilíbrio entre custo e confiabilidade em extração estruturada |
+| `OPENAI_REASONING_EFFORT` | `low` | Deixe vazio ao usar modelos sem reasoning |
+| `AI_MONTHLY_BUDGET_USD` | `2` | Teto de gasto estimado por usuário por mês |
 
 ### 3. Subir os bancos de dados
 
@@ -176,6 +187,7 @@ O frontend estará disponível em `http://localhost:5173`.
 | `npm run dev:finance` | Inicia o finance-service |
 | `npm run dev:journal` | Inicia o journal-service |
 | `npm run dev:vault` | Inicia o vault-service |
+| `npm run dev:ai` | Inicia o ai-service |
 
 ---
 
@@ -252,9 +264,34 @@ agregados no banco e refletem o período inteiro, não a página carregada.
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| POST | `/vault` | Criar nota/link |
-| GET | `/vault` | Listar notas do usuário |
+| POST | `/vault` | Criar nota |
+| GET | `/vault` | Listar notas (veja os filtros abaixo) |
+| GET | `/vault/tags` | Tags do usuário com contagem de uso |
+| PATCH | `/vault/:id` | Atualizar nota (aceita alteração parcial) |
 | DELETE | `/vault/:id` | Excluir nota |
+
+Cada nota tem um **formato** (`type`: `NOTE`, `LINK`, `SNIPPET`, `CHECKLIST`), uma **categoria**
+(`category`: `IDEA`, `REFERENCE`, `LEARNING`, `PROJECT`, `INSPIRATION`, `OTHER`) e um **estágio de
+maturidade** (`stage`: `SEED`, `EXPLORING`, `VALIDATED`, `DONE`, `DISCARDED`), além de `tags`,
+`summary`, `sourceUrl`, `isFavorite` e `isArchived`.
+
+`GET /vault` aceita, junto da paginação: `search` (busca textual em título, resumo e conteúdo,
+ordenada por relevância), `type`, `category`, `stage`, `goalId`, `tags` (lista separada por
+vírgula, exigindo todas), `onlyFavorites` e `includeArchived`. Notas arquivadas ficam fora da
+listagem por padrão.
+
+### AI Service (`:4006`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/ai/finance/parse` | Interpreta uma frase em rascunhos de transação |
+| POST | `/ai/vault/suggest` | Sugere resumo, tags, categoria e estágio para uma nota |
+| GET | `/ai/usage` | Consumo do mês, teto de gasto e se a IA está habilitada |
+
+A IA **nunca grava dados**. `POST /ai/finance/parse` devolve rascunhos com um campo `confidence`;
+o usuário revisa na interface e a gravação segue pelo `POST /transactions` normal. Cada chamada é
+registrada em `lifesync_ai` com tokens e custo estimado, e o serviço recusa novas chamadas
+(`AI_BUDGET_EXCEEDED`, HTTP 429) quando o usuário passa de `AI_MONTHLY_BUDGET_USD` no mês.
 
 > Todas as rotas (exceto register/login) exigem header `Authorization: Bearer <token>`.
 
@@ -332,5 +369,6 @@ project_manager_life/
     ├── habits-service/
     ├── finance-service/
     ├── journal-service/
-    └── vault-service/
+    ├── vault-service/
+    └── ai-service/
 ```
