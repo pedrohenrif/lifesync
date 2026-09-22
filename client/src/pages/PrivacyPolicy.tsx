@@ -59,7 +59,9 @@ export function PrivacyPolicy(): ReactElement {
           <p>
             <strong className="font-medium text-zinc-300">Dados de conta:</strong> nome,
             e-mail e senha (armazenada apenas como hash criptográfico). São necessários
-            para criar e autenticar sua conta.
+            para criar e autenticar sua conta. Se você pedir para redefinir a senha, um
+            código de uso único é enviado para o e-mail cadastrado e o hash desse código
+            fica guardado por no máximo 10 minutos.
           </p>
           <p>
             <strong className="font-medium text-zinc-300">Conteúdo que você cria:</strong>{" "}

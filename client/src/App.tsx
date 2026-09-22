@@ -21,6 +21,7 @@ import { Landing } from "./pages/Landing";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { ForgotPassword } from "./pages/ForgotPassword";
 import { Onboarding } from "./pages/Onboarding";
 import { LandingLayout } from "./layouts/LandingLayout";
 
@@ -35,6 +36,7 @@ export function App(): ReactElement {
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/esqueci-senha" element={<ForgotPassword />} />
         </Route>
 
         {/* Fora dos layouts: precisa abrir com ou sem sessão, inclusive para a revisão do Google. */}

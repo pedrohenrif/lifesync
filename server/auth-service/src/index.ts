@@ -9,13 +9,18 @@ import { CreatePersonalRewardUseCase } from "./application/use-cases/CreatePerso
 import { RedeemPersonalRewardUseCase } from "./application/use-cases/RedeemPersonalRewardUseCase.js";
 import { ApplyInternalGamificationEventUseCase } from "./application/use-cases/ApplyInternalGamificationEventUseCase.js";
 import { SubscribePushUseCase } from "./application/use-cases/SubscribePushUseCase.js";
+import { RequestPasswordResetUseCase } from "./application/use-cases/RequestPasswordResetUseCase.js";
+import { ResetPasswordUseCase } from "./application/use-cases/ResetPasswordUseCase.js";
 import { env, vapidIsConfigured } from "./infrastructure/config/env.js";
 import { startEveningHabitPushCron } from "./infrastructure/jobs/eveningHabitPushCron.js";
 import { configureWebPush } from "./infrastructure/push/webPushSender.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoUserRepository } from "./infrastructure/persistence/MongoUserRepository.js";
+import { MongoPasswordResetRepository } from "./infrastructure/persistence/MongoPasswordResetRepository.js";
 import { BcryptPasswordService } from "./infrastructure/security/BcryptPasswordService.js";
+import { HmacResetCodeDigest } from "./infrastructure/security/HmacResetCodeDigest.js";
 import { JwtTokenService } from "./infrastructure/security/JwtTokenService.js";
+import { NodemailerSmtpEmailSender } from "./infrastructure/email/NodemailerSmtpEmailSender.js";
 import { createApp } from "./presentation/http/createApp.js";
 
 await connectMongo(env.authMongoUri);
@@ -42,6 +47,27 @@ const applyInternalGamificationEventUseCase = new ApplyInternalGamificationEvent
   userRepository,
 );
 const subscribePushUseCase = new SubscribePushUseCase(userRepository);
+const passwordResetRepository = new MongoPasswordResetRepository();
+const resetCodeDigest = new HmacResetCodeDigest(env.jwtSecret);
+const emailSender = new NodemailerSmtpEmailSender({
+  host: env.smtpHost,
+  port: env.smtpPort,
+  user: env.smtpUser,
+  pass: env.smtpPass,
+  from: env.smtpFrom.length > 0 ? env.smtpFrom : env.smtpUser,
+});
+const requestPasswordResetUseCase = new RequestPasswordResetUseCase(
+  userRepository,
+  passwordResetRepository,
+  resetCodeDigest,
+  emailSender,
+);
+const resetPasswordUseCase = new ResetPasswordUseCase(
+  userRepository,
+  passwordResetRepository,
+  resetCodeDigest,
+  passwordHasher,
+);
 
 if (vapidIsConfigured) {
   configureWebPush(env.vapidPublicKey, env.vapidPrivateKey, env.vapidSubject);
@@ -58,6 +84,8 @@ const app = createApp({
   redeemPersonalRewardUseCase,
   applyInternalGamificationEventUseCase,
   subscribePushUseCase,
+  requestPasswordResetUseCase,
+  resetPasswordUseCase,
   jwtSecret: env.jwtSecret,
   internalGamificationKey: env.internalGamificationKey,
   vapidConfigured: vapidIsConfigured,

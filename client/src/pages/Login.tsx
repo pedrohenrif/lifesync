@@ -123,6 +123,13 @@ export function Login(): ReactElement {
           </button>
 
           <Link
+            to="/esqueci-senha"
+            className="block w-full text-center text-sm text-zinc-400 transition hover:text-zinc-200"
+          >
+            Esqueci a senha
+          </Link>
+
+          <Link
             to="/register"
             className="block w-full text-center text-sm text-zinc-400 transition hover:text-zinc-200"
           >

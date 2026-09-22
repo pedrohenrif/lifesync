@@ -10,6 +10,8 @@ import type { CreatePersonalRewardUseCase } from "../../application/use-cases/Cr
 import type { RedeemPersonalRewardUseCase } from "../../application/use-cases/RedeemPersonalRewardUseCase.js";
 import type { ApplyInternalGamificationEventUseCase } from "../../application/use-cases/ApplyInternalGamificationEventUseCase.js";
 import type { SubscribePushUseCase } from "../../application/use-cases/SubscribePushUseCase.js";
+import type { RequestPasswordResetUseCase } from "../../application/use-cases/RequestPasswordResetUseCase.js";
+import type { ResetPasswordUseCase } from "../../application/use-cases/ResetPasswordUseCase.js";
 import { AuthController } from "./controllers/AuthController.js";
 import { AdminController } from "./controllers/AdminController.js";
 import { InternalGamificationController } from "./controllers/InternalGamificationController.js";
@@ -28,6 +30,8 @@ export type AppDependencies = {
   readonly redeemPersonalRewardUseCase: RedeemPersonalRewardUseCase;
   readonly applyInternalGamificationEventUseCase: ApplyInternalGamificationEventUseCase;
   readonly subscribePushUseCase: SubscribePushUseCase;
+  readonly requestPasswordResetUseCase: RequestPasswordResetUseCase;
+  readonly resetPasswordUseCase: ResetPasswordUseCase;
   readonly jwtSecret: string;
   readonly internalGamificationKey: string;
   readonly vapidConfigured: boolean;
@@ -74,6 +78,8 @@ export function createApp(deps: AppDependencies): Express {
     deps.createPersonalRewardUseCase,
     deps.redeemPersonalRewardUseCase,
     deps.subscribePushUseCase,
+    deps.requestPasswordResetUseCase,
+    deps.resetPasswordUseCase,
     deps.vapidConfigured,
   );
 
@@ -95,6 +101,12 @@ export function createApp(deps: AppDependencies): Express {
   });
   app.post("/auth/login", (req, res, next) => {
     void authController.login(req, res).catch(next);
+  });
+  app.post("/auth/forgot-password", (req, res, next) => {
+    void authController.forgotPassword(req, res).catch(next);
+  });
+  app.post("/auth/reset-password", (req, res, next) => {
+    void authController.resetPassword(req, res).catch(next);
   });
   app.get("/auth/me", authMiddleware, (req, res, next) => {
     void authController.me(req, res).catch(next);

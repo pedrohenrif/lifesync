@@ -116,6 +116,18 @@ export class MeApiError extends Error {
   }
 }
 
+export class PasswordResetApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "PasswordResetApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export class OnboardingApiError extends Error {
   readonly status: number;
   readonly code: string;
@@ -148,6 +160,12 @@ function messageForCode(code: string): string {
       return "Sua conta ainda está em análise. Aguarde a aprovação do administrador.";
     case "ACCOUNT_REJECTED":
       return "Sua conta foi rejeitada pelo administrador.";
+    case "INVALID_CODE":
+      return "Código inválido ou expirado. Peça um novo.";
+    case "EMAIL_NOT_CONFIGURED":
+      return "O envio de e-mail ainda não está configurado. Tente de novo em instantes.";
+    case "EMAIL_SEND_FAILED":
+      return "Não foi possível enviar o e-mail. Confira o endereço e tente de novo.";
     case "NAME_REQUIRED":
       return "Informe como prefere ser chamado.";
     default:
@@ -482,4 +500,36 @@ export async function redeemPersonalReward(rewardId: string): Promise<{ readonly
     throw new MeApiError(response.status, "INVALID_RESPONSE", "Resposta inesperada.");
   }
   return { coins: Math.max(0, Math.floor(data.coins)) };
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  const response = await apiRequest("/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const payload = parseApiErrorPayload(data);
+    const code =
+      typeof payload.error?.code === "string" ? payload.error.code : "UNKNOWN_ERROR";
+    throw new PasswordResetApiError(response.status, code, messageForCode(code));
+  }
+}
+
+export async function resetPassword(input: {
+  readonly email: string;
+  readonly code: string;
+  readonly password: string;
+}): Promise<void> {
+  const response = await apiRequest("/auth/reset-password", {
+    method: "POST",
+    body: input,
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const payload = parseApiErrorPayload(data);
+    const code =
+      typeof payload.error?.code === "string" ? payload.error.code : "UNKNOWN_ERROR";
+    throw new PasswordResetApiError(response.status, code, messageForCode(code));
+  }
 }

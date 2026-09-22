@@ -7,6 +7,8 @@ import type { RegisterUserUseCase } from "../../../application/use-cases/Registe
 import type { CreatePersonalRewardUseCase } from "../../../application/use-cases/CreatePersonalRewardUseCase.js";
 import type { RedeemPersonalRewardUseCase } from "../../../application/use-cases/RedeemPersonalRewardUseCase.js";
 import type { SubscribePushUseCase } from "../../../application/use-cases/SubscribePushUseCase.js";
+import type { RequestPasswordResetUseCase } from "../../../application/use-cases/RequestPasswordResetUseCase.js";
+import type { ResetPasswordUseCase } from "../../../application/use-cases/ResetPasswordUseCase.js";
 
 const registerBodySchema = z.object({
   name: z.string().optional().default(""),
@@ -16,6 +18,16 @@ const registerBodySchema = z.object({
 
 const loginBodySchema = z.object({
   email: z.string(),
+  password: z.string(),
+});
+
+const forgotPasswordBodySchema = z.object({
+  email: z.string().min(1),
+});
+
+const resetPasswordBodySchema = z.object({
+  email: z.string().min(1),
+  code: z.string().min(1),
   password: z.string(),
 });
 
@@ -38,6 +50,8 @@ export class AuthController {
     private readonly createPersonalRewardUseCase: CreatePersonalRewardUseCase,
     private readonly redeemPersonalRewardUseCase: RedeemPersonalRewardUseCase,
     private readonly subscribePushUseCase: SubscribePushUseCase,
+    private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
     private readonly vapidConfigured: boolean,
   ) {}
 
@@ -82,6 +96,46 @@ export class AuthController {
     }
 
     res.status(200).json(result.value);
+  }
+
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    const parsed = forgotPasswordBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: { code: "INVALID_BODY", issues: parsed.error.flatten() },
+      });
+      return;
+    }
+
+    const result = await this.requestPasswordResetUseCase.execute(parsed.data.email);
+    if (!result.ok) {
+      res.status(503).json({ error: result.error });
+      return;
+    }
+
+    res.status(200).json({
+      accepted: true,
+      message:
+        "Se este e-mail pertencer a uma conta ativa, enviamos um código de 6 dígitos.",
+    });
+  }
+
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    const parsed = resetPasswordBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: { code: "INVALID_BODY", issues: parsed.error.flatten() },
+      });
+      return;
+    }
+
+    const result = await this.resetPasswordUseCase.execute(parsed.data);
+    if (!result.ok) {
+      res.status(400).json({ error: result.error });
+      return;
+    }
+
+    res.status(200).json({ reset: true });
   }
 
   async me(req: Request, res: Response): Promise<void> {

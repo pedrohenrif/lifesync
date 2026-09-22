@@ -10,7 +10,7 @@ O LifeSync unifica seis domínios da vida pessoal em um único ecossistema:
 
 | Módulo | Descrição |
 |--------|-----------|
-| **Auth** | Registro, login e validação de sessão via JWT |
+| **Auth** | Registro, login, recuperação de senha por código no e-mail e validação de sessão via JWT |
 | **Goals** | Metas com categorização, prazos, Kanban e sub-tarefas (checklist) |
 | **Habits** | Hábitos recorrentes com gamificação (XP, níveis) e streak tracker |
 | **Finance** | Controle financeiro com parcelas de crédito, despesas fixas e investimentos |
@@ -141,6 +141,22 @@ cp server/auth-service/.env.example server/auth-service/.env
 | trip-service | 4008 | `mongodb://localhost:27025/lifesync_trips` | lifesync_trips |
 
 Todos os serviços compartilham o mesmo `JWT_SECRET` para autenticação distribuída.
+
+O `auth-service` envia o código de redefinição de senha por SMTP (Gmail). Veja
+`server/auth-service/.env.example`:
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `SMTP_HOST` | `smtp.gmail.com` | Servidor SMTP |
+| `SMTP_PORT` | `587` | Porta (587 = STARTTLS, 465 = TLS) |
+| `SMTP_USER` | — | Conta Gmail que envia o código |
+| `SMTP_PASS` | — | Senha de app do Google (não a senha da conta) |
+| `SMTP_FROM` | igual ao `SMTP_USER` | Remetente exibido no e-mail |
+
+Sem `SMTP_USER` e `SMTP_PASS` o serviço sobe, mas `POST /auth/forgot-password` responde
+`503 EMAIL_NOT_CONFIGURED`. A senha de app se cria em
+[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) com a verificação
+em duas etapas ligada.
 
 O `ai-service` ainda precisa das variáveis da OpenAI (veja `server/ai-service/.env.example`):
 
@@ -277,6 +293,8 @@ agregados no banco e refletem o período inteiro, não a página carregada.
 |--------|------|-----------|
 | POST | `/auth/register` | Registro de usuário |
 | POST | `/auth/login` | Login (retorna JWT) |
+| POST | `/auth/forgot-password` | Pede um código de 6 dígitos no e-mail (só contas ACTIVE recebem; a resposta é sempre a mesma) |
+| POST | `/auth/reset-password` | Troca a senha com e-mail + código + senha nova |
 | GET | `/auth/me` | Dados do usuário autenticado |
 
 ### Goals Service (`:4001`)
@@ -414,11 +432,15 @@ Toda mutação devolve a viagem inteira, então o cache do client fica consisten
 A fase da viagem (planejando, em andamento, concluída) é derivada das datas no client, em vez de
 um campo de status que ficaria desatualizado sem alguém marcar a mudança.
 
-> Todas as rotas (exceto register/login e o callback OAuth) exigem header `Authorization: Bearer <token>`.
+> Todas as rotas (exceto register, login, forgot-password, reset-password e o callback OAuth) exigem header `Authorization: Bearer <token>`.
 
 ---
 
 ## Frontend — Páginas e Funcionalidades
+
+### Autenticação
+- Login, registro e **esqueci a senha** (`/esqueci-senha`): pede um código de 6 dígitos no e-mail
+  da conta ativa e troca a senha sem sessão
 
 ### Contextos (workspaces)
 
@@ -524,6 +546,7 @@ Detalhes que essa montagem exige:
 ## Segurança
 
 - **JWT compartilhado** — Todos os microserviços validam tokens usando o mesmo `JWT_SECRET`, sem acessar o banco do auth-service
+- **Código de redefinição** — 6 dígitos, 10 minutos, HMAC no Mongo, no máximo 5 tentativas; só conta ACTIVE recebe o e-mail, e a API não revela se o endereço existe
 - **Ownership validation** — Todos os Use Cases verificam se o `userId` do token corresponde ao dono do recurso antes de qualquer mutação
 - **Zod validation** — Todos os bodies de request são validados na camada de apresentação
 - **Tokens no localStorage** — Injetados automaticamente em todas as requisições via `apiRequest`

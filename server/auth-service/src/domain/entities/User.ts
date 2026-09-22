@@ -181,6 +181,18 @@ export class User {
     return result.user;
   }
 
+  withPasswordHash(passwordHash: string): User {
+    const result = User.create({
+      ...this.props,
+      passwordHash,
+      updatedAt: new Date(),
+    });
+    if (!result.ok) {
+      throw new Error(`Unexpected validation error: ${result.error.code}`);
+    }
+    return result.user;
+  }
+
   withGamificationDelta(delta: {
     readonly totalXp: number;
     readonly coins: number;

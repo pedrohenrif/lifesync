@@ -38,6 +38,11 @@ export const env = {
   vapidSubject: readOptionalTrimmed(process.env.VAPID_SUBJECT) || "mailto:support@lifesync.local",
   /** `true` para agendar lembrete diário 20h (America/Sao_Paulo) */
   enablePushReminderCron: readOptionalTrimmed(process.env.ENABLE_PUSH_REMINDER_CRON).toLowerCase() === "true",
+  smtpHost: readOptionalTrimmed(process.env.SMTP_HOST) || "smtp.gmail.com",
+  smtpPort: readPort(process.env.SMTP_PORT, 587),
+  smtpUser: readOptionalTrimmed(process.env.SMTP_USER),
+  smtpPass: readOptionalTrimmed(process.env.SMTP_PASS),
+  smtpFrom: readOptionalTrimmed(process.env.SMTP_FROM),
 } as const;
 
 export const vapidIsConfigured: boolean =
