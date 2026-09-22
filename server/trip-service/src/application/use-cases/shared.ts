@@ -1,6 +1,12 @@
 import { err, ok, type Result } from "../result.js";
 import type { TripAccessError } from "../errors.js";
-import type { ChecklistItem, PackingItem, Trip } from "../../domain/entities/Trip.js";
+import type {
+  ChecklistItem,
+  ItineraryItem,
+  PackingItem,
+  Reservation,
+  Trip,
+} from "../../domain/entities/Trip.js";
 import type { ITripRepository } from "../../domain/repositories/ITripRepository.js";
 
 /** Resumo usado na listagem: contadores em vez das listas inteiras. */
@@ -16,6 +22,8 @@ export type TripSummary = {
   readonly packingDone: number;
   readonly checklistTotal: number;
   readonly checklistDone: number;
+  readonly reservationTotal: number;
+  readonly itineraryTotal: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -23,6 +31,8 @@ export type TripSummary = {
 export type TripDetail = TripSummary & {
   readonly packingItems: readonly PackingItemView[];
   readonly checklistItems: readonly ChecklistItemView[];
+  readonly reservations: readonly ReservationView[];
+  readonly itineraryItems: readonly ItineraryItemView[];
 };
 
 export type PackingItemView = Omit<PackingItem, "createdAt"> & {
@@ -30,6 +40,14 @@ export type PackingItemView = Omit<PackingItem, "createdAt"> & {
 };
 
 export type ChecklistItemView = Omit<ChecklistItem, "createdAt"> & {
+  readonly createdAt: string;
+};
+
+export type ReservationView = Omit<Reservation, "createdAt"> & {
+  readonly createdAt: string;
+};
+
+export type ItineraryItemView = Omit<ItineraryItem, "createdAt"> & {
   readonly createdAt: string;
 };
 
@@ -46,6 +64,8 @@ export function toTripSummary(trip: Trip): TripSummary {
     packingDone: trip.packedCount,
     checklistTotal: trip.checklistItems.length,
     checklistDone: trip.doneChecklistCount,
+    reservationTotal: trip.reservations.length,
+    itineraryTotal: trip.itineraryItems.length,
     createdAt: trip.createdAt.toISOString(),
     updatedAt: trip.updatedAt.toISOString(),
   };
@@ -59,6 +79,14 @@ export function toTripDetail(trip: Trip): TripDetail {
       createdAt: item.createdAt.toISOString(),
     })),
     checklistItems: trip.checklistItems.map((item) => ({
+      ...item,
+      createdAt: item.createdAt.toISOString(),
+    })),
+    reservations: trip.reservations.map((item) => ({
+      ...item,
+      createdAt: item.createdAt.toISOString(),
+    })),
+    itineraryItems: trip.itineraryItems.map((item) => ({
       ...item,
       createdAt: item.createdAt.toISOString(),
     })),

@@ -6,7 +6,16 @@ import {
   useOutletContext,
   useParams,
 } from "react-router-dom";
-import { ArrowLeft, Loader2, ListChecks, Luggage, MapPin, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarRange,
+  Loader2,
+  ListChecks,
+  Luggage,
+  MapPin,
+  Pencil,
+  Ticket,
+} from "lucide-react";
 import { TripFormModal } from "../components/trips/TripFormModal";
 import { useTrip, useUpdateTrip } from "../hooks/useTrips";
 import { formatTripRange, getTripPhase } from "../lib/tripMeta";
@@ -23,6 +32,8 @@ export function useTripContext(): TripContext {
 const SECTIONS = [
   { path: "bagagem", label: "Bagagem", icon: Luggage },
   { path: "pendencias", label: "Pendências", icon: ListChecks },
+  { path: "reservas", label: "Reservas", icon: Ticket },
+  { path: "roteiro", label: "Roteiro", icon: CalendarRange },
 ] as const;
 
 export function TripLayout(): ReactElement {
@@ -48,7 +59,7 @@ export function TripLayout(): ReactElement {
         </p>
         <Link
           to="/viagens"
-          className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300"
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-accent-400 hover:text-accent-300"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Voltar para as viagens
@@ -86,7 +97,7 @@ export function TripLayout(): ReactElement {
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="shrink-0 rounded-md p-2 text-zinc-600 transition hover:bg-navy-800 hover:text-zinc-300"
+            className="shrink-0 rounded-md p-2 text-zinc-600 transition hover:bg-surface-800 hover:text-zinc-300"
             aria-label="Editar viagem"
           >
             <Pencil className="h-4 w-4" />
@@ -94,22 +105,22 @@ export function TripLayout(): ReactElement {
         </div>
 
         {trip.notes !== null && (
-          <p className="mt-3 whitespace-pre-wrap rounded-lg border border-slate-800/70 bg-navy-900/40 px-3 py-2 text-xs leading-relaxed text-zinc-400">
+          <p className="mt-3 whitespace-pre-wrap rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2 text-xs leading-relaxed text-zinc-400">
             {trip.notes}
           </p>
         )}
       </div>
 
       {/* Abas da viagem: a barra global só sabe em qual viagem você está. */}
-      <div className="flex gap-1 border-b border-slate-800">
+      <div className="-mx-4 flex gap-1 overflow-x-auto border-b border-edge px-4 sm:mx-0 sm:px-0">
         {SECTIONS.map(({ path, label, icon: Icon }) => (
           <NavLink
             key={path}
             to={`/viagens/${trip.id}/${path}`}
             className={({ isActive }) =>
-              `flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
+              `flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
                 isActive
-                  ? "border-blue-500 text-blue-400"
+                  ? "border-accent-500 text-accent-400"
                   : "border-transparent text-zinc-500 hover:text-zinc-300"
               }`
             }

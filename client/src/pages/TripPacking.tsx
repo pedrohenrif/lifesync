@@ -68,7 +68,7 @@ export function TripPacking(): ReactElement {
 
       <form
         onSubmit={handleAdd}
-        className="space-y-2 rounded-xl border border-slate-800 bg-navy-900/40 p-3"
+        className="space-y-2 rounded-xl border border-edge bg-surface-900/40 p-3"
       >
         <input
           value={name}
@@ -113,7 +113,7 @@ export function TripPacking(): ReactElement {
       </form>
 
       {groups.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-800 px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
+        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
           A mala está vazia. Vá adicionando conforme se lembra — a lista fica salva.
         </p>
       ) : (
@@ -132,7 +132,7 @@ export function TripPacking(): ReactElement {
                   {items.map((item) => (
                     <li
                       key={item.id}
-                      className="flex items-center gap-3 rounded-lg border border-slate-800/70 bg-navy-900/40 px-3 py-2.5"
+                      className="flex items-center gap-3 rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2.5"
                     >
                       <input
                         type="checkbox"
@@ -144,7 +144,7 @@ export function TripPacking(): ReactElement {
                             input: { isPacked: e.target.checked },
                           })
                         }
-                        className="h-5 w-5 shrink-0 rounded border-slate-700 bg-navy-950 accent-blue-600"
+                        className="ls-checkbox h-5 w-5 shrink-0"
                         aria-label={`Marcar ${item.name}`}
                       />
                       <span
@@ -155,7 +155,7 @@ export function TripPacking(): ReactElement {
                         {item.name}
                       </span>
                       {item.quantity > 1 && (
-                        <span className="shrink-0 rounded-md bg-navy-950/70 px-1.5 py-0.5 text-[10px] text-zinc-500">
+                        <span className="shrink-0 rounded-md bg-surface-950/70 px-1.5 py-0.5 text-[10px] text-zinc-500">
                           {item.quantity}x
                         </span>
                       )}

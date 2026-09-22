@@ -24,7 +24,7 @@ function ProgressPill({
       className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${
         isComplete
           ? "bg-emerald-950/40 text-emerald-400"
-          : "bg-navy-950/70 text-zinc-500"
+          : "bg-surface-950/70 text-zinc-500"
       }`}
     >
       {label} {done}/{total}
@@ -44,7 +44,7 @@ function TripCard({
   const phase = getTripPhase(trip.startDate, trip.endDate);
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-navy-900/60 transition hover:border-blue-900/60">
+    <div className="rounded-xl border border-edge bg-surface-900/60 transition hover:border-accent-900/60">
       <Link to={`/viagens/${trip.id}/bagagem`} className="block p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -73,11 +73,11 @@ function TripCard({
         </div>
       </Link>
 
-      <div className="flex justify-end gap-1 border-t border-slate-800/70 px-2 py-1.5">
+      <div className="flex justify-end gap-1 border-t border-edge/70 px-2 py-1.5">
         <button
           type="button"
           onClick={onArchiveToggle}
-          className="rounded-md p-2 text-zinc-600 transition hover:bg-navy-800 hover:text-zinc-300"
+          className="rounded-md p-2 text-zinc-600 transition hover:bg-surface-800 hover:text-zinc-300"
           aria-label={trip.isArchived ? "Desarquivar viagem" : "Arquivar viagem"}
         >
           {trip.isArchived ? (
@@ -141,7 +141,7 @@ export function Trips(): ReactElement {
           type="checkbox"
           checked={includeArchived}
           onChange={(e) => setIncludeArchived(e.target.checked)}
-          className="h-4 w-4 rounded border-slate-700 bg-navy-900 accent-blue-600"
+          className="ls-checkbox h-4 w-4"
         />
         Mostrar viagens arquivadas
       </label>
@@ -151,7 +151,7 @@ export function Trips(): ReactElement {
           <Loader2 className="h-5 w-5 animate-spin text-zinc-600" />
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 px-6 py-12 text-center">
+        <div className="rounded-xl border border-dashed border-edge px-6 py-12 text-center">
           <Plane className="mx-auto h-8 w-8 text-zinc-700" />
           <p className="mt-3 text-sm font-medium text-zinc-300">
             Nenhuma viagem por aqui

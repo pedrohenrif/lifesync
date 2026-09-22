@@ -35,6 +35,43 @@ export type ChecklistItem = {
   readonly createdAt: string;
 };
 
+export const RESERVATION_TYPES = [
+  "FLIGHT",
+  "LODGING",
+  "TRANSPORT",
+  "ACTIVITY",
+  "OTHER",
+] as const;
+
+export type ReservationType = (typeof RESERVATION_TYPES)[number];
+
+export type Reservation = {
+  readonly id: string;
+  readonly type: ReservationType;
+  readonly title: string;
+  readonly provider: string | null;
+  readonly confirmationCode: string | null;
+  readonly url: string | null;
+  /** YYYY-MM-DDTHH:mm sem fuso, na hora local do destino. */
+  readonly startAt: string | null;
+  readonly endAt: string | null;
+  readonly address: string | null;
+  readonly notes: string | null;
+  readonly createdAt: string;
+};
+
+export type ItineraryItem = {
+  readonly id: string;
+  /** YYYY-MM-DD */
+  readonly date: string;
+  /** HH:mm ou null */
+  readonly time: string | null;
+  readonly title: string;
+  readonly description: string | null;
+  readonly location: string | null;
+  readonly createdAt: string;
+};
+
 export type TripSummary = {
   readonly id: string;
   readonly name: string;
@@ -47,6 +84,8 @@ export type TripSummary = {
   readonly packingDone: number;
   readonly checklistTotal: number;
   readonly checklistDone: number;
+  readonly reservationTotal: number;
+  readonly itineraryTotal: number;
   readonly createdAt: string;
   readonly updatedAt: string;
 };
@@ -54,6 +93,8 @@ export type TripSummary = {
 export type Trip = TripSummary & {
   readonly packingItems: readonly PackingItem[];
   readonly checklistItems: readonly ChecklistItem[];
+  readonly reservations: readonly Reservation[];
+  readonly itineraryItems: readonly ItineraryItem[];
 };
 
 export type CreateTripInput = {
@@ -97,6 +138,30 @@ export type UpdateChecklistItemInput = {
   readonly isDone?: boolean;
 };
 
+export type AddReservationInput = {
+  readonly type: ReservationType;
+  readonly title: string;
+  readonly provider: string | null;
+  readonly confirmationCode: string | null;
+  readonly url: string | null;
+  readonly startAt: string | null;
+  readonly endAt: string | null;
+  readonly address: string | null;
+  readonly notes: string | null;
+};
+
+export type UpdateReservationInput = Partial<AddReservationInput>;
+
+export type AddItineraryItemInput = {
+  readonly date: string;
+  readonly time: string | null;
+  readonly title: string;
+  readonly description: string | null;
+  readonly location: string | null;
+};
+
+export type UpdateItineraryItemInput = Partial<AddItineraryItemInput>;
+
 const ERROR_MESSAGES: Record<string, string> = {
   TRIP_NOT_FOUND: "Essa viagem não existe mais.",
   FORBIDDEN: "Essa viagem não é sua.",
@@ -108,6 +173,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   ITEM_TITLE_REQUIRED: "Escreva o nome do item.",
   INVALID_QUANTITY: "A quantidade precisa ser um número inteiro maior que zero.",
   INVALID_CATEGORY: "Categoria inválida.",
+  INVALID_RESERVATION_TYPE: "Tipo de reserva inválido.",
+  INVALID_DATETIME: "A data e hora informadas são inválidas.",
+  INVALID_TIME: "O horário informado é inválido.",
+  RESERVATION_END_BEFORE_START: "O fim da reserva precisa ser depois do início.",
   VALIDATION_ERROR: "Revise os campos preenchidos.",
   UNAUTHORIZED: "Sua sessão expirou. Entre novamente.",
 };
@@ -236,4 +305,48 @@ export async function removeChecklistItem(
   itemId: string,
 ): Promise<Trip> {
   return tripMutation(`/trips/${tripId}/checklist/${itemId}`, "DELETE");
+}
+
+export async function addReservation(
+  tripId: string,
+  input: AddReservationInput,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/reservations`, "POST", input);
+}
+
+export async function updateReservation(
+  tripId: string,
+  itemId: string,
+  input: UpdateReservationInput,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/reservations/${itemId}`, "PATCH", input);
+}
+
+export async function removeReservation(
+  tripId: string,
+  itemId: string,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/reservations/${itemId}`, "DELETE");
+}
+
+export async function addItineraryItem(
+  tripId: string,
+  input: AddItineraryItemInput,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/itinerary`, "POST", input);
+}
+
+export async function updateItineraryItem(
+  tripId: string,
+  itemId: string,
+  input: UpdateItineraryItemInput,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/itinerary/${itemId}`, "PATCH", input);
+}
+
+export async function removeItineraryItem(
+  tripId: string,
+  itemId: string,
+): Promise<Trip> {
+  return tripMutation(`/trips/${tripId}/itinerary/${itemId}`, "DELETE");
 }

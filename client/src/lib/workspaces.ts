@@ -17,6 +17,14 @@ export type WorkspaceMeta = {
   readonly homePath: string;
   /** Prefixo que identifica as rotas deste contexto. */
   readonly pathPrefix: string | null;
+  /**
+   * Cor da barra de status no PWA instalado. Precisa ser literal: a meta tag
+   * theme-color não aceita var(), então não dá para reaproveitar o token CSS.
+   * Espelha --color-surface-950 de cada contexto.
+   */
+  readonly themeColor: string;
+  /** Amostra da cor de acento, mostrada no seletor de contexto. */
+  readonly swatchClass: string;
 };
 
 export const WORKSPACES: Record<WorkspaceId, WorkspaceMeta> = {
@@ -27,14 +35,18 @@ export const WORKSPACES: Record<WorkspaceId, WorkspaceMeta> = {
     icon: User,
     homePath: "/dashboard",
     pathPrefix: null,
+    themeColor: "#0b1220",
+    swatchClass: "bg-blue-500",
   },
   travel: {
     id: "travel",
     label: "Viagens",
-    description: "Bagagem, pendências e organização de cada viagem.",
+    description: "Bagagem, pendências, reservas e roteiro de cada viagem.",
     icon: Plane,
     homePath: "/viagens",
     pathPrefix: "/viagens",
+    themeColor: "#14110b",
+    swatchClass: "bg-amber-400",
   },
 };
 

@@ -31,6 +31,8 @@ export class CreateTripUseCase {
       isArchived: false,
       packingItems: [],
       checklistItems: [],
+      reservations: [],
+      itineraryItems: [],
       createdAt: now,
       updatedAt: now,
     });

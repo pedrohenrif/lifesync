@@ -344,7 +344,7 @@ em produção (em modo de teste o refresh token expira em 7 dias), adicione o es
 |--------|------|-----------|
 | GET | `/trips?page=&pageSize=&includeArchived=` | Lista viagens com contadores de progresso |
 | POST | `/trips` | Cria uma viagem |
-| GET | `/trips/:id` | Viagem completa, com bagagem e pendências |
+| GET | `/trips/:id` | Viagem completa, com bagagem, pendências, reservas e roteiro |
 | PATCH | `/trips/:id` | Edita dados da viagem ou arquiva |
 | DELETE | `/trips/:id` | Remove a viagem e tudo que está nela |
 | POST | `/trips/:id/packing` | Adiciona item de bagagem |
@@ -353,10 +353,21 @@ em produção (em modo de teste o refresh token expira em 7 dias), adicione o es
 | POST | `/trips/:id/checklist` | Adiciona pendência |
 | PATCH | `/trips/:id/checklist/:itemId` | Edita a pendência ou marca como resolvida |
 | DELETE | `/trips/:id/checklist/:itemId` | Remove pendência |
+| POST | `/trips/:id/reservations` | Adiciona reserva (voo, hospedagem, transporte, atividade) |
+| PATCH | `/trips/:id/reservations/:itemId` | Edita a reserva |
+| DELETE | `/trips/:id/reservations/:itemId` | Remove reserva |
+| POST | `/trips/:id/itinerary` | Adiciona item ao roteiro |
+| PATCH | `/trips/:id/itinerary/:itemId` | Edita o item do roteiro |
+| DELETE | `/trips/:id/itinerary/:itemId` | Remove item do roteiro |
 
-Bagagem e pendências ficam **embutidas no documento da viagem**, como as sub-tarefas em
-`goals-service`: uma requisição entrega a tela inteira, o que importa quando a conexão é ruim
-durante a viagem. Por isso as sub-listas não paginam — só a listagem de viagens pagina.
+Bagagem, pendências, reservas e roteiro ficam **embutidos no documento da viagem**, como as
+sub-tarefas em `goals-service`: uma requisição entrega a tela inteira, o que importa quando a
+conexão é ruim durante a viagem. Por isso as sub-listas não paginam — só a listagem de viagens
+pagina.
+
+Reservas e roteiro guardam data e hora como **texto sem fuso** (`YYYY-MM-DDTHH:mm` e `HH:mm`).
+Um voo às 08:30 é às 08:30 no aeroporto, independente do fuso do aparelho que abrir o app — por
+isso não faz sentido converter para UTC aqui, ao contrário do `calendar-service`.
 
 Toda mutação devolve a viagem inteira, então o cache do client fica consistente sem refetch.
 A fase da viagem (planejando, em andamento, concluída) é derivada das datas no client, em vez de
@@ -376,11 +387,37 @@ separam PF de PJ. Hoje existem dois contextos:
 | Contexto | Navegação |
 |----------|-----------|
 | **Pessoal** | Home, Metas, Hábitos, Finanças, Agenda, Evolução, Cofre |
-| **Viagens** | Lista de viagens e, dentro de uma, Bagagem e Pendências |
+| **Viagens** | Lista de viagens e, dentro de uma, Bagagem, Pendências, Reservas e Roteiro |
 
 A rota atual é quem decide o contexto — um link salvo em `/viagens` nunca abre com a navegação do
 contexto pessoal. O `workspaceStore` (`@lifesync:workspace`) só guarda a preferência entre sessões.
 Assim a viagem não disputa espaço com metas e hábitos na barra inferior do PWA.
+
+#### Tema por contexto
+
+Cada contexto tem seu próprio ambiente visual: **Pessoal é azul sobre navy** e **Viagens é âmbar
+sobre um fundo quente**. Trocar de contexto muda acento, fundo, bordas e até a cor da barra de
+status no PWA instalado, com o conteúdo entrando numa animação curta — a ideia é parecer que o app
+trocou de ambiente, não só de abas.
+
+As telas usam os tokens `accent-*`, `surface-*` e `edge` em vez de uma cor fixa. Como as utilities
+do Tailwind v4 compilam para `var(--color-…)`, o `useWorkspaceTheme` só precisa escrever
+`data-workspace` no `<html>` e o app inteiro se repinta, sem componente nenhum saber qual contexto
+está ativo.
+
+Detalhes que essa montagem exige:
+
+- Os valores das paletas são **literais** no `index.css`, não `var(--color-blue-*)`. O Tailwind v4
+  só emite as variáveis da paleta que encontra em uso, então apontar para elas faria o tema
+  depender de alguma outra tela continuar usando aquela cor.
+- O padrão dos tokens é exatamente o azul de antes, então toda tela que ainda não migrou continua
+  correta no contexto pessoal — só o que é alcançável dentro de `/viagens` precisou migrar.
+- O acento carrega seu próprio primeiro plano (`--color-accent-fg`), porque o âmbar é claro demais
+  para texto branco em cima. Em viagens os botões preenchidos usam texto escuro.
+- A fase da viagem não usa âmbar nem vermelho: âmbar virou a cor do contexto e vermelho significa
+  atraso, então a proximidade é comunicada por brilho, sobrando o verde para "em andamento".
+- O atributo vai no `<html>` (e não no shell React) para o overscroll do iOS e os modais em portal
+  herdarem o contexto. A animação respeita `prefers-reduced-motion`.
 
 ### Dashboard (`/`)
 - Cockpit central com Bento Grid
@@ -432,6 +469,11 @@ Assim a viagem não disputa espaço com metas e hábitos na barra inferior do PW
   "já guardei"; a marcação é otimista, para responder na hora mesmo com conexão ruim
 - **Pendências** (`/viagens/:id/pendencias`) — tarefas pré-viagem com prazo opcional, ordenadas pelo
   prazo mais próximo e com destaque para as atrasadas
+- **Reservas** (`/viagens/:id/reservas`) — voo, hospedagem, transporte e atividades num só lugar,
+  com empresa, endereço, link e código de confirmação copiável com um toque (é o que se precisa no
+  balcão do check-in); sem data vão para o fim da lista
+- **Roteiro** (`/viagens/:id/roteiro`) — agrupado por dia e ordenado pela hora, com hora opcional
+  para quando só se sabe o que fazer, não quando
 
 ### Política de Privacidade (`/privacidade`)
 - Página pública (acessível logado ou não), exigida pela verificação do Google OAuth

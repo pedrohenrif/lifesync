@@ -11,6 +11,12 @@ import type { RemovePackingItemUseCase } from "../../application/use-cases/Remov
 import type { AddChecklistItemUseCase } from "../../application/use-cases/AddChecklistItemUseCase.js";
 import type { UpdateChecklistItemUseCase } from "../../application/use-cases/UpdateChecklistItemUseCase.js";
 import type { RemoveChecklistItemUseCase } from "../../application/use-cases/RemoveChecklistItemUseCase.js";
+import type { AddReservationUseCase } from "../../application/use-cases/AddReservationUseCase.js";
+import type { UpdateReservationUseCase } from "../../application/use-cases/UpdateReservationUseCase.js";
+import type { RemoveReservationUseCase } from "../../application/use-cases/RemoveReservationUseCase.js";
+import type { AddItineraryItemUseCase } from "../../application/use-cases/AddItineraryItemUseCase.js";
+import type { UpdateItineraryItemUseCase } from "../../application/use-cases/UpdateItineraryItemUseCase.js";
+import type { RemoveItineraryItemUseCase } from "../../application/use-cases/RemoveItineraryItemUseCase.js";
 import { TripsController } from "./controllers/TripsController.js";
 import { createAuthMiddleware } from "./middlewares/AuthMiddleware.js";
 
@@ -26,6 +32,12 @@ export type AppDependencies = {
   readonly addChecklistItemUseCase: AddChecklistItemUseCase;
   readonly updateChecklistItemUseCase: UpdateChecklistItemUseCase;
   readonly removeChecklistItemUseCase: RemoveChecklistItemUseCase;
+  readonly addReservationUseCase: AddReservationUseCase;
+  readonly updateReservationUseCase: UpdateReservationUseCase;
+  readonly removeReservationUseCase: RemoveReservationUseCase;
+  readonly addItineraryItemUseCase: AddItineraryItemUseCase;
+  readonly updateItineraryItemUseCase: UpdateItineraryItemUseCase;
+  readonly removeItineraryItemUseCase: RemoveItineraryItemUseCase;
   readonly jwtSecret: string;
 };
 
@@ -56,6 +68,12 @@ export function createApp(deps: AppDependencies): Express {
     deps.addChecklistItemUseCase,
     deps.updateChecklistItemUseCase,
     deps.removeChecklistItemUseCase,
+    deps.addReservationUseCase,
+    deps.updateReservationUseCase,
+    deps.removeReservationUseCase,
+    deps.addItineraryItemUseCase,
+    deps.updateItineraryItemUseCase,
+    deps.removeItineraryItemUseCase,
   );
 
   app.use(cors());
@@ -99,6 +117,26 @@ export function createApp(deps: AppDependencies): Express {
   });
   app.delete("/trips/:id/checklist/:itemId", authMiddleware, (req, res, next) => {
     void c.removeChecklistItem(req, res).catch(next);
+  });
+
+  app.post("/trips/:id/reservations", authMiddleware, (req, res, next) => {
+    void c.addReservation(req, res).catch(next);
+  });
+  app.patch("/trips/:id/reservations/:itemId", authMiddleware, (req, res, next) => {
+    void c.updateReservation(req, res).catch(next);
+  });
+  app.delete("/trips/:id/reservations/:itemId", authMiddleware, (req, res, next) => {
+    void c.removeReservation(req, res).catch(next);
+  });
+
+  app.post("/trips/:id/itinerary", authMiddleware, (req, res, next) => {
+    void c.addItineraryItem(req, res).catch(next);
+  });
+  app.patch("/trips/:id/itinerary/:itemId", authMiddleware, (req, res, next) => {
+    void c.updateItineraryItem(req, res).catch(next);
+  });
+  app.delete("/trips/:id/itinerary/:itemId", authMiddleware, (req, res, next) => {
+    void c.removeItineraryItem(req, res).catch(next);
   });
 
   app.use(handleAsyncError);

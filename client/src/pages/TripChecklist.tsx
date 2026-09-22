@@ -65,7 +65,7 @@ export function TripChecklist(): ReactElement {
 
       <form
         onSubmit={handleAdd}
-        className="space-y-2 rounded-xl border border-slate-800 bg-navy-900/40 p-3"
+        className="space-y-2 rounded-xl border border-edge bg-surface-900/40 p-3"
       >
         <input
           value={title}
@@ -96,7 +96,7 @@ export function TripChecklist(): ReactElement {
       </form>
 
       {items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-800 px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
+        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
           Nenhuma pendência. Documento, câmbio, seguro e check-in costumam entrar aqui.
         </p>
       ) : (
@@ -104,7 +104,7 @@ export function TripChecklist(): ReactElement {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 rounded-lg border border-slate-800/70 bg-navy-900/40 px-3 py-2.5"
+              className="flex items-center gap-3 rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2.5"
             >
               <input
                 type="checkbox"
@@ -116,7 +116,7 @@ export function TripChecklist(): ReactElement {
                     input: { isDone: e.target.checked },
                   })
                 }
-                className="h-5 w-5 shrink-0 rounded border-slate-700 bg-navy-950 accent-blue-600"
+                className="ls-checkbox h-5 w-5 shrink-0"
                 aria-label={`Marcar ${item.title}`}
               />
               <div className="min-w-0 flex-1">

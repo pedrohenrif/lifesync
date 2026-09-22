@@ -31,11 +31,11 @@ export function WorkspaceSwitcher(): ReactElement {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-navy-900/70 px-3 py-1 text-xs font-medium text-zinc-400 transition hover:border-blue-900/70 hover:text-zinc-200"
+        className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-surface-900/70 px-3 py-1 text-xs font-medium text-zinc-300 transition duration-500 hover:border-accent-900/70 hover:text-zinc-100"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
       >
-        <ActiveIcon className="h-3.5 w-3.5 text-blue-500/80" />
+        <ActiveIcon className="h-3.5 w-3.5 text-accent-400 transition-colors duration-500" />
         {active.label}
         <ChevronDown className="h-3 w-3 text-zinc-600" />
       </button>
@@ -54,22 +54,29 @@ export function WorkspaceSwitcher(): ReactElement {
                   onClick={() => handleSelect(meta.id)}
                   className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition ${
                     isActive
-                      ? "border-blue-900/70 bg-blue-950/30"
-                      : "border-slate-800 hover:border-zinc-700 hover:bg-navy-950/60"
+                      ? "border-accent-900/70 bg-accent-950/30"
+                      : "border-edge hover:border-zinc-700 hover:bg-surface-950/60"
                   }`}
                 >
                   <Icon
                     className={`mt-0.5 h-5 w-5 shrink-0 ${
-                      isActive ? "text-blue-400" : "text-zinc-500"
+                      isActive ? "text-accent-400" : "text-zinc-500"
                     }`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-zinc-100">{meta.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-zinc-100">{meta.label}</p>
+                      {/* Amostra da cor: deixa claro que o app troca de ambiente, não só de abas. */}
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${meta.swatchClass}`}
+                        aria-hidden="true"
+                      />
+                    </div>
                     <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
                       {meta.description}
                     </p>
                   </div>
-                  {isActive && <Check className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />}
+                  {isActive && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />}
                 </button>
               );
             })}

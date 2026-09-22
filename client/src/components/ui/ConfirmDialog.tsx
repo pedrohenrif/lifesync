@@ -39,9 +39,7 @@ export function ConfirmDialog({
           onClick={onConfirm}
           disabled={pending}
           className={`min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
-            danger
-              ? "bg-red-600 text-white hover:bg-red-500"
-              : "bg-blue-600 text-white hover:bg-blue-500"
+            danger ? "bg-red-600 text-white hover:bg-red-500" : "ls-accent-fill"
           }`}
         >
           {pending ? "Aguarde…" : confirmLabel}

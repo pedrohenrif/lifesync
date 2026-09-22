@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import type { TripOperationError } from "../../../application/errors.js";
-import { PACKING_CATEGORIES } from "../../../domain/entities/Trip.js";
+import { PACKING_CATEGORIES, RESERVATION_TYPES } from "../../../domain/entities/Trip.js";
 import type { CreateTripUseCase } from "../../../application/use-cases/CreateTripUseCase.js";
 import type { ListTripsUseCase } from "../../../application/use-cases/ListTripsUseCase.js";
 import type { GetTripUseCase } from "../../../application/use-cases/GetTripUseCase.js";
@@ -13,6 +13,12 @@ import type { RemovePackingItemUseCase } from "../../../application/use-cases/Re
 import type { AddChecklistItemUseCase } from "../../../application/use-cases/AddChecklistItemUseCase.js";
 import type { UpdateChecklistItemUseCase } from "../../../application/use-cases/UpdateChecklistItemUseCase.js";
 import type { RemoveChecklistItemUseCase } from "../../../application/use-cases/RemoveChecklistItemUseCase.js";
+import type { AddReservationUseCase } from "../../../application/use-cases/AddReservationUseCase.js";
+import type { UpdateReservationUseCase } from "../../../application/use-cases/UpdateReservationUseCase.js";
+import type { RemoveReservationUseCase } from "../../../application/use-cases/RemoveReservationUseCase.js";
+import type { AddItineraryItemUseCase } from "../../../application/use-cases/AddItineraryItemUseCase.js";
+import type { UpdateItineraryItemUseCase } from "../../../application/use-cases/UpdateItineraryItemUseCase.js";
+import type { RemoveItineraryItemUseCase } from "../../../application/use-cases/RemoveItineraryItemUseCase.js";
 import { paginationQuerySchema, toPaginationMeta } from "../pagination.js";
 
 const dateOnlySchema = z
@@ -80,6 +86,63 @@ const updateChecklistItemBodySchema = z
   })
   .refine((body) => Object.keys(body).length > 0, { message: "Empty update" });
 
+/** Sem fuso, na hora local do destino — o mesmo motivo das datas date-only. */
+const naiveDateTimeSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Use o formato YYYY-MM-DDTHH:mm")
+  .refine((value) => !Number.isNaN(Date.parse(value)), { message: "Data e hora inválidas" });
+
+const timeSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use o formato HH:mm");
+
+const optionalText = (max: number) =>
+  z.string().trim().max(max).nullish().transform((v) => v ?? null);
+
+const addReservationBodySchema = z.object({
+  type: z.enum(RESERVATION_TYPES).default("OTHER"),
+  title: z.string().trim().min(1).max(200),
+  provider: optionalText(120),
+  confirmationCode: optionalText(120),
+  url: z.string().trim().url().max(2000).nullish().transform((v) => v ?? null),
+  startAt: naiveDateTimeSchema.nullish().transform((v) => v ?? null),
+  endAt: naiveDateTimeSchema.nullish().transform((v) => v ?? null),
+  address: optionalText(300),
+  notes: optionalText(2000),
+});
+
+const updateReservationBodySchema = z
+  .object({
+    type: z.enum(RESERVATION_TYPES).optional(),
+    title: z.string().trim().min(1).max(200).optional(),
+    provider: z.string().trim().max(120).nullable().optional(),
+    confirmationCode: z.string().trim().max(120).nullable().optional(),
+    url: z.string().trim().url().max(2000).nullable().optional(),
+    startAt: naiveDateTimeSchema.nullable().optional(),
+    endAt: naiveDateTimeSchema.nullable().optional(),
+    address: z.string().trim().max(300).nullable().optional(),
+    notes: z.string().trim().max(2000).nullable().optional(),
+  })
+  .refine((body) => Object.keys(body).length > 0, { message: "Empty update" });
+
+const addItineraryItemBodySchema = z.object({
+  date: dateOnlySchema,
+  time: timeSchema.nullish().transform((v) => v ?? null),
+  title: z.string().trim().min(1).max(200),
+  description: optionalText(2000),
+  location: optionalText(300),
+});
+
+const updateItineraryItemBodySchema = z
+  .object({
+    date: dateOnlySchema.optional(),
+    time: timeSchema.nullable().optional(),
+    title: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().max(2000).nullable().optional(),
+    location: z.string().trim().max(300).nullable().optional(),
+  })
+  .refine((body) => Object.keys(body).length > 0, { message: "Empty update" });
+
 function statusForError(error: TripOperationError): number {
   switch (error.code) {
     case "TRIP_NOT_FOUND":
@@ -95,6 +158,10 @@ function statusForError(error: TripOperationError): number {
     case "ITEM_TITLE_REQUIRED":
     case "INVALID_QUANTITY":
     case "INVALID_CATEGORY":
+    case "INVALID_RESERVATION_TYPE":
+    case "INVALID_DATETIME":
+    case "INVALID_TIME":
+    case "RESERVATION_END_BEFORE_START":
       return 400;
   }
 }
@@ -118,6 +185,12 @@ export class TripsController {
     private readonly addChecklistItemUseCase: AddChecklistItemUseCase,
     private readonly updateChecklistItemUseCase: UpdateChecklistItemUseCase,
     private readonly removeChecklistItemUseCase: RemoveChecklistItemUseCase,
+    private readonly addReservationUseCase: AddReservationUseCase,
+    private readonly updateReservationUseCase: UpdateReservationUseCase,
+    private readonly removeReservationUseCase: RemoveReservationUseCase,
+    private readonly addItineraryItemUseCase: AddItineraryItemUseCase,
+    private readonly updateItineraryItemUseCase: UpdateItineraryItemUseCase,
+    private readonly removeItineraryItemUseCase: RemoveItineraryItemUseCase,
   ) {}
 
   async create(req: Request, res: Response): Promise<void> {
@@ -318,6 +391,128 @@ export class TripsController {
     if (context === null) return;
 
     const result = await this.removeChecklistItemUseCase.execute(
+      context.userId,
+      context.tripId,
+      context.itemId,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(200).json({ trip: result.value });
+  }
+
+  async addReservation(req: Request, res: Response): Promise<void> {
+    const context = this.readTripContext(req, res);
+    if (context === null) return;
+
+    const body = addReservationBodySchema.safeParse(req.body);
+    if (!body.success) {
+      this.respondValidationError(res, body.error.issues);
+      return;
+    }
+
+    const result = await this.addReservationUseCase.execute(
+      context.userId,
+      context.tripId,
+      body.data,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(201).json({ trip: result.value });
+  }
+
+  async updateReservation(req: Request, res: Response): Promise<void> {
+    const context = this.readItemContext(req, res);
+    if (context === null) return;
+
+    const body = updateReservationBodySchema.safeParse(req.body);
+    if (!body.success) {
+      this.respondValidationError(res, body.error.issues);
+      return;
+    }
+
+    const result = await this.updateReservationUseCase.execute(
+      context.userId,
+      context.tripId,
+      context.itemId,
+      body.data,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(200).json({ trip: result.value });
+  }
+
+  async removeReservation(req: Request, res: Response): Promise<void> {
+    const context = this.readItemContext(req, res);
+    if (context === null) return;
+
+    const result = await this.removeReservationUseCase.execute(
+      context.userId,
+      context.tripId,
+      context.itemId,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(200).json({ trip: result.value });
+  }
+
+  async addItineraryItem(req: Request, res: Response): Promise<void> {
+    const context = this.readTripContext(req, res);
+    if (context === null) return;
+
+    const body = addItineraryItemBodySchema.safeParse(req.body);
+    if (!body.success) {
+      this.respondValidationError(res, body.error.issues);
+      return;
+    }
+
+    const result = await this.addItineraryItemUseCase.execute(
+      context.userId,
+      context.tripId,
+      body.data,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(201).json({ trip: result.value });
+  }
+
+  async updateItineraryItem(req: Request, res: Response): Promise<void> {
+    const context = this.readItemContext(req, res);
+    if (context === null) return;
+
+    const body = updateItineraryItemBodySchema.safeParse(req.body);
+    if (!body.success) {
+      this.respondValidationError(res, body.error.issues);
+      return;
+    }
+
+    const result = await this.updateItineraryItemUseCase.execute(
+      context.userId,
+      context.tripId,
+      context.itemId,
+      body.data,
+    );
+    if (!result.ok) {
+      res.status(statusForError(result.error)).json({ error: result.error });
+      return;
+    }
+    res.status(200).json({ trip: result.value });
+  }
+
+  async removeItineraryItem(req: Request, res: Response): Promise<void> {
+    const context = this.readItemContext(req, res);
+    if (context === null) return;
+
+    const result = await this.removeItineraryItemUseCase.execute(
       context.userId,
       context.tripId,
       context.itemId,

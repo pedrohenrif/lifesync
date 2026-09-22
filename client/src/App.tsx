@@ -13,6 +13,8 @@ import { Trips } from "./pages/Trips";
 import { TripLayout } from "./pages/TripLayout";
 import { TripPacking } from "./pages/TripPacking";
 import { TripChecklist } from "./pages/TripChecklist";
+import { TripReservations } from "./pages/TripReservations";
+import { TripItinerary } from "./pages/TripItinerary";
 import { Profile } from "./pages/Profile";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Landing } from "./pages/Landing";
@@ -54,6 +56,8 @@ export function App(): ReactElement {
             <Route index element={<Navigate to="bagagem" replace />} />
             <Route path="bagagem" element={<TripPacking />} />
             <Route path="pendencias" element={<TripChecklist />} />
+            <Route path="reservas" element={<TripReservations />} />
+            <Route path="roteiro" element={<TripItinerary />} />
           </Route>
 
           <Route path="/admin" element={<AdminDashboard />} />

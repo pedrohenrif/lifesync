@@ -6,33 +6,103 @@
   --color-navy-900: #0f172a;
   --color-navy-800: #162033;
   --color-navy-700: #1e3a5f;
+
+  /*
+   * Tokens de contexto. As telas usam accent/surface/edge em vez de uma cor
+   * fixa, e o contexto ativo redefine as variáveis mais abaixo. Como as
+   * utilities do Tailwind v4 compilam para var(--color-…), trocar o atributo
+   * data-workspace repinta o app inteiro sem tocar em componente nenhum.
+   *
+   * O padrão é o contexto pessoal: azul sobre navy, exatamente como era antes
+   * de existir contexto. Assim toda tela que ainda não migrou continua certa.
+   *
+   * Os valores são literais em vez de var(--color-blue-*) de propósito: o
+   * Tailwind v4 só emite as variáveis da paleta que encontra em uso, então
+   * apontar para elas faria o tema depender de alguma outra tela continuar
+   * usando azul. Estes são os mesmos oklch da paleta padrão.
+   */
+  --color-accent-300: oklch(80.9% 0.105 251.813);
+  --color-accent-400: oklch(70.7% 0.165 254.624);
+  --color-accent-500: oklch(62.3% 0.214 259.815);
+  --color-accent-600: oklch(54.6% 0.245 262.881);
+  --color-accent-700: oklch(48.8% 0.243 264.376);
+  --color-accent-900: oklch(37.9% 0.146 265.522);
+  --color-accent-950: oklch(28.2% 0.091 267.935);
+  /* Texto sobre o acento preenchido: precisa de contraste em cima da cor sólida. */
+  --color-accent-fg: #ffffff;
+
+  --color-surface-950: #0b1220;
+  --color-surface-900: #0f172a;
+  --color-surface-800: #162033;
+  --color-edge: var(--color-slate-800);
+}
+
+/*
+ * Viagens: âmbar sobre um fundo quente. O âmbar-500 é claro demais para texto
+ * branco em cima, então o acento carrega seu próprio primeiro plano escuro.
+ */
+[data-workspace="travel"] {
+  /* Âmbar da paleta padrão, também literal. O 500 aponta para o âmbar-400 para
+     que hover:bg-accent-500 continue clareando em cima de bg-accent-600. */
+  --color-accent-300: oklch(87.9% 0.169 91.605);
+  --color-accent-400: oklch(82.8% 0.189 84.429);
+  --color-accent-500: oklch(82.8% 0.189 84.429);
+  --color-accent-600: oklch(76.9% 0.188 70.08);
+  --color-accent-700: oklch(66.6% 0.179 58.318);
+  --color-accent-900: oklch(41.4% 0.112 45.904);
+  --color-accent-950: oklch(27.9% 0.077 45.635);
+  --color-accent-fg: #1a1205;
+
+  --color-surface-950: #14110b;
+  --color-surface-900: #1c1811;
+  --color-surface-800: #262019;
+  --color-edge: #33291c;
 }
 
 @layer base {
   html,
   body,
   #root {
-    @apply min-h-screen bg-navy-950 text-zinc-100 antialiased;
+    @apply min-h-screen bg-surface-950 text-zinc-100 antialiased;
     color-scheme: dark;
-    background-color: #0b1220;
+    background-color: var(--color-surface-950);
+  }
+
+  /* O fundo acompanha a troca de contexto junto com o acento, sem piscar. */
+  html {
+    transition: background-color 400ms ease;
   }
 }
 
 @layer components {
   .ls-input {
-    @apply w-full rounded-lg border border-slate-800 bg-navy-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30;
+    @apply w-full rounded-lg border border-edge bg-surface-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30;
   }
 
   .ls-btn {
-    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto;
+    color: var(--color-accent-fg);
   }
 
   .ls-btn-block {
-    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--color-accent-fg);
   }
 
   .ls-card {
-    @apply rounded-2xl border border-slate-800/90 bg-navy-900/80;
+    @apply rounded-2xl border border-edge/90 bg-surface-900/80;
+  }
+
+  /* Preenchimento de acento sem opinião de layout, para botões que já têm o seu. */
+  .ls-accent-fill {
+    @apply bg-accent-600 transition hover:bg-accent-500;
+    color: var(--color-accent-fg);
+  }
+
+  /* accent-color nativo do checkbox: em classe para não virar "accent-accent-600". */
+  .ls-checkbox {
+    @apply rounded border-edge bg-surface-950;
+    accent-color: var(--color-accent-600);
   }
 }
 
@@ -50,4 +120,26 @@
 
 .habit-icon-pop {
   animation: habit-icon-pop 0.55s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+@keyframes ls-context-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Trocar de contexto anima a entrada do conteúdo, para a troca parecer chegada
+ * em outro lugar em vez de um redesenho seco. Quem pediu menos movimento no
+ * sistema não recebe animação nenhuma.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .ls-context-enter {
+    animation: ls-context-enter 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }

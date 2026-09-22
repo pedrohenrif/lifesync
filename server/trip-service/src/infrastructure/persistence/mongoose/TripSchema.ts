@@ -1,5 +1,8 @@
 import mongoose, { Schema } from "mongoose";
-import { PACKING_CATEGORIES } from "../../../domain/entities/Trip.js";
+import {
+  PACKING_CATEGORIES,
+  RESERVATION_TYPES,
+} from "../../../domain/entities/Trip.js";
 
 export interface PersistedPackingItem {
   id: string;
@@ -18,6 +21,30 @@ export interface PersistedChecklistItem {
   createdAt: Date;
 }
 
+export interface PersistedReservation {
+  id: string;
+  type: string;
+  title: string;
+  provider: string | null;
+  confirmationCode: string | null;
+  url: string | null;
+  startAt: string | null;
+  endAt: string | null;
+  address: string | null;
+  notes: string | null;
+  createdAt: Date;
+}
+
+export interface PersistedItineraryItem {
+  id: string;
+  date: string;
+  time: string | null;
+  title: string;
+  description: string | null;
+  location: string | null;
+  createdAt: Date;
+}
+
 export interface PersistedTrip {
   _id: string;
   userId: string;
@@ -29,6 +56,8 @@ export interface PersistedTrip {
   isArchived: boolean;
   packingItems: PersistedPackingItem[];
   checklistItems: PersistedChecklistItem[];
+  reservations: PersistedReservation[];
+  itineraryItems: PersistedItineraryItem[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,10 +85,40 @@ const checklistItemSchema = new Schema<PersistedChecklistItem>(
   { _id: false },
 );
 
+const reservationSchema = new Schema<PersistedReservation>(
+  {
+    id: { type: String, required: true },
+    type: { type: String, enum: RESERVATION_TYPES, default: "OTHER" },
+    title: { type: String, required: true, trim: true },
+    provider: { type: String, default: null },
+    confirmationCode: { type: String, default: null },
+    url: { type: String, default: null },
+    startAt: { type: String, default: null },
+    endAt: { type: String, default: null },
+    address: { type: String, default: null },
+    notes: { type: String, default: null },
+    createdAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
+const itineraryItemSchema = new Schema<PersistedItineraryItem>(
+  {
+    id: { type: String, required: true },
+    date: { type: String, required: true },
+    time: { type: String, default: null },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, default: null },
+    location: { type: String, default: null },
+    createdAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
 /**
- * Bagagem e pendências ficam embutidas porque são sempre carregadas junto da
- * viagem — uma requisição entrega a tela inteira, o que importa quando a
- * conexão é ruim. Mesmo padrão das sub-tarefas em goals-service.
+ * Bagagem, pendências, reservas e roteiro ficam embutidos porque são sempre
+ * carregados junto da viagem — uma requisição entrega a tela inteira, o que
+ * importa quando a conexão é ruim. Mesmo padrão das sub-tarefas em goals-service.
  */
 const tripSchema = new Schema<PersistedTrip>(
   {
@@ -73,6 +132,8 @@ const tripSchema = new Schema<PersistedTrip>(
     isArchived: { type: Boolean, required: true, default: false },
     packingItems: { type: [packingItemSchema], default: [] },
     checklistItems: { type: [checklistItemSchema], default: [] },
+    reservations: { type: [reservationSchema], default: [] },
+    itineraryItems: { type: [itineraryItemSchema], default: [] },
     createdAt: { type: Date, required: true },
     updatedAt: { type: Date, required: true },
   },

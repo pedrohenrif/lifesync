@@ -10,6 +10,12 @@ import { RemovePackingItemUseCase } from "./application/use-cases/RemovePackingI
 import { AddChecklistItemUseCase } from "./application/use-cases/AddChecklistItemUseCase.js";
 import { UpdateChecklistItemUseCase } from "./application/use-cases/UpdateChecklistItemUseCase.js";
 import { RemoveChecklistItemUseCase } from "./application/use-cases/RemoveChecklistItemUseCase.js";
+import { AddReservationUseCase } from "./application/use-cases/AddReservationUseCase.js";
+import { UpdateReservationUseCase } from "./application/use-cases/UpdateReservationUseCase.js";
+import { RemoveReservationUseCase } from "./application/use-cases/RemoveReservationUseCase.js";
+import { AddItineraryItemUseCase } from "./application/use-cases/AddItineraryItemUseCase.js";
+import { UpdateItineraryItemUseCase } from "./application/use-cases/UpdateItineraryItemUseCase.js";
+import { RemoveItineraryItemUseCase } from "./application/use-cases/RemoveItineraryItemUseCase.js";
 import { env } from "./infrastructure/config/env.js";
 import { connectMongo } from "./infrastructure/persistence/mongoose/connectMongo.js";
 import { MongoTripRepository } from "./infrastructure/persistence/MongoTripRepository.js";
@@ -31,6 +37,12 @@ const app = createApp({
   addChecklistItemUseCase: new AddChecklistItemUseCase(tripRepository),
   updateChecklistItemUseCase: new UpdateChecklistItemUseCase(tripRepository),
   removeChecklistItemUseCase: new RemoveChecklistItemUseCase(tripRepository),
+  addReservationUseCase: new AddReservationUseCase(tripRepository),
+  updateReservationUseCase: new UpdateReservationUseCase(tripRepository),
+  removeReservationUseCase: new RemoveReservationUseCase(tripRepository),
+  addItineraryItemUseCase: new AddItineraryItemUseCase(tripRepository),
+  updateItineraryItemUseCase: new UpdateItineraryItemUseCase(tripRepository),
+  removeItineraryItemUseCase: new RemoveItineraryItemUseCase(tripRepository),
   jwtSecret: env.jwtSecret,
 });
 

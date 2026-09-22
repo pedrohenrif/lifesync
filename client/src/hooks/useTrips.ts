@@ -2,24 +2,34 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   addChecklistItem,
+  addItineraryItem,
   addPackingItem,
+  addReservation,
   createTrip,
   deleteTrip,
   getTrip,
   getTrips,
   removeChecklistItem,
+  removeItineraryItem,
   removePackingItem,
+  removeReservation,
   TripApiError,
   updateChecklistItem,
+  updateItineraryItem,
   updatePackingItem,
+  updateReservation,
   updateTrip,
   type AddChecklistItemInput,
+  type AddItineraryItemInput,
   type AddPackingItemInput,
+  type AddReservationInput,
   type CreateTripInput,
   type Trip,
   type TripSummary,
   type UpdateChecklistItemInput,
+  type UpdateItineraryItemInput,
   type UpdatePackingItemInput,
+  type UpdateReservationInput,
   type UpdateTripInput,
 } from "../api/trips";
 import { useInfiniteList } from "./useInfiniteList";
@@ -251,6 +261,99 @@ export function useRemoveChecklistItem() {
   return useMutation({
     mutationFn: ({ tripId, itemId }: { readonly tripId: string; readonly itemId: string }) =>
       removeChecklistItem(tripId, itemId),
+    onSuccess: onTripSettled,
+    onError: notifyError,
+  });
+}
+
+export function useAddReservation() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({
+      tripId,
+      input,
+    }: {
+      readonly tripId: string;
+      readonly input: AddReservationInput;
+    }) => addReservation(tripId, input),
+    onSuccess: (trip) => {
+      onTripSettled(trip);
+      toast.success("Reserva salva.");
+    },
+    onError: notifyError,
+  });
+}
+
+export function useUpdateReservation() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({
+      tripId,
+      itemId,
+      input,
+    }: {
+      readonly tripId: string;
+      readonly itemId: string;
+      readonly input: UpdateReservationInput;
+    }) => updateReservation(tripId, itemId, input),
+    onSuccess: onTripSettled,
+    onError: notifyError,
+  });
+}
+
+export function useRemoveReservation() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({ tripId, itemId }: { readonly tripId: string; readonly itemId: string }) =>
+      removeReservation(tripId, itemId),
+    onSuccess: onTripSettled,
+    onError: notifyError,
+  });
+}
+
+export function useAddItineraryItem() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({
+      tripId,
+      input,
+    }: {
+      readonly tripId: string;
+      readonly input: AddItineraryItemInput;
+    }) => addItineraryItem(tripId, input),
+    onSuccess: onTripSettled,
+    onError: notifyError,
+  });
+}
+
+export function useUpdateItineraryItem() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({
+      tripId,
+      itemId,
+      input,
+    }: {
+      readonly tripId: string;
+      readonly itemId: string;
+      readonly input: UpdateItineraryItemInput;
+    }) => updateItineraryItem(tripId, itemId, input),
+    onSuccess: onTripSettled,
+    onError: notifyError,
+  });
+}
+
+export function useRemoveItineraryItem() {
+  const { onTripSettled } = useTripMutationHandlers();
+
+  return useMutation({
+    mutationFn: ({ tripId, itemId }: { readonly tripId: string; readonly itemId: string }) =>
+      removeItineraryItem(tripId, itemId),
     onSuccess: onTripSettled,
     onError: notifyError,
   });

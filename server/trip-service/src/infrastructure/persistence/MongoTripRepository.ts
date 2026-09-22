@@ -1,8 +1,11 @@
 import {
   isPackingCategory,
+  isReservationType,
   Trip,
   type ChecklistItem,
+  type ItineraryItem,
   type PackingItem,
+  type Reservation,
 } from "../../domain/entities/Trip.js";
 import type { ITripRepository, TripFilter } from "../../domain/repositories/ITripRepository.js";
 import {
@@ -14,7 +17,9 @@ import {
 import {
   TripModel,
   type PersistedChecklistItem,
+  type PersistedItineraryItem,
   type PersistedPackingItem,
+  type PersistedReservation,
   type PersistedTrip,
 } from "./mongoose/TripSchema.js";
 
@@ -40,6 +45,34 @@ function toChecklistItem(doc: PersistedChecklistItem): ChecklistItem {
   };
 }
 
+function toReservation(doc: PersistedReservation): Reservation {
+  return {
+    id: doc.id,
+    type: isReservationType(doc.type) ? doc.type : "OTHER",
+    title: doc.title,
+    provider: doc.provider,
+    confirmationCode: doc.confirmationCode,
+    url: doc.url,
+    startAt: doc.startAt,
+    endAt: doc.endAt,
+    address: doc.address,
+    notes: doc.notes,
+    createdAt: doc.createdAt,
+  };
+}
+
+function toItineraryItem(doc: PersistedItineraryItem): ItineraryItem {
+  return {
+    id: doc.id,
+    date: doc.date,
+    time: doc.time,
+    title: doc.title,
+    description: doc.description,
+    location: doc.location,
+    createdAt: doc.createdAt,
+  };
+}
+
 function toDomain(doc: PersistedTrip): Trip {
   const result = Trip.create({
     id: doc._id,
@@ -52,6 +85,8 @@ function toDomain(doc: PersistedTrip): Trip {
     isArchived: doc.isArchived,
     packingItems: (doc.packingItems ?? []).map(toPackingItem),
     checklistItems: (doc.checklistItems ?? []).map(toChecklistItem),
+    reservations: (doc.reservations ?? []).map(toReservation),
+    itineraryItems: (doc.itineraryItems ?? []).map(toItineraryItem),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   });
@@ -73,6 +108,8 @@ function toPersistedFields(trip: Trip) {
     isArchived: trip.isArchived,
     packingItems: trip.packingItems.map((item) => ({ ...item })),
     checklistItems: trip.checklistItems.map((item) => ({ ...item })),
+    reservations: trip.reservations.map((item) => ({ ...item })),
+    itineraryItems: trip.itineraryItems.map((item) => ({ ...item })),
     createdAt: trip.createdAt,
     updatedAt: trip.updatedAt,
   };
