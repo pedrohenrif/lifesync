@@ -1,0 +1,89 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Permite reenviar um deploy sem precisar de um commit novo.
+  workflow_dispatch:
+
+# Dois deploys simultaneos deixariam a VPS num estado intermediario, e cancelar
+# um deploy no meio e pior do que esperar: o in-progress termina.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build e restart na VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir configuracao
+        env:
+          PM2_APPS: ${{ vars.PM2_APPS }}
+        run: |
+          if [ -z "$PM2_APPS" ]; then
+            echo "::error::A variavel PM2_APPS nao esta definida."
+            echo "Rode 'pm2 ls' na VPS e configure os nomes dos processos do LifeSync em"
+            echo "Settings > Secrets and variables > Actions > Variables."
+            echo "Listar os nomes um por um e de proposito: 'pm2 restart all' reiniciaria"
+            echo "tambem os processos de outros projetos na mesma VPS."
+            exit 1
+          fi
+
+      - name: Deploy por SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          # Build do client costuma passar de 1 minuto no hardware da VPS.
+          command_timeout: 20m
+          envs: APP_DIR,PM2_APPS
+          script: |
+            set -euo pipefail
+
+            # Sessao SSH nao-interativa nao carrega o .bashrc, entao o node, o
+            # npm e o pm2 instalados via nvm ficam fora do PATH.
+            export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; fi
+
+            for bin in git node npm pm2; do
+              if ! command -v "$bin" >/dev/null 2>&1; then
+                echo "ERRO: $bin nao esta no PATH desta sessao SSH." >&2
+                exit 1
+              fi
+            done
+
+            cd "$APP_DIR"
+
+            # Um deploy da main aplicado em cima de outro branch entregaria
+            # codigo que ninguem revisou.
+            branch=$(git rev-parse --abbrev-ref HEAD)
+            if [ "$branch" != "main" ]; then
+              echo "ERRO: a VPS esta no branch '$branch', e nao em main." >&2
+              exit 1
+            fi
+
+            echo "==> Commit atual: $(git rev-parse --short HEAD)"
+
+            # --ff-only de proposito: se a VPS tiver alteracao local, o deploy
+            # falha em vez de descartar silenciosamente o trabalho de alguem.
+            git pull --ff-only origin main
+            echo "==> Novo commit: $(git rev-parse --short HEAD)"
+
+            # install em vez de ci: o ci apaga node_modules inteiro antes de
+            # reinstalar, e os processos no ar dependem dessa pasta enquanto a
+            # instalacao acontece.
+            npm install
+
+            # O build vem antes do restart: se a compilacao quebrar, o set -e
+            # aborta aqui e a aplicacao no ar continua sendo a versao anterior.
+            npm run build
+
+            pm2 restart $PM2_APPS --update-env
+            pm2 save
+            pm2 list
+        env:
+          APP_DIR: ${{ vars.VPS_APP_DIR || '/var/www/lifesync' }}
+          PM2_APPS: ${{ vars.PM2_APPS }}

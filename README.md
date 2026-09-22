@@ -208,6 +208,47 @@ O frontend estará disponível em `http://localhost:5173`.
 | `npm run dev:ai` | Inicia o ai-service |
 | `npm run dev:calendar` | Inicia o calendar-service |
 | `npm run dev:trips` | Inicia o trip-service |
+| `npm run build` | Compila o client e todos os serviços (é o que o deploy roda) |
+
+---
+
+## Deploy
+
+O push na `main` dispara o workflow `.github/workflows/deploy.yml`, que entra na VPS por SSH e roda
+`git pull --ff-only`, `npm install`, `npm run build` e reinicia os processos no PM2. O build vem
+antes do restart de propósito: se a compilação quebrar, o deploy aborta e o que está no ar continua
+sendo a versão anterior. Também é possível reenviar um deploy pelo botão *Run workflow*, sem
+precisar de um commit novo.
+
+O `pull` é `--ff-only` para o deploy **falhar** quando a VPS tiver alteração local, em vez de
+descartar em silêncio o trabalho de alguém. Se isso acontecer, resolva a árvore de trabalho na VPS
+antes de rodar de novo.
+
+### Configuração no GitHub
+
+Em *Settings → Secrets and variables → Actions*:
+
+| Tipo | Nome | Conteúdo |
+|------|------|----------|
+| Secret | `VPS_HOST` | IP ou hostname da VPS |
+| Secret | `VPS_USER` | Usuário do SSH |
+| Secret | `VPS_SSH_KEY` | Chave privada inteira, incluindo as linhas `BEGIN`/`END` |
+| Secret | `VPS_PORT` | Opcional, assume `22` |
+| Variable | `PM2_APPS` | Nomes dos processos do LifeSync no PM2, separados por espaço |
+| Variable | `VPS_APP_DIR` | Opcional, assume `/var/www/lifesync` |
+
+O `PM2_APPS` é listado nome por nome, e não `pm2 restart all`, porque a VPS hospeda outros
+projetos que não têm nada a ver com um deploy do LifeSync. Rode `pm2 ls` para pegar os nomes. O
+workflow falha com mensagem explícita se essa variável não estiver configurada.
+
+A chave em `VPS_SSH_KEY` precisa ter a pública correspondente no `~/.ssh/authorized_keys` da VPS.
+
+### Serviço novo no ar pela primeira vez
+
+O workflow cuida de código, mas não de infraestrutura. Um serviço recém-criado precisa, uma única
+vez na VPS: subir o container do Mongo dele (`docker compose up -d mongo-<nome>`), criar o `.env` a
+partir do `.env.example` com o **mesmo** `JWT_SECRET` dos outros, acrescentar a URL dele no `.env`
+do `api-gateway`, e registrar no PM2 com `pm2 start … --name … && pm2 save`.
 
 ---
 
