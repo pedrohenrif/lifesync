@@ -8,6 +8,7 @@ import {
   Activity,
   Wallet,
   BookMarked,
+  CalendarDays,
   ShieldCheck,
   Download,
   Sparkles,
@@ -26,6 +27,7 @@ const BASE_NAV_ITEMS: readonly NavItem[] = [
   { to: "/goals", label: "Metas", icon: Target },
   { to: "/habits", label: "Hábitos", icon: Activity },
   { to: "/finance", label: "Finanças", icon: Wallet },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/profile", label: "Evolução", icon: Sparkles },
   { to: "/vault", label: "Cofre", icon: BookMarked },
 ];
@@ -126,6 +128,17 @@ export function AuthLayout(): ReactElement {
                 <span className="truncate">Instalar app</span>
               </button>
             ) : null}
+            <Link
+              to="/agenda"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
+                location.pathname === "/agenda"
+                  ? "bg-blue-600/20 text-blue-400"
+                  : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
+              }`}
+              aria-label="Agenda"
+            >
+              <CalendarDays className="h-5 w-5" />
+            </Link>
             <Link
               to="/vault"
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${

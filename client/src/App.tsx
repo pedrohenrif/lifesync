@@ -8,9 +8,11 @@ import { Goals } from "./pages/Goals";
 import { Habits } from "./pages/Habits";
 import { Finance } from "./pages/Finance";
 import { Vault } from "./pages/Vault";
+import { Agenda } from "./pages/Agenda";
 import { Profile } from "./pages/Profile";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Landing } from "./pages/Landing";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Onboarding } from "./pages/Onboarding";
@@ -29,6 +31,9 @@ export function App(): ReactElement {
           <Route path="/register" element={<Register />} />
         </Route>
 
+        {/* Fora dos layouts: precisa abrir com ou sem sessão, inclusive para a revisão do Google. */}
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+
         <Route element={<AuthLayout />}>
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Home />} />
@@ -37,6 +42,7 @@ export function App(): ReactElement {
           <Route path="/finance" element={<Finance />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/vault" element={<Vault />} />
+          <Route path="/agenda" element={<Agenda />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 

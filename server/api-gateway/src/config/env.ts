@@ -18,4 +18,5 @@ export const env = {
   journalUrl: process.env.JOURNAL_URL ?? "http://localhost:4004",
   vaultUrl: process.env.VAULT_URL ?? "http://localhost:4005",
   aiUrl: process.env.AI_URL ?? "http://localhost:4006",
+  calendarUrl: process.env.CALENDAR_URL ?? "http://localhost:4007",
 } as const;

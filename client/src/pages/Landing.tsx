@@ -944,6 +944,12 @@ export function Landing(): ReactElement {
             <div className="text-center sm:text-left">
               <p className="text-sm font-semibold tracking-tight text-zinc-200">LifeSync</p>
               <p className="mt-1 text-xs text-zinc-600">© 2026 Todos os direitos reservados.</p>
+              <Link
+                to="/privacidade"
+                className="mt-3 inline-block text-xs text-zinc-500 underline underline-offset-2 transition hover:text-blue-400/90"
+              >
+                Política de Privacidade
+              </Link>
             </div>
             <div className="w-full max-w-sm space-y-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 px-5 py-4 ring-1 ring-blue-950/30">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-600/90">Contato</p>

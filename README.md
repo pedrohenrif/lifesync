@@ -31,8 +31,9 @@ lifesync-monorepo/
 │   ├── finance-service/     # :4003  →  MongoDB :27020
 │   ├── journal-service/     # :4004  →  MongoDB :27021
 │   ├── vault-service/       # :4005  →  MongoDB :27022
-│   └── ai-service/          # :4006  →  MongoDB :27023
-└── docker-compose.yml       # 7 instâncias MongoDB isoladas
+│   ├── ai-service/          # :4006  →  MongoDB :27023
+│   └── calendar-service/    # :4007  →  MongoDB :27024
+└── docker-compose.yml       # 8 instâncias MongoDB isoladas
 ```
 
 Cada microserviço segue a mesma estrutura DDD interna:
@@ -135,6 +136,7 @@ cp server/auth-service/.env.example server/auth-service/.env
 | journal-service | 4004 | `mongodb://localhost:27021/lifesync_journal` | lifesync_journal |
 | vault-service | 4005 | `mongodb://localhost:27022/lifesync_vault` | lifesync_vault |
 | ai-service | 4006 | `mongodb://localhost:27023/lifesync_ai` | lifesync_ai |
+| calendar-service | 4007 | `mongodb://localhost:27024/lifesync_calendar` | lifesync_calendar |
 
 Todos os serviços compartilham o mesmo `JWT_SECRET` para autenticação distribuída.
 
@@ -147,13 +149,27 @@ O `ai-service` ainda precisa das variáveis da OpenAI (veja `server/ai-service/.
 | `OPENAI_REASONING_EFFORT` | `low` | Deixe vazio ao usar modelos sem reasoning |
 | `AI_MONTHLY_BUDGET_USD` | `2` | Teto de gasto estimado por usuário por mês |
 
+O `calendar-service` precisa das credenciais do Google (veja `server/calendar-service/.env.example`):
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `GOOGLE_CLIENT_ID` | — | Client ID OAuth criado no Google Cloud. Sem ele o serviço sobe, mas a UI mostra "integração indisponível" |
+| `GOOGLE_CLIENT_SECRET` | — | Client secret correspondente |
+| `GOOGLE_REDIRECT_URI` | `http://localhost:3000/api/calendar/oauth/callback` | Precisa bater **exatamente** com o URI cadastrado no Google Cloud |
+| `APP_URL` | `http://localhost:5173` | Para onde o usuário é redirecionado depois de autorizar |
+| `TOKEN_ENCRYPTION_KEY` | — | Chave de 32 bytes em base64 (`openssl rand -base64 32`). Obrigatória quando o OAuth está configurado |
+| `CALENDAR_TIMEZONE` | `America/Sao_Paulo` | Fuso usado ao criar eventos |
+
+> Trocar a `TOKEN_ENCRYPTION_KEY` invalida os refresh tokens já salvos: todos os usuários
+> precisam reconectar a conta Google.
+
 ### 3. Subir os bancos de dados
 
 ```bash
 docker compose up -d
 ```
 
-Isso cria 6 containers MongoDB isolados com volumes persistentes.
+Isso cria 8 containers MongoDB isolados com volumes persistentes.
 
 ### 4. Rodar os serviços
 
@@ -188,6 +204,7 @@ O frontend estará disponível em `http://localhost:5173`.
 | `npm run dev:journal` | Inicia o journal-service |
 | `npm run dev:vault` | Inicia o vault-service |
 | `npm run dev:ai` | Inicia o ai-service |
+| `npm run dev:calendar` | Inicia o calendar-service |
 
 ---
 
@@ -293,7 +310,32 @@ o usuário revisa na interface e a gravação segue pelo `POST /transactions` no
 registrada em `lifesync_ai` com tokens e custo estimado, e o serviço recusa novas chamadas
 (`AI_BUDGET_EXCEEDED`, HTTP 429) quando o usuário passa de `AI_MONTHLY_BUDGET_USD` no mês.
 
-> Todas as rotas (exceto register/login) exigem header `Authorization: Bearer <token>`.
+### Calendar Service (`:4007`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/calendar/connection` | Status da conexão Google (conectado, e-mail, se a integração está disponível) |
+| POST | `/calendar/connection/start` | Devolve a URL de consentimento do Google |
+| GET | `/calendar/oauth/callback` | Callback chamado pelo Google — **rota pública** |
+| DELETE | `/calendar/connection` | Desconecta a conta e apaga o refresh token |
+| GET | `/calendar/events?start=&end=` | Eventos do intervalo, lidos ao vivo da API do Google |
+| POST | `/calendar/events` | Cria um evento na agenda principal |
+| PATCH | `/calendar/events/:id` | Edita um evento (`start` e `end` devem vir juntos) |
+| DELETE | `/calendar/events/:id` | Remove um evento |
+
+Eventos **não são replicados** no MongoDB: a fonte da verdade é o Google Agenda e cada
+requisição consulta a API na hora. A única coisa persistida em `lifesync_calendar` é o refresh
+token, cifrado com AES-256-GCM. O access token fica em cache em memória até expirar.
+
+O callback é público porque quem o chama é o Google, sem header de autenticação — a identidade
+do usuário vem do parâmetro `state`, um JWT de 10 minutos assinado com o `JWT_SECRET` e marcado
+com um `purpose` próprio para não ser confundido com um token de sessão.
+
+**Configuração no Google Cloud:** habilite a Google Calendar API, publique a tela de consentimento
+em produção (em modo de teste o refresh token expira em 7 dias), adicione o escopo
+`.../auth/calendar` e cadastre o redirect URI exatamente igual ao `GOOGLE_REDIRECT_URI`.
+
+> Todas as rotas (exceto register/login e o callback OAuth) exigem header `Authorization: Bearer <token>`.
 
 ---
 
@@ -336,6 +378,15 @@ registrada em `lifesync_ai` com tokens e custo estimado, e o serviço recusa nov
 - Vínculo opcional com metas (badge Target verde)
 - Modal de criação com select de metas ativas do usuário
 
+### Agenda (`/agenda`)
+- Conexão com a conta Google via OAuth, com explicação do que será acessado
+- Visão semanal navegável, com eventos agrupados por dia e destaque para hoje
+- Criação, edição e remoção de eventos (com ou sem hora), refletidos direto no Google Agenda
+- Link para abrir cada evento no Google e botão para desconectar a conta
+
+### Política de Privacidade (`/privacidade`)
+- Página pública (acessível logado ou não), exigida pela verificação do Google OAuth
+
 ---
 
 ## Segurança
@@ -344,6 +395,8 @@ registrada em `lifesync_ai` com tokens e custo estimado, e o serviço recusa nov
 - **Ownership validation** — Todos os Use Cases verificam se o `userId` do token corresponde ao dono do recurso antes de qualquer mutação
 - **Zod validation** — Todos os bodies de request são validados na camada de apresentação
 - **Tokens no localStorage** — Injetados automaticamente em todas as requisições via `apiRequest`
+- **Refresh token do Google cifrado** — Guardado com AES-256-GCM; um vazamento do banco sozinho não dá acesso à agenda do usuário
+- **State OAuth assinado** — O callback do Google é público, então a identidade vem de um JWT curto e com `purpose` dedicado
 
 ---
 
@@ -352,7 +405,7 @@ registrada em `lifesync_ai` com tokens e custo estimado, e o serviço recusa nov
 ```
 project_manager_life/
 ├── .cursorrules              # Regras de código para a IA
-├── docker-compose.yml        # 6 MongoDB containers
+├── docker-compose.yml        # 8 MongoDB containers
 ├── package.json              # Workspace root (npm workspaces)
 ├── client/                   # React + Vite + Tailwind
 │   └── src/
@@ -370,5 +423,6 @@ project_manager_life/
     ├── finance-service/
     ├── journal-service/
     ├── vault-service/
-    └── ai-service/
+    ├── ai-service/
+    └── calendar-service/
 ```

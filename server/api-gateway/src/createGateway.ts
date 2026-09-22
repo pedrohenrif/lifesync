@@ -16,6 +16,7 @@ const buildRoutes = (): Record<string, string> => ({
   '/api/journal': env.journalUrl,
   '/api/vault': env.vaultUrl,
   '/api/ai': env.aiUrl,
+  '/api/calendar': env.calendarUrl,
 });
 
 export const createGateway = () => {
