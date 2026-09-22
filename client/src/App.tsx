@@ -9,6 +9,10 @@ import { Habits } from "./pages/Habits";
 import { Finance } from "./pages/Finance";
 import { Vault } from "./pages/Vault";
 import { Agenda } from "./pages/Agenda";
+import { Trips } from "./pages/Trips";
+import { TripLayout } from "./pages/TripLayout";
+import { TripPacking } from "./pages/TripPacking";
+import { TripChecklist } from "./pages/TripChecklist";
 import { Profile } from "./pages/Profile";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Landing } from "./pages/Landing";
@@ -43,6 +47,15 @@ export function App(): ReactElement {
           <Route path="/profile" element={<Profile />} />
           <Route path="/vault" element={<Vault />} />
           <Route path="/agenda" element={<Agenda />} />
+
+          {/* Contexto de viagens: as seções só existem dentro de uma viagem. */}
+          <Route path="/viagens" element={<Trips />} />
+          <Route path="/viagens/:tripId" element={<TripLayout />}>
+            <Route index element={<Navigate to="bagagem" replace />} />
+            <Route path="bagagem" element={<TripPacking />} />
+            <Route path="pendencias" element={<TripChecklist />} />
+          </Route>
+
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 

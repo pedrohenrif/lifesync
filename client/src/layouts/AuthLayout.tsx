@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { useEffect, useMemo } from "react";
-import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation, useMatch } from "react-router-dom";
 import {
   LogOut,
   Home,
@@ -9,6 +9,9 @@ import {
   Wallet,
   BookMarked,
   CalendarDays,
+  ListChecks,
+  Luggage,
+  Map,
   ShieldCheck,
   Download,
   Sparkles,
@@ -16,7 +19,10 @@ import {
 import { useMe } from "../hooks/useMe";
 import { usePwaInstall } from "../hooks/usePwaInstall";
 import { PushNotificationPrompt } from "../components/notifications/PushNotificationPrompt";
+import { WorkspaceSwitcher } from "../components/workspace/WorkspaceSwitcher";
 import { useAuthStore } from "../stores/authStore";
+import { useWorkspaceStore } from "../stores/workspaceStore";
+import { WORKSPACES, workspaceFromPath } from "../lib/workspaces";
 
 const ONBOARDING_PATH = "/onboarding";
 
@@ -43,6 +49,23 @@ const BOTTOM_NAV_ITEMS: readonly NavItem[] = [
   { to: "/profile", label: "Evolução", icon: Sparkles },
 ];
 
+/**
+ * No contexto de viagens as seções só existem dentro de uma viagem, então a
+ * navegação depende de qual está aberta na URL.
+ */
+function buildTravelNavItems(activeTripId: string | null): readonly NavItem[] {
+  const tripsItem: NavItem = { to: "/viagens", label: "Viagens", icon: Map };
+  if (activeTripId === null) {
+    return [tripsItem];
+  }
+
+  return [
+    tripsItem,
+    { to: `/viagens/${activeTripId}/bagagem`, label: "Bagagem", icon: Luggage },
+    { to: `/viagens/${activeTripId}/pendencias`, label: "Pendências", icon: ListChecks },
+  ];
+}
+
 export function AuthLayout(): ReactElement {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
@@ -51,6 +74,14 @@ export function AuthLayout(): ReactElement {
   const location = useLocation();
   const meQuery = useMe(token !== null);
   const { canShowInstall, install } = usePwaInstall();
+
+  const storedWorkspace = useWorkspaceStore((s) => s.workspace);
+  const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const tripMatch = useMatch("/viagens/:tripId/*");
+  const activeTripId = tripMatch?.params.tripId ?? null;
+
+  // A rota atual decide o contexto; o store só guarda a preferência entre sessões.
+  const currentWorkspace = workspaceFromPath(location.pathname) ?? "personal";
 
   useEffect(() => {
     if (token === null) return;
@@ -63,12 +94,29 @@ export function AuthLayout(): ReactElement {
     }
   }, [logout, meQuery.data, meQuery.isError, setUser, token]);
 
+  useEffect(() => {
+    if (currentWorkspace !== storedWorkspace) {
+      setWorkspace(currentWorkspace);
+    }
+  }, [currentWorkspace, storedWorkspace, setWorkspace]);
+
   const navItems = useMemo<readonly NavItem[]>(() => {
+    if (currentWorkspace === "travel") {
+      return buildTravelNavItems(activeTripId);
+    }
     if (user?.role === "ADMIN") {
       return [...BASE_NAV_ITEMS, ADMIN_NAV_ITEM];
     }
     return BASE_NAV_ITEMS;
-  }, [user?.role]);
+  }, [activeTripId, currentWorkspace, user?.role]);
+
+  const bottomNavItems = useMemo<readonly NavItem[]>(
+    () =>
+      currentWorkspace === "travel"
+        ? buildTravelNavItems(activeTripId)
+        : BOTTOM_NAV_ITEMS,
+    [activeTripId, currentWorkspace],
+  );
 
   if (token === null) {
     return <Navigate to="/login" replace />;
@@ -109,10 +157,15 @@ export function AuthLayout(): ReactElement {
         className="sticky top-0 z-40 border-b border-blue-950/80 bg-navy-950/95 backdrop-blur-md"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
+        {/* Seletor de contexto: escopo do app inteiro, acima da navegação. */}
+        <div className="flex justify-center border-b border-slate-800/60 py-1.5">
+          <WorkspaceSwitcher />
+        </div>
+
         {/* Mobile: marca + atalhos Cofre / Admin / Sair */}
         <div className="flex items-center justify-between gap-2 px-4 py-3 md:hidden">
           <Link
-            to="/dashboard"
+            to={WORKSPACES[currentWorkspace].homePath}
             className="shrink-0 text-sm font-semibold tracking-tight text-zinc-100 transition hover:text-white"
           >
             LifeSync
@@ -128,40 +181,44 @@ export function AuthLayout(): ReactElement {
                 <span className="truncate">Instalar app</span>
               </button>
             ) : null}
-            <Link
-              to="/agenda"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
-                location.pathname === "/agenda"
-                  ? "bg-blue-600/20 text-blue-400"
-                  : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
-              }`}
-              aria-label="Agenda"
-            >
-              <CalendarDays className="h-5 w-5" />
-            </Link>
-            <Link
-              to="/vault"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
-                location.pathname === "/vault"
-                  ? "bg-blue-600/20 text-blue-400"
-                  : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
-              }`}
-              aria-label="Cofre"
-            >
-              <BookMarked className="h-5 w-5" />
-            </Link>
-            {user?.role === "ADMIN" ? (
-              <Link
-                to="/admin"
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
-                  location.pathname === "/admin"
-                    ? "bg-blue-600/20 text-blue-400"
-                    : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
-                }`}
-                aria-label="Backoffice"
-              >
-                <ShieldCheck className="h-5 w-5" />
-              </Link>
+            {currentWorkspace === "personal" ? (
+              <>
+                <Link
+                  to="/agenda"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
+                    location.pathname === "/agenda"
+                      ? "bg-blue-600/20 text-blue-400"
+                      : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
+                  }`}
+                  aria-label="Agenda"
+                >
+                  <CalendarDays className="h-5 w-5" />
+                </Link>
+                <Link
+                  to="/vault"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
+                    location.pathname === "/vault"
+                      ? "bg-blue-600/20 text-blue-400"
+                      : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
+                  }`}
+                  aria-label="Cofre"
+                >
+                  <BookMarked className="h-5 w-5" />
+                </Link>
+                {user?.role === "ADMIN" ? (
+                  <Link
+                    to="/admin"
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
+                      location.pathname === "/admin"
+                        ? "bg-blue-600/20 text-blue-400"
+                        : "text-zinc-500 hover:bg-navy-800 hover:text-zinc-300"
+                    }`}
+                    aria-label="Backoffice"
+                  >
+                    <ShieldCheck className="h-5 w-5" />
+                  </Link>
+                ) : null}
+              </>
             ) : null}
             <button
               type="button"
@@ -232,7 +289,7 @@ export function AuthLayout(): ReactElement {
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
         aria-label="Navegação principal"
       >
-        {BOTTOM_NAV_ITEMS.map(({ to, label, icon: Icon }) => {
+        {bottomNavItems.map(({ to, label, icon: Icon }) => {
           const isActive = location.pathname === to;
           return (
             <Link

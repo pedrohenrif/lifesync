@@ -79,6 +79,16 @@ services:
     environment:
       MONGO_INITDB_DATABASE: lifesync_calendar
 
+  mongo-trips:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27025:27017"
+    volumes:
+      - mongo_trips_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: lifesync_trips
+
 volumes:
   mongo_auth_data:
   mongo_goals_data:
@@ -88,3 +98,4 @@ volumes:
   mongo_vault_data:
   mongo_ai_data:
   mongo_calendar_data:
+  mongo_trips_data:

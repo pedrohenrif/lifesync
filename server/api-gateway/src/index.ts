@@ -11,4 +11,7 @@ app.listen(env.port, () => {
   console.log(`   Finance  -> ${env.financeUrl}`);
   console.log(`   Journal  -> ${env.journalUrl}`);
   console.log(`   Vault    -> ${env.vaultUrl}`);
+  console.log(`   AI       -> ${env.aiUrl}`);
+  console.log(`   Calendar -> ${env.calendarUrl}`);
+  console.log(`   Trips    -> ${env.tripUrl}`);
 });

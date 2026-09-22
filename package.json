@@ -13,9 +13,10 @@
     "dev:vault": "npm run dev -w vault-service",
     "dev:ai": "npm run dev -w ai-service",
     "dev:calendar": "npm run dev -w calendar-service",
+    "dev:trips": "npm run dev -w trip-service",
     "dev:gateway": "npm run dev -w api-gateway",
-    "dev:server": "concurrently -n gw,auth,goals,habits,finance,journal,vault,ai,cal -c blue,green,yellow,magenta,cyan,white,gray,red,blue \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\" \"npm run dev:ai\" \"npm run dev:calendar\"",
-    "dev": "concurrently -n client,gw,auth,goals,habits,finance,journal,vault,ai,cal -c red,blue,green,yellow,magenta,cyan,white,gray,red,blue \"npm run dev:client\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\" \"npm run dev:ai\" \"npm run dev:calendar\""
+    "dev:server": "concurrently -n gw,auth,goals,habits,finance,journal,vault,ai,cal,trips -c blue,green,yellow,magenta,cyan,white,gray,red,blue,green \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\" \"npm run dev:ai\" \"npm run dev:calendar\" \"npm run dev:trips\"",
+    "dev": "concurrently -n client,gw,auth,goals,habits,finance,journal,vault,ai,cal,trips -c red,blue,green,yellow,magenta,cyan,white,gray,red,blue,green \"npm run dev:client\" \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:goals\" \"npm run dev:habits\" \"npm run dev:finance\" \"npm run dev:journal\" \"npm run dev:vault\" \"npm run dev:ai\" \"npm run dev:calendar\" \"npm run dev:trips\""
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

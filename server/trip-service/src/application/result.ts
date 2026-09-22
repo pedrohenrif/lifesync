@@ -1,0 +1,14 @@
+/**
+ * Padrão Result para erros previsíveis na camada de aplicação (sem throw genérico).
+ */
+export type Result<TValue, TError> =
+  | { readonly ok: true; readonly value: TValue }
+  | { readonly ok: false; readonly error: TError };
+
+export function ok<TValue, TError>(value: TValue): Result<TValue, TError> {
+  return { ok: true, value };
+}
+
+export function err<TValue, TError>(error: TError): Result<TValue, TError> {
+  return { ok: false, error };
+}

@@ -32,8 +32,9 @@ lifesync-monorepo/
 │   ├── journal-service/     # :4004  →  MongoDB :27021
 │   ├── vault-service/       # :4005  →  MongoDB :27022
 │   ├── ai-service/          # :4006  →  MongoDB :27023
-│   └── calendar-service/    # :4007  →  MongoDB :27024
-└── docker-compose.yml       # 8 instâncias MongoDB isoladas
+│   ├── calendar-service/    # :4007  →  MongoDB :27024
+│   └── trip-service/        # :4008  →  MongoDB :27025
+└── docker-compose.yml       # 9 instâncias MongoDB isoladas
 ```
 
 Cada microserviço segue a mesma estrutura DDD interna:
@@ -137,6 +138,7 @@ cp server/auth-service/.env.example server/auth-service/.env
 | vault-service | 4005 | `mongodb://localhost:27022/lifesync_vault` | lifesync_vault |
 | ai-service | 4006 | `mongodb://localhost:27023/lifesync_ai` | lifesync_ai |
 | calendar-service | 4007 | `mongodb://localhost:27024/lifesync_calendar` | lifesync_calendar |
+| trip-service | 4008 | `mongodb://localhost:27025/lifesync_trips` | lifesync_trips |
 
 Todos os serviços compartilham o mesmo `JWT_SECRET` para autenticação distribuída.
 
@@ -205,6 +207,7 @@ O frontend estará disponível em `http://localhost:5173`.
 | `npm run dev:vault` | Inicia o vault-service |
 | `npm run dev:ai` | Inicia o ai-service |
 | `npm run dev:calendar` | Inicia o calendar-service |
+| `npm run dev:trips` | Inicia o trip-service |
 
 ---
 
@@ -335,11 +338,49 @@ com um `purpose` próprio para não ser confundido com um token de sessão.
 em produção (em modo de teste o refresh token expira em 7 dias), adicione o escopo
 `.../auth/calendar` e cadastre o redirect URI exatamente igual ao `GOOGLE_REDIRECT_URI`.
 
+### Trip Service (`:4008`)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/trips?page=&pageSize=&includeArchived=` | Lista viagens com contadores de progresso |
+| POST | `/trips` | Cria uma viagem |
+| GET | `/trips/:id` | Viagem completa, com bagagem e pendências |
+| PATCH | `/trips/:id` | Edita dados da viagem ou arquiva |
+| DELETE | `/trips/:id` | Remove a viagem e tudo que está nela |
+| POST | `/trips/:id/packing` | Adiciona item de bagagem |
+| PATCH | `/trips/:id/packing/:itemId` | Edita o item (marcar "já guardei" é um PATCH com `isPacked`) |
+| DELETE | `/trips/:id/packing/:itemId` | Remove item de bagagem |
+| POST | `/trips/:id/checklist` | Adiciona pendência |
+| PATCH | `/trips/:id/checklist/:itemId` | Edita a pendência ou marca como resolvida |
+| DELETE | `/trips/:id/checklist/:itemId` | Remove pendência |
+
+Bagagem e pendências ficam **embutidas no documento da viagem**, como as sub-tarefas em
+`goals-service`: uma requisição entrega a tela inteira, o que importa quando a conexão é ruim
+durante a viagem. Por isso as sub-listas não paginam — só a listagem de viagens pagina.
+
+Toda mutação devolve a viagem inteira, então o cache do client fica consistente sem refetch.
+A fase da viagem (planejando, em andamento, concluída) é derivada das datas no client, em vez de
+um campo de status que ficaria desatualizado sem alguém marcar a mudança.
+
 > Todas as rotas (exceto register/login e o callback OAuth) exigem header `Authorization: Bearer <token>`.
 
 ---
 
 ## Frontend — Páginas e Funcionalidades
+
+### Contextos (workspaces)
+
+Um seletor centralizado no topo do header troca o escopo do app inteiro, no estilo dos bancos que
+separam PF de PJ. Hoje existem dois contextos:
+
+| Contexto | Navegação |
+|----------|-----------|
+| **Pessoal** | Home, Metas, Hábitos, Finanças, Agenda, Evolução, Cofre |
+| **Viagens** | Lista de viagens e, dentro de uma, Bagagem e Pendências |
+
+A rota atual é quem decide o contexto — um link salvo em `/viagens` nunca abre com a navegação do
+contexto pessoal. O `workspaceStore` (`@lifesync:workspace`) só guarda a preferência entre sessões.
+Assim a viagem não disputa espaço com metas e hábitos na barra inferior do PWA.
 
 ### Dashboard (`/`)
 - Cockpit central com Bento Grid
@@ -384,6 +425,14 @@ em produção (em modo de teste o refresh token expira em 7 dias), adicione o es
 - Criação, edição e remoção de eventos (com ou sem hora), refletidos direto no Google Agenda
 - Link para abrir cada evento no Google e botão para desconectar a conta
 
+### Viagens (`/viagens`)
+- Lista de viagens com destino, período, fase derivada das datas e progresso de bagagem/pendências
+- Arquivar viagens passadas sem apagá-las, com filtro para voltar a mostrá-las
+- **Bagagem** (`/viagens/:id/bagagem`) — itens agrupados por categoria, com quantidade e check de
+  "já guardei"; a marcação é otimista, para responder na hora mesmo com conexão ruim
+- **Pendências** (`/viagens/:id/pendencias`) — tarefas pré-viagem com prazo opcional, ordenadas pelo
+  prazo mais próximo e com destaque para as atrasadas
+
 ### Política de Privacidade (`/privacidade`)
 - Página pública (acessível logado ou não), exigida pela verificação do Google OAuth
 
@@ -424,5 +473,6 @@ project_manager_life/
     ├── journal-service/
     ├── vault-service/
     ├── ai-service/
-    └── calendar-service/
+    ├── calendar-service/
+    └── trip-service/
 ```

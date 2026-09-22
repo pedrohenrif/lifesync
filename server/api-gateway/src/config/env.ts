@@ -19,4 +19,5 @@ export const env = {
   vaultUrl: process.env.VAULT_URL ?? "http://localhost:4005",
   aiUrl: process.env.AI_URL ?? "http://localhost:4006",
   calendarUrl: process.env.CALENDAR_URL ?? "http://localhost:4007",
+  tripUrl: process.env.TRIP_URL ?? "http://localhost:4008",
 } as const;
