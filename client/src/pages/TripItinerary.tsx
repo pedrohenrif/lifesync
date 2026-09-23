@@ -67,7 +67,7 @@ export function TripItinerary(): ReactElement {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-ink-muted">
           {trip.itineraryTotal === 0
             ? "Roteiro vazio"
             : `${trip.itineraryTotal} ${trip.itineraryTotal === 1 ? "item" : "itens"} no roteiro`}
@@ -83,7 +83,7 @@ export function TripItinerary(): ReactElement {
       </div>
 
       {days.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
+        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-ink-muted">
           Monte o roteiro dia por dia. Hora é opcional, então dá para só listar o que
           pretende fazer.
         </p>
@@ -92,13 +92,13 @@ export function TripItinerary(): ReactElement {
           {days.map(({ date, items }) => (
             <section key={date}>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <h2 className="text-[11px] font-semibold uppercase tracking-wide text-zinc-600">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
                   {formatItineraryDayLabel(date)}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setCreatingForDate(date)}
-                  className="rounded-md p-1 text-zinc-700 transition hover:bg-surface-800 hover:text-zinc-400"
+                  className="rounded-md p-1 text-ink-faint transition hover:bg-surface-800 hover:text-ink"
                   aria-label={`Adicionar item em ${formatItineraryDayLabel(date)}`}
                 >
                   <Plus className="h-3.5 w-3.5" />
@@ -109,23 +109,23 @@ export function TripItinerary(): ReactElement {
                 {items.map((item) => (
                   <li
                     key={item.id}
-                    className="flex items-start gap-3 rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2.5"
+                    className="flex items-start gap-3 rounded-2xl border border-edge/70 bg-surface-900 px-3 py-2.5"
                   >
-                    <span className="mt-0.5 w-11 shrink-0 text-xs font-medium text-accent-400">
+                    <span className="mt-0.5 w-11 shrink-0 text-xs font-bold text-accent-700">
                       {item.time ?? (
-                        <Clock className="h-3.5 w-3.5 text-zinc-700" aria-label="Sem hora" />
+                        <Clock className="h-3.5 w-3.5 text-ink-faint" aria-label="Sem hora" />
                       )}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-zinc-200">{item.title}</p>
+                      <p className="text-sm text-ink">{item.title}</p>
                       {item.location !== null && (
-                        <p className="mt-0.5 flex items-center gap-1 text-[10px] text-zinc-500">
+                        <p className="mt-0.5 flex items-center gap-1 text-[10px] text-ink-muted">
                           <MapPin className="h-3 w-3 shrink-0" />
                           {item.location}
                         </p>
                       )}
                       {item.description !== null && (
-                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-zinc-500">
+                        <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-ink-muted">
                           {item.description}
                         </p>
                       )}
@@ -134,7 +134,7 @@ export function TripItinerary(): ReactElement {
                       <button
                         type="button"
                         onClick={() => setEditing(item)}
-                        className="rounded-md p-1.5 text-zinc-600 transition hover:bg-surface-800 hover:text-zinc-300"
+                        className="rounded-md p-1.5 text-ink-faint transition hover:bg-surface-800 hover:text-ink"
                         aria-label={`Editar ${item.title}`}
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -142,7 +142,7 @@ export function TripItinerary(): ReactElement {
                       <button
                         type="button"
                         onClick={() => setToDelete(item)}
-                        className="rounded-md p-1.5 text-zinc-700 transition hover:bg-red-950/40 hover:text-red-400"
+                        className="rounded-md p-1.5 text-ink-faint transition hover:bg-red-50 hover:text-red-600"
                         aria-label={`Remover ${item.title}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

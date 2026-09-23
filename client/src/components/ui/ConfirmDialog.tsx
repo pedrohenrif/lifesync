@@ -24,13 +24,13 @@ export function ConfirmDialog({
 }: ConfirmDialogProps): ReactElement {
   return (
     <AppModalShell title={title} onClose={onClose} maxWidthClass="max-w-md">
-      <p className="text-sm leading-relaxed text-zinc-400">{description}</p>
+      <p className="text-sm leading-relaxed text-ink-muted">{description}</p>
       <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button
           type="button"
           onClick={onClose}
           disabled={pending}
-          className="min-h-11 rounded-lg border border-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 disabled:opacity-50"
+          className="min-h-11 rounded-2xl border border-edge px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-surface-800 disabled:opacity-50"
         >
           {cancelLabel}
         </button>
@@ -38,7 +38,7 @@ export function ConfirmDialog({
           type="button"
           onClick={onConfirm}
           disabled={pending}
-          className={`min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
+          className={`min-h-11 rounded-2xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
             danger ? "bg-red-600 text-white hover:bg-red-500" : "ls-accent-fill"
           }`}
         >

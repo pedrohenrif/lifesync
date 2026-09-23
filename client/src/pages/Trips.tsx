@@ -1,14 +1,20 @@
 import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
-import { Archive, ArchiveRestore, Loader2, MapPin, Plane, Plus, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Calendar, Loader2, Plane, Plus, Trash2 } from "lucide-react";
 import { LoadMoreButton } from "../components/ui/LoadMoreButton";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { TripFormModal } from "../components/trips/TripFormModal";
 import { useCreateTrip, useDeleteTrip, useTrips, useUpdateTrip } from "../hooks/useTrips";
-import { formatTripRange, getTripPhase } from "../lib/tripMeta";
+import {
+  destinationWashClass,
+  formatTripDuration,
+  formatTripRange,
+  getTripPhase,
+  progressPercent,
+} from "../lib/tripMeta";
 import type { TripSummary } from "../api/trips";
 
-function ProgressPill({
+function ProgressRow({
   label,
   done,
   total,
@@ -17,18 +23,23 @@ function ProgressPill({
   readonly done: number;
   readonly total: number;
 }): ReactElement {
-  const isComplete = total > 0 && done === total;
+  const percent = progressPercent(done, total);
 
   return (
-    <span
-      className={`rounded-md px-2 py-0.5 text-[10px] font-medium ${
-        isComplete
-          ? "bg-emerald-950/40 text-emerald-400"
-          : "bg-surface-950/70 text-zinc-500"
-      }`}
-    >
-      {label} {done}/{total}
-    </span>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[11px] font-semibold">
+        <span className="text-ink-muted">{label}</span>
+        <span className="tabular-nums text-ink">
+          {done}/{total}
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-surface-800">
+        <div
+          className="h-full rounded-full bg-accent-600 transition-[width]"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -44,28 +55,34 @@ function TripCard({
   const phase = getTripPhase(trip.startDate, trip.endDate);
 
   return (
-    <div className="rounded-xl border border-edge bg-surface-900/60 transition hover:border-accent-900/60">
-      <Link to={`/viagens/${trip.id}/bagagem`} className="block p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-zinc-100">{trip.name}</p>
-            <p className="mt-1 flex items-center gap-1 truncate text-xs text-zinc-500">
-              <MapPin className="h-3 w-3 shrink-0" />
-              {trip.destination}
-            </p>
-          </div>
-          <span className={`shrink-0 text-[10px] font-medium ${phase.toneClass}`}>
+    <article className="ls-card overflow-hidden">
+      <Link to={`/viagens/${trip.id}/bagagem`} className="block">
+        <div className={`relative px-5 py-6 ${destinationWashClass(trip.destination)}`}>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/80">
+            Destino
+          </p>
+          <p className="mt-1 truncate text-2xl font-extrabold tracking-tight text-white">
+            {trip.destination}
+          </p>
+          <span
+            className={`absolute right-4 top-4 rounded-full px-2.5 py-1 text-[11px] font-bold ${phase.badgeClass}`}
+          >
             {phase.label}
           </span>
         </div>
 
-        <p className="mt-3 text-xs text-zinc-600">
-          {formatTripRange(trip.startDate, trip.endDate)}
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <ProgressPill label="Bagagem" done={trip.packingDone} total={trip.packingTotal} />
-          <ProgressPill
+        <div className="space-y-3 px-5 py-4">
+          <div>
+            <p className="truncate text-base font-bold text-ink">{trip.name}</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              {formatTripRange(trip.startDate, trip.endDate)}
+              <span className="text-ink-faint">·</span>
+              {formatTripDuration(trip.startDate, trip.endDate)}
+            </p>
+          </div>
+          <ProgressRow label="Bagagem" done={trip.packingDone} total={trip.packingTotal} />
+          <ProgressRow
             label="Pendências"
             done={trip.checklistDone}
             total={trip.checklistTotal}
@@ -73,11 +90,11 @@ function TripCard({
         </div>
       </Link>
 
-      <div className="flex justify-end gap-1 border-t border-edge/70 px-2 py-1.5">
+      <div className="flex justify-end gap-1 border-t border-edge/70 px-3 py-1.5">
         <button
           type="button"
           onClick={onArchiveToggle}
-          className="rounded-md p-2 text-zinc-600 transition hover:bg-surface-800 hover:text-zinc-300"
+          className="rounded-xl p-2 text-ink-faint transition hover:bg-surface-800 hover:text-ink"
           aria-label={trip.isArchived ? "Desarquivar viagem" : "Arquivar viagem"}
         >
           {trip.isArchived ? (
@@ -89,13 +106,13 @@ function TripCard({
         <button
           type="button"
           onClick={onDelete}
-          className="rounded-md p-2 text-zinc-600 transition hover:bg-red-950/40 hover:text-red-400"
+          className="rounded-xl p-2 text-ink-faint transition hover:bg-red-50 hover:text-red-600"
           aria-label="Remover viagem"
         >
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -119,11 +136,11 @@ export function Trips(): ReactElement {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold text-zinc-100">Minhas viagens</h1>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-            Cada viagem tem a própria lista de bagagem e de pendências.
+          <h1 className="text-2xl font-extrabold tracking-tight text-ink">Minhas viagens</h1>
+          <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+            Uma mala, um roteiro e as reservas — tudo no mesmo lugar.
           </p>
         </div>
         <button
@@ -132,11 +149,11 @@ export function Trips(): ReactElement {
           className="ls-btn sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          Nova
+          Nova viagem
         </button>
       </div>
 
-      <label className="flex items-center gap-2 text-xs text-zinc-500">
+      <label className="flex items-center gap-2 text-xs font-medium text-ink-muted">
         <input
           type="checkbox"
           checked={includeArchived}
@@ -148,21 +165,21 @@ export function Trips(): ReactElement {
 
       {isLoading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-5 w-5 animate-spin text-zinc-600" />
+          <Loader2 className="h-5 w-5 animate-spin text-ink-faint" />
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-edge px-6 py-12 text-center">
-          <Plane className="mx-auto h-8 w-8 text-zinc-700" />
-          <p className="mt-3 text-sm font-medium text-zinc-300">
-            Nenhuma viagem por aqui
-          </p>
-          <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-zinc-500">
-            Crie a primeira e monte a lista do que levar antes de sair.
+        <div className="ls-card px-6 py-12 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-600/15">
+            <Plane className="h-7 w-7 text-accent-600" />
+          </span>
+          <p className="mt-4 text-base font-bold text-ink">Para onde vamos?</p>
+          <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-ink-muted">
+            Crie a primeira viagem e monte bagagem, pendências e reservas antes de sair.
           </p>
         </div>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {items.map((trip) => (
               <TripCard
                 key={trip.id}

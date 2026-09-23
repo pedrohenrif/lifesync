@@ -30,13 +30,13 @@ export function AppModalShell({
         aria-labelledby={titleId}
       >
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-edge/80 bg-surface-900 px-4 py-3 sm:px-6">
-          <h2 id={titleId} className="text-sm font-semibold text-zinc-200">
+          <h2 id={titleId} className="text-sm font-semibold text-ink">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-300"
+            className="rounded-md p-1 text-ink-faint transition hover:bg-surface-800 hover:text-ink"
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />

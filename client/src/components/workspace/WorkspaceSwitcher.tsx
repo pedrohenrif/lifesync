@@ -1,88 +1,51 @@
-import { useState, type ReactElement } from "react";
+import type { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown } from "lucide-react";
-import { AppModalShell } from "../ui/AppModalShell";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
 import { WORKSPACE_LIST, WORKSPACES, type WorkspaceId } from "../../lib/workspaces";
 
 /**
- * Alterna o escopo do app inteiro, no estilo dos bancos que separam contextos.
- * Trocar de contexto leva para a home dele, porque as rotas não se misturam.
+ * Alterna o escopo do app no mesmo gesto dos bancos e do Duolingo:
+ * os dois lados ficam visíveis, o ativo é a pílula preenchida.
  */
 export function WorkspaceSwitcher(): ReactElement {
   const workspace = useWorkspaceStore((s) => s.workspace);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const active = WORKSPACES[workspace];
-  const ActiveIcon = active.icon;
 
   const handleSelect = (id: WorkspaceId): void => {
-    setIsOpen(false);
     if (id === workspace) return;
-
     setWorkspace(id);
     navigate(WORKSPACES[id].homePath);
   };
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-surface-900/70 px-3 py-1 text-xs font-medium text-zinc-300 transition duration-500 hover:border-accent-900/70 hover:text-zinc-100"
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-      >
-        <ActiveIcon className="h-3.5 w-3.5 text-accent-400 transition-colors duration-500" />
-        {active.label}
-        <ChevronDown className="h-3 w-3 text-zinc-600" />
-      </button>
+    <div
+      className="flex w-full max-w-sm rounded-2xl border border-edge bg-surface-900 p-1 shadow-sm"
+      role="tablist"
+      aria-label="Contexto do aplicativo"
+    >
+      {WORKSPACE_LIST.map((meta) => {
+        const Icon = meta.icon;
+        const isActive = meta.id === workspace;
 
-      {isOpen && (
-        <AppModalShell title="Trocar de contexto" onClose={() => setIsOpen(false)}>
-          <div className="space-y-2">
-            {WORKSPACE_LIST.map((meta) => {
-              const Icon = meta.icon;
-              const isActive = meta.id === workspace;
-
-              return (
-                <button
-                  key={meta.id}
-                  type="button"
-                  onClick={() => handleSelect(meta.id)}
-                  className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition ${
-                    isActive
-                      ? "border-accent-900/70 bg-accent-950/30"
-                      : "border-edge hover:border-zinc-700 hover:bg-surface-950/60"
-                  }`}
-                >
-                  <Icon
-                    className={`mt-0.5 h-5 w-5 shrink-0 ${
-                      isActive ? "text-accent-400" : "text-zinc-500"
-                    }`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-zinc-100">{meta.label}</p>
-                      {/* Amostra da cor: deixa claro que o app troca de ambiente, não só de abas. */}
-                      <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${meta.swatchClass}`}
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-                      {meta.description}
-                    </p>
-                  </div>
-                  {isActive && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />}
-                </button>
-              );
-            })}
-          </div>
-        </AppModalShell>
-      )}
-    </>
+        return (
+          <button
+            key={meta.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => handleSelect(meta.id)}
+            className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-3 text-sm font-extrabold tracking-tight transition ${
+              isActive
+                ? "ls-accent-fill shadow-sm"
+                : "text-ink-muted hover:bg-surface-800 hover:text-ink"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {meta.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

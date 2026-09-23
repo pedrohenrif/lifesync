@@ -131,9 +131,9 @@ export function AuthLayout(): ReactElement {
 
   if (meQuery.isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-950 text-zinc-300">
+      <div className="flex min-h-screen items-center justify-center bg-surface-950 text-ink-muted">
         <div className="flex items-center gap-3">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-300" />
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-edge border-t-ink" />
           <span className="text-sm">Carregando sessão...</span>
         </div>
       </div>
@@ -152,28 +152,28 @@ export function AuthLayout(): ReactElement {
 
   if (isOnboardingRoute) {
     return (
-      <div className="min-h-screen bg-surface-950 text-zinc-100">
+      <div className="min-h-screen bg-surface-950 text-ink">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface-950 text-zinc-100 transition-colors duration-500">
+    <div className="flex min-h-screen flex-col bg-surface-950 text-ink transition-colors duration-500">
       <header
-        className="sticky top-0 z-40 border-b border-accent-950/80 bg-surface-950/95 backdrop-blur-md transition-colors duration-500"
+        className="sticky top-0 z-40 border-b border-edge bg-surface-950/90 backdrop-blur-md transition-colors duration-500"
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         {/* Seletor de contexto: escopo do app inteiro, acima da navegação. */}
-        <div className="flex justify-center border-b border-edge/60 py-1.5">
+        <div className="flex justify-center px-4 py-3">
           <WorkspaceSwitcher />
         </div>
 
         {/* Mobile: marca + atalhos Cofre / Admin / Sair */}
-        <div className="flex items-center justify-between gap-2 px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between gap-2 px-4 pb-3 md:hidden">
           <Link
             to={WORKSPACES[currentWorkspace].homePath}
-            className="shrink-0 text-sm font-semibold tracking-tight text-zinc-100 transition hover:text-white"
+            className="shrink-0 text-sm font-semibold tracking-tight text-ink transition hover:text-ink-muted"
           >
             LifeSync
           </Link>
@@ -182,7 +182,7 @@ export function AuthLayout(): ReactElement {
               <button
                 type="button"
                 onClick={() => void install()}
-                className="flex max-w-[7.5rem] items-center gap-1 rounded-lg border border-accent-900/50 bg-accent-950/40 px-2 py-1.5 text-[10px] font-medium text-accent-300 transition hover:border-accent-700 hover:text-accent-300"
+                className="flex max-w-[7.5rem] items-center gap-1 rounded-xl border border-accent-600/25 bg-accent-600/10 px-2 py-1.5 text-[10px] font-bold text-accent-700 transition hover:border-accent-600/50"
               >
                 <Download className="h-3 w-3 shrink-0" />
                 <span className="truncate">Instalar app</span>
@@ -194,8 +194,8 @@ export function AuthLayout(): ReactElement {
                   to="/agenda"
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                     location.pathname === "/agenda"
-                      ? "bg-accent-600/20 text-accent-400"
-                      : "text-zinc-500 hover:bg-surface-800 hover:text-zinc-300"
+                      ? "bg-accent-600/15 text-accent-600"
+                      : "text-ink-muted hover:bg-surface-800 hover:text-ink"
                   }`}
                   aria-label="Agenda"
                 >
@@ -205,8 +205,8 @@ export function AuthLayout(): ReactElement {
                   to="/vault"
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                     location.pathname === "/vault"
-                      ? "bg-accent-600/20 text-accent-400"
-                      : "text-zinc-500 hover:bg-surface-800 hover:text-zinc-300"
+                      ? "bg-accent-600/15 text-accent-600"
+                      : "text-ink-muted hover:bg-surface-800 hover:text-ink"
                   }`}
                   aria-label="Cofre"
                 >
@@ -217,8 +217,8 @@ export function AuthLayout(): ReactElement {
                     to="/admin"
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition ${
                       location.pathname === "/admin"
-                        ? "bg-accent-600/20 text-accent-400"
-                        : "text-zinc-500 hover:bg-surface-800 hover:text-zinc-300"
+                        ? "bg-accent-600/15 text-accent-600"
+                        : "text-ink-muted hover:bg-surface-800 hover:text-ink"
                     }`}
                     aria-label="Backoffice"
                   >
@@ -230,7 +230,7 @@ export function AuthLayout(): ReactElement {
             <button
               type="button"
               onClick={logout}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-surface-800 hover:text-zinc-200"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-ink-muted transition hover:bg-surface-800 hover:text-ink"
               aria-label="Sair"
             >
               <LogOut className="h-5 w-5" />
@@ -249,8 +249,8 @@ export function AuthLayout(): ReactElement {
                   to={to}
                   className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
                     isActive
-                      ? "bg-accent-600/20 text-accent-300"
-                      : "text-zinc-500 hover:bg-surface-800 hover:text-zinc-300"
+                      ? "bg-accent-600/15 text-accent-700"
+                      : "text-ink-muted hover:bg-surface-800 hover:text-ink"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -265,17 +265,17 @@ export function AuthLayout(): ReactElement {
               <button
                 type="button"
                 onClick={() => void install()}
-                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-accent-900/50 bg-accent-950/40 px-3 py-2 text-xs font-medium text-accent-300 transition hover:border-accent-700 hover:text-accent-300"
+                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-accent-600/25 bg-accent-600/10 px-3 py-2 text-xs font-bold text-accent-700 transition hover:border-accent-600/50"
               >
                 <Download className="h-3.5 w-3.5" />
                 Instalar aplicativo
               </button>
             ) : null}
-            <span className="min-w-0 truncate text-xs text-zinc-500">{user?.name ?? user?.email ?? ""}</span>
+            <span className="min-w-0 truncate text-xs text-ink-muted">{user?.name ?? user?.email ?? ""}</span>
             <button
               type="button"
               onClick={logout}
-              className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-zinc-800 px-3 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-edge px-3 text-xs font-medium text-ink-muted transition hover:border-accent-700 hover:text-ink"
             >
               <LogOut className="h-3.5 w-3.5" />
               Sair
@@ -296,7 +296,7 @@ export function AuthLayout(): ReactElement {
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-accent-950/80 bg-surface-950/95 px-1 pt-2 backdrop-blur-md transition-colors duration-500 md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex justify-around border-t border-edge bg-surface-950/95 px-1 pt-2 backdrop-blur-md transition-colors duration-500 md:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
         aria-label="Navegação principal"
       >
@@ -307,10 +307,10 @@ export function AuthLayout(): ReactElement {
               key={to}
               to={to}
               className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition ${
-                isActive ? "bg-accent-600/15 text-accent-400" : "text-zinc-500 hover:text-zinc-300"
+                isActive ? "bg-accent-600/15 text-accent-600" : "text-ink-muted hover:text-ink"
               }`}
             >
-              <Icon className={`h-5 w-5 ${isActive ? "text-accent-400" : ""}`} />
+              <Icon className={`h-5 w-5 ${isActive ? "text-accent-600" : ""}`} />
               <span className="max-w-full truncate text-center text-[10px] font-medium leading-tight">
                 {label}
               </span>

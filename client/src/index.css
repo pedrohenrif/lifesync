@@ -35,6 +35,11 @@
   --color-surface-900: #0f172a;
   --color-surface-800: #162033;
   --color-edge: var(--color-slate-800);
+
+  /* Texto semantico: o contexto de viagens vira claro e precisa inverter o ink. */
+  --color-ink: #f4f4f5;
+  --color-ink-muted: #a1a1aa;
+  --color-ink-faint: #71717a;
 }
 
 /*
@@ -53,19 +58,36 @@
   --color-accent-950: oklch(27.9% 0.077 45.635);
   --color-accent-fg: #1a1205;
 
-  --color-surface-950: #14110b;
-  --color-surface-900: #1c1811;
-  --color-surface-800: #262019;
-  --color-edge: #33291c;
+  /* Areia bem clara: branco de agência, sem o marrom que deixava o app sujo. */
+  --color-surface-950: #f8f5ef;
+  --color-surface-900: #ffffff;
+  --color-surface-800: #efe8dc;
+  --color-edge: #e4d9c6;
+  --color-ink: #1a140c;
+  --color-ink-muted: #5c5140;
+  --color-ink-faint: #8a7d6a;
+
+  color-scheme: light;
+}
+
+[data-workspace="travel"] .ls-card {
+  box-shadow: 0 10px 28px -16px rgb(26 20 12 / 18%);
 }
 
 @layer base {
   html,
   body,
   #root {
-    @apply min-h-screen bg-surface-950 text-zinc-100 antialiased;
-    color-scheme: dark;
+    @apply min-h-screen bg-surface-950 text-ink antialiased;
     background-color: var(--color-surface-950);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html[data-workspace="travel"] {
+    color-scheme: light;
   }
 
   /* O fundo acompanha a troca de contexto junto com o acento, sem piscar. */
@@ -76,21 +98,21 @@
 
 @layer components {
   .ls-input {
-    @apply w-full rounded-lg border border-edge bg-surface-950 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30;
+    @apply w-full rounded-xl border border-edge bg-surface-900 px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-faint focus:border-accent-500 focus:ring-1 focus:ring-accent-500/30;
   }
 
   .ls-btn {
-    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent-600 px-4 py-2.5 text-sm font-bold shadow-sm transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto;
     color: var(--color-accent-fg);
   }
 
   .ls-btn-block {
-    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-600 px-4 py-2.5 text-sm font-semibold transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-accent-600 px-4 py-2.5 text-sm font-bold shadow-sm transition hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50;
     color: var(--color-accent-fg);
   }
 
   .ls-card {
-    @apply rounded-2xl border border-edge/90 bg-surface-900/80;
+    @apply rounded-3xl border border-edge/80 bg-surface-900 shadow-sm;
   }
 
   /* Preenchimento de acento sem opinião de layout, para botões que já têm o seu. */

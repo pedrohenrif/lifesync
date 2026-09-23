@@ -62,7 +62,7 @@ export function ItineraryFormModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="itin-title" className="mb-1.5 block text-xs font-medium text-zinc-400">
+          <label htmlFor="itin-title" className="mb-1.5 block text-xs font-medium text-ink-muted">
             O que vai acontecer
           </label>
           <input
@@ -77,7 +77,7 @@ export function ItineraryFormModal({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label htmlFor="itin-date" className="mb-1.5 block text-xs font-medium text-zinc-400">
+            <label htmlFor="itin-date" className="mb-1.5 block text-xs font-medium text-ink-muted">
               Dia
             </label>
             <input
@@ -89,8 +89,8 @@ export function ItineraryFormModal({
             />
           </div>
           <div>
-            <label htmlFor="itin-time" className="mb-1.5 block text-xs font-medium text-zinc-400">
-              Hora <span className="text-zinc-600">(opcional)</span>
+            <label htmlFor="itin-time" className="mb-1.5 block text-xs font-medium text-ink-muted">
+              Hora <span className="text-ink-faint">(opcional)</span>
             </label>
             <input
               id="itin-time"
@@ -105,9 +105,9 @@ export function ItineraryFormModal({
         <div>
           <label
             htmlFor="itin-location"
-            className="mb-1.5 block text-xs font-medium text-zinc-400"
+            className="mb-1.5 block text-xs font-medium text-ink-muted"
           >
-            Onde <span className="text-zinc-600">(opcional)</span>
+            Onde <span className="text-ink-faint">(opcional)</span>
           </label>
           <input
             id="itin-location"
@@ -121,9 +121,9 @@ export function ItineraryFormModal({
         <div>
           <label
             htmlFor="itin-description"
-            className="mb-1.5 block text-xs font-medium text-zinc-400"
+            className="mb-1.5 block text-xs font-medium text-ink-muted"
           >
-            Detalhes <span className="text-zinc-600">(opcional)</span>
+            Detalhes <span className="text-ink-faint">(opcional)</span>
           </label>
           <textarea
             id="itin-description"
@@ -136,7 +136,7 @@ export function ItineraryFormModal({
         </div>
 
         {error !== null && (
-          <p className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-xs text-red-400">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
           </p>
         )}
@@ -146,7 +146,7 @@ export function ItineraryFormModal({
             type="button"
             onClick={onClose}
             disabled={pending}
-            className="min-h-11 rounded-lg border border-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 disabled:opacity-50"
+            className="min-h-11 rounded-2xl border border-edge px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-surface-800 disabled:opacity-50"
           >
             Cancelar
           </button>

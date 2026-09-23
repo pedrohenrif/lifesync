@@ -61,14 +61,14 @@ export function TripPacking(): ReactElement {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-ink-muted">
           {trip.packingDone} de {trip.packingTotal} já na mala
         </p>
       </div>
 
       <form
         onSubmit={handleAdd}
-        className="space-y-2 rounded-xl border border-edge bg-surface-900/40 p-3"
+        className="space-y-2 rounded-2xl border border-edge bg-surface-900 p-3.5 shadow-sm"
       >
         <input
           value={name}
@@ -113,7 +113,7 @@ export function TripPacking(): ReactElement {
       </form>
 
       {groups.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
+        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-ink-muted">
           A mala está vazia. Vá adicionando conforme se lembra — a lista fica salva.
         </p>
       ) : (
@@ -124,7 +124,7 @@ export function TripPacking(): ReactElement {
 
             return (
               <section key={groupCategory}>
-                <h2 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-zinc-600">
+                <h2 className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
                   <Icon className="h-3.5 w-3.5" />
                   {meta.label}
                 </h2>
@@ -132,7 +132,7 @@ export function TripPacking(): ReactElement {
                   {items.map((item) => (
                     <li
                       key={item.id}
-                      className="flex items-center gap-3 rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2.5"
+                      className="flex items-center gap-3 rounded-2xl border border-edge/70 bg-surface-900 px-3 py-2.5"
                     >
                       <input
                         type="checkbox"
@@ -149,13 +149,13 @@ export function TripPacking(): ReactElement {
                       />
                       <span
                         className={`min-w-0 flex-1 truncate text-sm ${
-                          item.isPacked ? "text-zinc-600 line-through" : "text-zinc-200"
+                          item.isPacked ? "text-ink-faint line-through" : "text-ink"
                         }`}
                       >
                         {item.name}
                       </span>
                       {item.quantity > 1 && (
-                        <span className="shrink-0 rounded-md bg-surface-950/70 px-1.5 py-0.5 text-[10px] text-zinc-500">
+                        <span className="shrink-0 rounded-md bg-surface-950/70 px-1.5 py-0.5 text-[10px] text-ink-muted">
                           {item.quantity}x
                         </span>
                       )}
@@ -164,7 +164,7 @@ export function TripPacking(): ReactElement {
                         onClick={() =>
                           removeItem.mutate({ tripId: trip.id, itemId: item.id })
                         }
-                        className="shrink-0 rounded-md p-1.5 text-zinc-700 transition hover:bg-red-950/40 hover:text-red-400"
+                        className="shrink-0 rounded-md p-1.5 text-ink-faint transition hover:bg-red-50 hover:text-red-600"
                         aria-label={`Remover ${item.name}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

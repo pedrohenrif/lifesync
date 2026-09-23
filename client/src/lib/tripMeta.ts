@@ -58,6 +58,15 @@ export function formatTripRange(startDate: string, endDate: string): string {
   return `${startLabel} – ${endLabel}`;
 }
 
+export function tripDurationDays(startDate: string, endDate: string): number {
+  return differenceInCalendarDays(parseTripDate(endDate), parseTripDate(startDate)) + 1;
+}
+
+export function formatTripDuration(startDate: string, endDate: string): string {
+  const days = tripDurationDays(startDate, endDate);
+  return days === 1 ? "1 dia" : `${days} dias`;
+}
+
 export function formatDueDate(value: string): string {
   return format(parseTripDate(value), "d 'de' MMM", { locale: ptBR });
 }
@@ -92,6 +101,7 @@ export function formatReservationWindow(
 export type TripPhase = {
   readonly label: string;
   readonly toneClass: string;
+  readonly badgeClass: string;
 };
 
 /**
@@ -109,16 +119,47 @@ export function getTripPhase(startDate: string, endDate: string): TripPhase {
   const daysToEnd = differenceInCalendarDays(parseTripDate(endDate), today);
 
   if (daysToEnd < 0) {
-    return { label: "Concluída", toneClass: "text-zinc-600" };
+    return {
+      label: "Concluída",
+      toneClass: "text-ink-faint",
+      badgeClass: "bg-white/85 text-ink-muted",
+    };
   }
   if (daysToStart <= 0) {
-    return { label: "Em andamento", toneClass: "text-emerald-400" };
+    return {
+      label: "Em andamento",
+      toneClass: "text-emerald-700",
+      badgeClass: "bg-emerald-100 text-emerald-800",
+    };
   }
   if (daysToStart === 1) {
-    return { label: "Amanhã", toneClass: "text-zinc-100" };
+    return {
+      label: "Amanhã",
+      toneClass: "text-ink",
+      badgeClass: "bg-white/90 text-amber-950",
+    };
   }
-  if (daysToStart <= 7) {
-    return { label: `Em ${daysToStart} dias`, toneClass: "text-zinc-100" };
-  }
-  return { label: `Em ${daysToStart} dias`, toneClass: "text-zinc-500" };
+  return {
+    label: `Em ${daysToStart} dias`,
+    toneClass: "text-ink-muted",
+    badgeClass: "bg-white/90 text-amber-950",
+  };
+}
+
+/** Faixas de pôr do sol para o hero do card — Decolar/Duolingo, sem foto. */
+const DESTINATION_WASHES = [
+  "bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400",
+  "bg-gradient-to-br from-sky-400 via-cyan-400 to-teal-500",
+  "bg-gradient-to-br from-violet-400 via-fuchsia-400 to-rose-400",
+  "bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500",
+] as const;
+
+export function destinationWashClass(destination: string): string {
+  const sum = [...destination].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return DESTINATION_WASHES[sum % DESTINATION_WASHES.length] ?? DESTINATION_WASHES[0];
+}
+
+export function progressPercent(done: number, total: number): number {
+  if (total <= 0) return 0;
+  return Math.min(100, Math.round((done / total) * 100));
 }

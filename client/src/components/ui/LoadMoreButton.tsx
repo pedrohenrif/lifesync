@@ -28,12 +28,12 @@ export function LoadMoreButton({
         type="button"
         onClick={onLoadMore}
         disabled={isLoading || !hasMore}
-        className="flex items-center gap-2 rounded-lg border border-zinc-800 px-4 py-2 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+        className="flex items-center gap-2 rounded-2xl border border-edge px-4 py-2 text-xs font-medium text-ink-muted transition hover:border-accent-700 hover:text-ink disabled:opacity-50"
       >
         {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {isLoading ? "Carregando..." : label}
       </button>
-      <span className="text-[10px] text-zinc-600">
+      <span className="text-[10px] text-ink-faint">
         {loadedCount} de {total}
       </span>
     </div>

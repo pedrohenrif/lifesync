@@ -69,7 +69,7 @@ export function TripFormModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="trip-name" className="mb-1.5 block text-xs font-medium text-zinc-400">
+          <label htmlFor="trip-name" className="mb-1.5 block text-xs font-medium text-ink-muted">
             Nome
           </label>
           <input
@@ -85,7 +85,7 @@ export function TripFormModal({
         <div>
           <label
             htmlFor="trip-destination"
-            className="mb-1.5 block text-xs font-medium text-zinc-400"
+            className="mb-1.5 block text-xs font-medium text-ink-muted"
           >
             Destino
           </label>
@@ -102,7 +102,7 @@ export function TripFormModal({
           <div>
             <label
               htmlFor="trip-start"
-              className="mb-1.5 block text-xs font-medium text-zinc-400"
+              className="mb-1.5 block text-xs font-medium text-ink-muted"
             >
               Ida
             </label>
@@ -115,7 +115,7 @@ export function TripFormModal({
             />
           </div>
           <div>
-            <label htmlFor="trip-end" className="mb-1.5 block text-xs font-medium text-zinc-400">
+            <label htmlFor="trip-end" className="mb-1.5 block text-xs font-medium text-ink-muted">
               Volta
             </label>
             <input
@@ -129,8 +129,8 @@ export function TripFormModal({
         </div>
 
         <div>
-          <label htmlFor="trip-notes" className="mb-1.5 block text-xs font-medium text-zinc-400">
-            Observações <span className="text-zinc-600">(opcional)</span>
+          <label htmlFor="trip-notes" className="mb-1.5 block text-xs font-medium text-ink-muted">
+            Observações <span className="text-ink-faint">(opcional)</span>
           </label>
           <textarea
             id="trip-notes"
@@ -143,7 +143,7 @@ export function TripFormModal({
         </div>
 
         {error !== null && (
-          <p className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-xs text-red-400">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {error}
           </p>
         )}
@@ -153,7 +153,7 @@ export function TripFormModal({
             type="button"
             onClick={onClose}
             disabled={pending}
-            className="min-h-11 rounded-lg border border-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-900 disabled:opacity-50"
+            className="min-h-11 rounded-2xl border border-edge px-4 py-2.5 text-sm font-medium text-ink transition hover:bg-surface-800 disabled:opacity-50"
           >
             Cancelar
           </button>

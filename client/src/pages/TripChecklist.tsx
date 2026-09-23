@@ -59,13 +59,13 @@ export function TripChecklist(): ReactElement {
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-ink-muted">
         {trip.checklistDone} de {trip.checklistTotal} resolvidas
       </p>
 
       <form
         onSubmit={handleAdd}
-        className="space-y-2 rounded-xl border border-edge bg-surface-900/40 p-3"
+        className="space-y-2 rounded-2xl border border-edge bg-surface-900 p-3.5 shadow-sm"
       >
         <input
           value={title}
@@ -96,7 +96,7 @@ export function TripChecklist(): ReactElement {
       </form>
 
       {items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-zinc-500">
+        <p className="rounded-xl border border-dashed border-edge px-6 py-10 text-center text-xs leading-relaxed text-ink-muted">
           Nenhuma pendência. Documento, câmbio, seguro e check-in costumam entrar aqui.
         </p>
       ) : (
@@ -104,7 +104,7 @@ export function TripChecklist(): ReactElement {
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 rounded-lg border border-edge/70 bg-surface-900/40 px-3 py-2.5"
+              className="flex items-center gap-3 rounded-2xl border border-edge/70 bg-surface-900 px-3 py-2.5"
             >
               <input
                 type="checkbox"
@@ -122,7 +122,7 @@ export function TripChecklist(): ReactElement {
               <div className="min-w-0 flex-1">
                 <p
                   className={`truncate text-sm ${
-                    item.isDone ? "text-zinc-600 line-through" : "text-zinc-200"
+                    item.isDone ? "text-ink-faint line-through" : "text-ink"
                   }`}
                 >
                   {item.title}
@@ -130,7 +130,7 @@ export function TripChecklist(): ReactElement {
                 {item.dueDate !== null && (
                   <p
                     className={`mt-0.5 flex items-center gap-1 text-[10px] ${
-                      isOverdue(item) ? "text-red-400" : "text-zinc-600"
+                      isOverdue(item) ? "text-red-600" : "text-ink-faint"
                     }`}
                   >
                     <CalendarClock className="h-3 w-3" />
@@ -142,7 +142,7 @@ export function TripChecklist(): ReactElement {
               <button
                 type="button"
                 onClick={() => removeItem.mutate({ tripId: trip.id, itemId: item.id })}
-                className="shrink-0 rounded-md p-1.5 text-zinc-700 transition hover:bg-red-950/40 hover:text-red-400"
+                className="shrink-0 rounded-md p-1.5 text-ink-faint transition hover:bg-red-50 hover:text-red-600"
                 aria-label={`Remover ${item.title}`}
               >
                 <Trash2 className="h-3.5 w-3.5" />

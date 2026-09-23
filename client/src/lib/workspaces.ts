@@ -45,7 +45,7 @@ export const WORKSPACES: Record<WorkspaceId, WorkspaceMeta> = {
     icon: Plane,
     homePath: "/viagens",
     pathPrefix: "/viagens",
-    themeColor: "#14110b",
+    themeColor: "#f8f5ef",
     swatchClass: "bg-amber-400",
   },
 };
