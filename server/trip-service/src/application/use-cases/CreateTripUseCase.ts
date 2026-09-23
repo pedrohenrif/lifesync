@@ -10,6 +10,7 @@ export type CreateTripDto = {
   readonly startDate: string;
   readonly endDate: string;
   readonly notes: string | null;
+  readonly budgetAmount: number | null;
 };
 
 export class CreateTripUseCase {
@@ -28,6 +29,7 @@ export class CreateTripUseCase {
       startDate: dto.startDate,
       endDate: dto.endDate,
       notes: dto.notes,
+      budgetAmount: dto.budgetAmount,
       isArchived: false,
       packingItems: [],
       checklistItems: [],

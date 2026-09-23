@@ -7,6 +7,7 @@ import { TripFormModal } from "../components/trips/TripFormModal";
 import { useCreateTrip, useDeleteTrip, useTrips, useUpdateTrip } from "../hooks/useTrips";
 import {
   destinationWashClass,
+  formatBRL,
   formatTripDuration,
   formatTripRange,
   getTripPhase,
@@ -80,6 +81,11 @@ function TripCard({
               <span className="text-ink-faint">·</span>
               {formatTripDuration(trip.startDate, trip.endDate)}
             </p>
+            {trip.budgetAmount !== null && (
+              <p className="mt-1 text-xs font-medium text-ink-muted">
+                Orçamento {formatBRL(trip.budgetAmount)}
+              </p>
+            )}
           </div>
           <ProgressRow label="Bagagem" done={trip.packingDone} total={trip.packingTotal} />
           <ProgressRow

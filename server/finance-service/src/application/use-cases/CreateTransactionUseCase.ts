@@ -17,6 +17,12 @@ export type CreateTransactionError =
 
 const FIXED_PROJECTION_MONTHS = 12;
 
+function resolveTripId(value: string | null | undefined): string | null {
+  if (value === undefined || value === null) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function parseLocalDate(isoDate: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate.trim());
   if (match === null) {
@@ -92,6 +98,7 @@ export class CreateTransactionUseCase {
       paymentMethod: dto.paymentMethod as PaymentMethod,
       isFixed: false,
       installment: null,
+      tripId: resolveTripId(dto.tripId),
       date,
       createdAt: new Date(),
     });
@@ -127,6 +134,7 @@ export class CreateTransactionUseCase {
         paymentMethod: "CREDIT",
         isFixed: false,
         installment: { current: i + 1, total },
+        tripId: resolveTripId(dto.tripId),
         date: installmentDate,
         createdAt: now,
       });
@@ -163,6 +171,7 @@ export class CreateTransactionUseCase {
         paymentMethod: dto.paymentMethod as PaymentMethod,
         isFixed: true,
         installment: null,
+        tripId: resolveTripId(dto.tripId),
         date: projectedDate,
         createdAt: now,
       });

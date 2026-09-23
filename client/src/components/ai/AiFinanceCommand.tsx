@@ -11,11 +11,17 @@ const INPUT_CLASS = "ls-input";
 /** Abaixo disso a IA basicamente adivinhou algum campo, então avisamos o usuário. */
 const LOW_CONFIDENCE = 0.5;
 
-const EXAMPLES = [
+const PERSONAL_EXAMPLES = [
   "almoço 42 reais ontem no débito",
   "recebi 3500 de salário dia 5",
   "geladeira 2400 em 12x no crédito",
   "aluguel 1800 todo mês",
+];
+
+const TRAVEL_EXAMPLES = [
+  "uber 32 no débito",
+  "almoço 80",
+  "ingresso do cristo 45 no crédito",
 ];
 
 function formatCurrency(value: number): string {
@@ -26,8 +32,6 @@ function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
 }
-
-/* ─── Linha de rascunho revisável ─── */
 
 function DraftRow({
   draft,
@@ -45,53 +49,53 @@ function DraftRow({
     <button
       type="button"
       onClick={onToggle}
-      className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition ${
+      className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition ${
         isSelected
-          ? "border-blue-600/60 bg-blue-600/10"
-          : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
+          ? "border-accent-600/60 bg-accent-600/10"
+          : "border-edge bg-surface-900 hover:border-accent-600/40"
       }`}
     >
       <span
         className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-          isSelected ? "border-blue-500 bg-blue-600" : "border-zinc-700"
+          isSelected ? "border-accent-600 bg-accent-600" : "border-edge"
         }`}
       >
-        {isSelected && <Check className="h-3 w-3 text-white" />}
+        {isSelected && <Check className="h-3 w-3 text-accent-fg" />}
       </span>
 
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-sm font-medium text-zinc-100">{draft.title}</span>
+          <span className="truncate text-sm font-medium text-ink">{draft.title}</span>
           <span
-            className={`shrink-0 text-sm font-semibold ${isIncome ? "text-emerald-400" : "text-red-400"}`}
+            className={`shrink-0 text-sm font-semibold ${isIncome ? "text-emerald-600" : "text-red-600"}`}
           >
             {isIncome ? "+" : "−"}
             {formatCurrency(draft.amount)}
           </span>
         </span>
 
-        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-muted">
           <span>{draft.category}</span>
-          <span className="text-zinc-700">·</span>
+          <span className="text-ink-faint">·</span>
           <span>{formatDate(draft.date)}</span>
-          <span className="text-zinc-700">·</span>
+          <span className="text-ink-faint">·</span>
           <span>{draft.paymentMethod === "CREDIT" ? "Crédito" : "Débito"}</span>
           {draft.installments !== null && (
             <>
-              <span className="text-zinc-700">·</span>
-              <span className="text-sky-400">{draft.installments}x</span>
+              <span className="text-ink-faint">·</span>
+              <span className="text-accent-700">{draft.installments}x</span>
             </>
           )}
           {draft.isFixed && (
             <>
-              <span className="text-zinc-700">·</span>
-              <span className="text-amber-400">fixa</span>
+              <span className="text-ink-faint">·</span>
+              <span className="text-accent-700">fixa</span>
             </>
           )}
         </span>
 
         {isUncertain && (
-          <span className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-500/90">
+          <span className="mt-1.5 flex items-center gap-1 text-[10px] text-amber-700">
             <AlertTriangle className="h-3 w-3 shrink-0" />
             Interpretação incerta — confira os valores antes de salvar.
           </span>
@@ -101,15 +105,19 @@ function DraftRow({
   );
 }
 
-/* ─── Modal principal ─── */
+type AiFinanceCommandProps = {
+  readonly onClose: () => void;
+  readonly tripId?: string;
+};
 
-export function AiFinanceCommand({ onClose }: { readonly onClose: () => void }): ReactElement {
+export function AiFinanceCommand({ onClose, tripId }: AiFinanceCommandProps): ReactElement {
   const [text, setText] = useState("");
   const [drafts, setDrafts] = useState<readonly TransactionDraft[]>([]);
   const [selected, setSelected] = useState<ReadonlySet<number>>(new Set());
 
   const parseCommand = useParseFinanceCommand();
   const createTransaction = useCreateTransaction();
+  const examples = tripId !== undefined ? TRAVEL_EXAMPLES : PERSONAL_EXAMPLES;
 
   const handleParse = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -154,6 +162,7 @@ export function AiFinanceCommand({ onClose }: { readonly onClose: () => void }):
         paymentMethod: draft.paymentMethod,
         isFixed: draft.isFixed,
         ...(draft.installments !== null ? { installments: draft.installments } : {}),
+        ...(tripId !== undefined ? { tripId } : {}),
       });
     }
     onClose();
@@ -162,7 +171,11 @@ export function AiFinanceCommand({ onClose }: { readonly onClose: () => void }):
   const hasDrafts = drafts.length > 0;
 
   return (
-    <AppModalShell title="Lançar com IA" onClose={onClose} maxWidthClass="max-w-lg">
+    <AppModalShell
+      title={tripId !== undefined ? "Lançar gasto da viagem" : "Lançar com IA"}
+      onClose={onClose}
+      maxWidthClass="max-w-lg"
+    >
       <div className="space-y-4">
         <form onSubmit={handleParse} className="space-y-2">
           <textarea
@@ -175,12 +188,12 @@ export function AiFinanceCommand({ onClose }: { readonly onClose: () => void }):
           />
 
           <div className="flex flex-wrap gap-1.5">
-            {EXAMPLES.map((example) => (
+            {examples.map((example) => (
               <button
                 key={example}
                 type="button"
                 onClick={() => setText(example)}
-                className="rounded-full border border-zinc-800 px-2.5 py-1 text-[10px] text-zinc-500 transition hover:border-zinc-600 hover:text-zinc-300"
+                className="rounded-full border border-edge px-2.5 py-1 text-[10px] text-ink-muted transition hover:border-accent-600/50 hover:text-ink"
               >
                 {example}
               </button>
@@ -202,15 +215,15 @@ export function AiFinanceCommand({ onClose }: { readonly onClose: () => void }):
         </form>
 
         {hasDrafts && (
-          <div className="space-y-3 border-t border-zinc-800 pt-4">
+          <div className="space-y-3 border-t border-edge pt-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-zinc-400">
+              <p className="text-xs font-medium text-ink-muted">
                 Confira antes de salvar ({selected.size} de {drafts.length})
               </p>
               <button
                 type="button"
                 onClick={reset}
-                className="flex items-center gap-1 text-[11px] text-zinc-600 transition hover:text-zinc-400"
+                className="flex items-center gap-1 text-[11px] text-ink-faint transition hover:text-ink"
               >
                 <X className="h-3 w-3" />
                 Descartar

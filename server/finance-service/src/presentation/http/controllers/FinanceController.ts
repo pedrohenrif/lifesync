@@ -16,6 +16,7 @@ const createTransactionBodySchema = z.object({
   paymentMethod: z.enum(["DEBIT", "CREDIT"]).default("DEBIT"),
   isFixed: z.boolean().default(false),
   installments: z.number().int().min(1).max(48).optional(),
+  tripId: z.string().trim().min(1).max(80).nullish(),
 });
 
 const updateTransactionBodySchema = z.object({
@@ -91,8 +92,13 @@ export class FinanceController {
 
     const yearRaw = req.query.year;
     const monthRaw = req.query.month;
+    const tripIdRaw = req.query.tripId;
     const year = typeof yearRaw === "string" ? Number.parseInt(yearRaw, 10) : undefined;
     const month = typeof monthRaw === "string" ? Number.parseInt(monthRaw, 10) : undefined;
+    const tripId =
+      typeof tripIdRaw === "string" && tripIdRaw.trim().length > 0
+        ? tripIdRaw.trim()
+        : undefined;
 
     const validYear = year !== undefined && Number.isFinite(year) ? year : undefined;
     const validMonth = month !== undefined && Number.isFinite(month) && month >= 1 && month <= 12 ? month : undefined;
@@ -110,6 +116,7 @@ export class FinanceController {
       parsedQuery.data,
       validYear,
       validMonth,
+      tripId,
     );
     if (!result.ok) {
       res.status(500).json({ error: { code: "UNKNOWN_ERROR" } });

@@ -53,6 +53,7 @@ export interface PersistedTrip {
   startDate: string;
   endDate: string;
   notes: string | null;
+  budgetAmount: number | null;
   isArchived: boolean;
   packingItems: PersistedPackingItem[];
   checklistItems: PersistedChecklistItem[];
@@ -129,6 +130,7 @@ const tripSchema = new Schema<PersistedTrip>(
     startDate: { type: String, required: true },
     endDate: { type: String, required: true },
     notes: { type: String, default: null },
+    budgetAmount: { type: Number, default: null },
     isArchived: { type: Boolean, required: true, default: false },
     packingItems: { type: [packingItemSchema], default: [] },
     checklistItems: { type: [checklistItemSchema], default: [] },

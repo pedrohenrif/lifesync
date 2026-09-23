@@ -19,6 +19,7 @@ const transactionSchema = new mongoose.Schema(
     paymentMethod: { type: String, required: true, enum: ["DEBIT", "CREDIT"], default: "DEBIT" },
     isFixed: { type: Boolean, required: true, default: false },
     installment: { type: installmentSchema, default: null },
+    tripId: { type: String, default: null },
     date: { type: Date, required: true },
     createdAt: { type: Date, required: true },
   },
@@ -27,6 +28,7 @@ const transactionSchema = new mongoose.Schema(
 
 // Suporta a listagem paginada por período e a agregação de totais.
 transactionSchema.index({ userId: 1, date: -1 });
+transactionSchema.index({ userId: 1, tripId: 1, date: -1 });
 
 export type PersistedInstallment = {
   readonly current: number;
@@ -43,6 +45,7 @@ export type PersistedTransaction = {
   readonly paymentMethod: string;
   readonly isFixed: boolean;
   readonly installment: PersistedInstallment | null;
+  readonly tripId?: string | null;
   readonly date: Date;
   readonly createdAt: Date;
 };

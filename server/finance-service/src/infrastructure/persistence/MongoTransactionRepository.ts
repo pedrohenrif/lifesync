@@ -16,13 +16,22 @@ import {
   type PersistedTransaction,
 } from "./mongoose/TransactionSchema.js";
 
-function buildFilter(userId: string, period?: TransactionPeriod): Record<string, unknown> {
+function buildFilter(
+  userId: string,
+  period?: TransactionPeriod,
+  tripId?: string,
+): Record<string, unknown> {
+  const filter: Record<string, unknown> = { userId };
+  if (tripId !== undefined && tripId.length > 0) {
+    filter.tripId = tripId;
+    return filter;
+  }
   if (period === undefined) {
-    return { userId };
+    return filter;
   }
   const start = new Date(period.year, period.month - 1, 1);
   const end = new Date(period.year, period.month, 0, 23, 59, 59, 999);
-  return { userId, date: { $gte: start, $lte: end } };
+  return { ...filter, date: { $gte: start, $lte: end } };
 }
 
 function isPersisted(value: unknown): value is PersistedTransaction {
@@ -53,6 +62,7 @@ function toDocument(tx: Transaction) {
     paymentMethod: tx.paymentMethod,
     isFixed: tx.isFixed,
     installment: tx.installment,
+    tripId: tx.tripId,
     date: tx.date,
     createdAt: tx.createdAt,
   };
@@ -68,6 +78,7 @@ function toUpdateSet(tx: Transaction) {
     paymentMethod: tx.paymentMethod,
     isFixed: tx.isFixed,
     installment: tx.installment,
+    tripId: tx.tripId,
     date: tx.date,
   };
 }
@@ -94,8 +105,9 @@ export class MongoTransactionRepository implements ITransactionRepository {
     userId: string,
     pagination: PaginationParams,
     period?: TransactionPeriod,
+    tripId?: string,
   ): Promise<Paginated<Transaction>> {
-    const filter = buildFilter(userId, period);
+    const filter = buildFilter(userId, period, tripId);
     const [docs, total] = await Promise.all([
       TransactionModel.find(filter)
         .sort({ date: -1 })
@@ -117,9 +129,10 @@ export class MongoTransactionRepository implements ITransactionRepository {
   async sumTotalsByUserId(
     userId: string,
     period?: TransactionPeriod,
+    tripId?: string,
   ): Promise<TransactionTotals> {
     const rows = await TransactionModel.aggregate<{ _id: unknown; total: unknown }>([
-      { $match: buildFilter(userId, period) },
+      { $match: buildFilter(userId, period, tripId) },
       { $group: { _id: "$type", total: { $sum: "$amount" } } },
     ]).exec();
 
@@ -168,6 +181,7 @@ export class MongoTransactionRepository implements ITransactionRepository {
       paymentMethod: (doc.paymentMethod ?? "DEBIT") as PaymentMethod,
       isFixed: doc.isFixed ?? false,
       installment: doc.installment ?? null,
+      tripId: doc.tripId ?? null,
       date: doc.date,
       createdAt: doc.createdAt,
     });

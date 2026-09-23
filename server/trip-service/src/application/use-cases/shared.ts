@@ -17,6 +17,7 @@ export type TripSummary = {
   readonly startDate: string;
   readonly endDate: string;
   readonly notes: string | null;
+  readonly budgetAmount: number | null;
   readonly isArchived: boolean;
   readonly packingTotal: number;
   readonly packingDone: number;
@@ -59,6 +60,7 @@ export function toTripSummary(trip: Trip): TripSummary {
     startDate: trip.startDate,
     endDate: trip.endDate,
     notes: trip.notes,
+    budgetAmount: trip.budgetAmount,
     isArchived: trip.isArchived,
     packingTotal: trip.packingItems.length,
     packingDone: trip.packedCount,

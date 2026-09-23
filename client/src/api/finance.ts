@@ -23,6 +23,7 @@ export type Transaction = {
   readonly paymentMethod: PaymentMethod;
   readonly isFixed: boolean;
   readonly installment: Installment | null;
+  readonly tripId: string | null;
   readonly date: string;
   readonly createdAt: string;
 };
@@ -63,6 +64,7 @@ export type CreateTransactionInput = {
   readonly paymentMethod: PaymentMethod;
   readonly isFixed: boolean;
   readonly installments?: number;
+  readonly tripId?: string;
 };
 
 export type UpdateTransactionInput = {
@@ -128,8 +130,9 @@ export async function getFinancialSummary(
   request: PageRequest = {},
   year?: number,
   month?: number,
+  tripId?: string,
 ): Promise<FinancialSummaryPage> {
-  const query = buildPageQuery(request, { year, month });
+  const query = buildPageQuery(request, { year, month, tripId });
   const data = await financeRequest<SummaryResponse>(`/transactions/summary${query}`);
   const items = data.transactions ?? [];
   return {

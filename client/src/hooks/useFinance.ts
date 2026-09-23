@@ -14,15 +14,22 @@ import {
 } from "../api/finance";
 import { useInfiniteList } from "./useInfiniteList";
 
-export function financeKey(year?: number, month?: number) {
-  return ["finance-summary", year, month] as const;
+export function financeKey(year?: number, month?: number, tripId?: string) {
+  return ["finance-summary", year, month, tripId ?? null] as const;
 }
 
-export function useFinancialSummary(year?: number, month?: number, pageSize?: number) {
+export function useFinancialSummary(
+  year?: number,
+  month?: number,
+  pageSize?: number,
+  tripId?: string,
+  enabled = true,
+) {
   const query = useInfiniteList<Transaction, FinancialSummaryPage>({
-    queryKey: financeKey(year, month),
-    fetchPage: (request) => getFinancialSummary(request, year, month),
+    queryKey: financeKey(year, month, tripId),
+    fetchPage: (request) => getFinancialSummary(request, year, month, tripId),
     pageSize,
+    enabled,
   });
 
   // Os totais são agregados no servidor, então qualquer página traz o valor do período.

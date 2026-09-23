@@ -324,7 +324,7 @@ agregados no banco e refletem o período inteiro, não a página carregada.
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | POST | `/transactions` | Criar transação (suporta parcelas e fixas) |
-| GET | `/transactions/summary` | Resumo financeiro (saldo, receitas, despesas) |
+| GET | `/transactions/summary` | Resumo financeiro (saldo, receitas, despesas; `tripId` filtra uma viagem) |
 | DELETE | `/transactions/:id` | Excluir transação |
 | POST | `/investments` | Criar investimento |
 | GET | `/investments` | Listar investimentos |

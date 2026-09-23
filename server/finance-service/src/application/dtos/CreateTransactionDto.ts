@@ -7,4 +7,5 @@ export type CreateTransactionDto = {
   readonly paymentMethod: "DEBIT" | "CREDIT";
   readonly isFixed: boolean;
   readonly installments?: number;
+  readonly tripId?: string | null;
 };

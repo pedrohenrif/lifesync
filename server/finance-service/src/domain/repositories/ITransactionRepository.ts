@@ -20,9 +20,14 @@ export interface ITransactionRepository {
     userId: string,
     pagination: PaginationParams,
     period?: TransactionPeriod,
+    tripId?: string,
   ): Promise<Paginated<Transaction>>;
   /** Totais agregados no banco — não dependem da página carregada. */
-  sumTotalsByUserId(userId: string, period?: TransactionPeriod): Promise<TransactionTotals>;
+  sumTotalsByUserId(
+    userId: string,
+    period?: TransactionPeriod,
+    tripId?: string,
+  ): Promise<TransactionTotals>;
   /** Mês completo, usado pelos cálculos analíticos (volume naturalmente limitado). */
   findByUserIdAndMonth(userId: string, year: number, month: number): Promise<Transaction[]>;
   update(transaction: Transaction): Promise<void>;

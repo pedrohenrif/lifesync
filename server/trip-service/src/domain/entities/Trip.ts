@@ -84,6 +84,8 @@ export interface TripProps {
   readonly startDate: string;
   readonly endDate: string;
   readonly notes: string | null;
+  /** Teto em BRL; null = sem orçamento definido. */
+  readonly budgetAmount: number | null;
   readonly isArchived: boolean;
   readonly packingItems: readonly PackingItem[];
   readonly checklistItems: readonly ChecklistItem[];
@@ -99,6 +101,7 @@ export type TripChanges = {
   readonly startDate?: string;
   readonly endDate?: string;
   readonly notes?: string | null;
+  readonly budgetAmount?: number | null;
   readonly isArchived?: boolean;
 };
 
@@ -180,6 +183,7 @@ export type TripValidationError =
   | { readonly code: "DESTINATION_REQUIRED" }
   | { readonly code: "INVALID_DATE" }
   | { readonly code: "END_BEFORE_START" }
+  | { readonly code: "INVALID_BUDGET" }
   | { readonly code: "ITEM_TITLE_REQUIRED" }
   | { readonly code: "INVALID_QUANTITY" }
   | { readonly code: "INVALID_CATEGORY" }
@@ -224,6 +228,14 @@ function validateWindow(
   return null;
 }
 
+function validateBudget(value: number | null): TripValidationError | null {
+  if (value === null) return null;
+  if (!Number.isFinite(value) || value <= 0) {
+    return { code: "INVALID_BUDGET" };
+  }
+  return null;
+}
+
 /** Campo opcional de texto: `undefined` mantém, `null` limpa, string vazia limpa. */
 function resolveOptionalText(
   incoming: string | null | undefined,
@@ -259,6 +271,10 @@ export class Trip {
     }
 
     const notes = props.notes?.trim() ?? null;
+    const invalidBudget = validateBudget(props.budgetAmount);
+    if (invalidBudget !== null) {
+      return { ok: false, error: invalidBudget };
+    }
 
     return {
       ok: true,
@@ -267,6 +283,7 @@ export class Trip {
         name,
         destination,
         notes: notes !== null && notes.length > 0 ? notes : null,
+        budgetAmount: props.budgetAmount,
       }),
     };
   }
@@ -278,6 +295,7 @@ export class Trip {
   get startDate(): string { return this.props.startDate; }
   get endDate(): string { return this.props.endDate; }
   get notes(): string | null { return this.props.notes; }
+  get budgetAmount(): number | null { return this.props.budgetAmount; }
   get isArchived(): boolean { return this.props.isArchived; }
   get packingItems(): readonly PackingItem[] { return this.props.packingItems; }
   get checklistItems(): readonly ChecklistItem[] { return this.props.checklistItems; }
@@ -302,6 +320,8 @@ export class Trip {
       startDate: changes.startDate ?? this.props.startDate,
       endDate: changes.endDate ?? this.props.endDate,
       notes: changes.notes !== undefined ? changes.notes : this.props.notes,
+      budgetAmount:
+        changes.budgetAmount !== undefined ? changes.budgetAmount : this.props.budgetAmount,
       isArchived: changes.isArchived ?? this.props.isArchived,
       updatedAt: new Date(),
     });

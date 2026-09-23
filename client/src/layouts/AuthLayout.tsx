@@ -68,6 +68,7 @@ function buildTravelNavItems(activeTripId: string | null): readonly NavItem[] {
     { to: `/viagens/${activeTripId}/pendencias`, label: "Pendências", icon: ListChecks },
     { to: `/viagens/${activeTripId}/reservas`, label: "Reservas", icon: Ticket },
     { to: `/viagens/${activeTripId}/roteiro`, label: "Roteiro", icon: CalendarRange },
+    { to: `/viagens/${activeTripId}/gastos`, label: "Gastos", icon: Wallet },
   ];
 }
 

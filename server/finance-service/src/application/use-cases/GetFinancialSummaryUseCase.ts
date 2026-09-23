@@ -30,6 +30,7 @@ export type TransactionSummaryItem = {
   readonly paymentMethod: string;
   readonly isFixed: boolean;
   readonly installment: { current: number; total: number } | null;
+  readonly tripId: string | null;
   readonly date: string;
   readonly createdAt: string;
 };
@@ -51,6 +52,7 @@ function toSummaryItem(tx: Transaction): TransactionSummaryItem {
     paymentMethod: tx.paymentMethod,
     isFixed: tx.isFixed,
     installment: tx.installment,
+    tripId: tx.tripId,
     date: toLocalDateKey(tx.date),
     createdAt: tx.createdAt.toISOString(),
   };
@@ -64,14 +66,17 @@ export class GetFinancialSummaryUseCase {
     pagination: PaginationParams,
     year?: number,
     month?: number,
+    tripId?: string,
   ): Promise<Result<FinancialSummary, never>> {
     const period: TransactionPeriod | undefined =
-      year !== undefined && month !== undefined ? { year, month } : undefined;
+      tripId === undefined && year !== undefined && month !== undefined
+        ? { year, month }
+        : undefined;
 
     // Os totais vêm de agregação no banco para não dependerem da página carregada.
     const [page, totals] = await Promise.all([
-      this.transactions.findPageByUserId(userId, pagination, period),
-      this.transactions.sumTotalsByUserId(userId, period),
+      this.transactions.findPageByUserId(userId, pagination, period, tripId),
+      this.transactions.sumTotalsByUserId(userId, period, tripId),
     ]);
 
     return ok({

@@ -30,6 +30,11 @@ export function TripFormModal({
   const [startDate, setStartDate] = useState(trip?.startDate ?? defaultStart());
   const [endDate, setEndDate] = useState(trip?.endDate ?? defaultEnd());
   const [notes, setNotes] = useState(trip?.notes ?? "");
+  const [budget, setBudget] = useState(
+    trip?.budgetAmount !== null && trip?.budgetAmount !== undefined
+      ? String(trip.budgetAmount)
+      : "",
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (formEvent: FormEvent): void => {
@@ -51,6 +56,14 @@ export function TripFormModal({
       return;
     }
 
+    const trimmedBudget = budget.trim().replace(",", ".");
+    const parsedBudget =
+      trimmedBudget.length === 0 ? null : Number.parseFloat(trimmedBudget);
+    if (parsedBudget !== null && (!Number.isFinite(parsedBudget) || parsedBudget <= 0)) {
+      setError("Informe um orçamento maior que zero.");
+      return;
+    }
+
     setError(null);
     onSubmit({
       name: trimmedName,
@@ -58,6 +71,7 @@ export function TripFormModal({
       startDate,
       endDate,
       notes: notes.trim().length > 0 ? notes.trim() : null,
+      budgetAmount: parsedBudget,
     });
   };
 
@@ -126,6 +140,23 @@ export function TripFormModal({
               className="ls-input"
             />
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="trip-budget" className="mb-1.5 block text-xs font-medium text-ink-muted">
+            Orçamento <span className="text-ink-faint">(opcional, R$)</span>
+          </label>
+          <input
+            id="trip-budget"
+            type="number"
+            min={1}
+            step="0.01"
+            inputMode="decimal"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            placeholder="4000"
+            className="ls-input"
+          />
         </div>
 
         <div>

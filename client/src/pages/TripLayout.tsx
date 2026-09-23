@@ -14,11 +14,14 @@ import {
   Luggage,
   Pencil,
   Ticket,
+  Wallet,
 } from "lucide-react";
 import { TripFormModal } from "../components/trips/TripFormModal";
+import { useFinancialSummary } from "../hooks/useFinance";
 import { useTrip, useUpdateTrip } from "../hooks/useTrips";
 import {
   destinationWashClass,
+  formatBRL,
   formatTripDuration,
   formatTripRange,
   getTripPhase,
@@ -38,12 +41,20 @@ const SECTIONS = [
   { path: "pendencias", label: "Pendências", icon: ListChecks },
   { path: "reservas", label: "Reservas", icon: Ticket },
   { path: "roteiro", label: "Roteiro", icon: CalendarRange },
+  { path: "gastos", label: "Gastos", icon: Wallet },
 ] as const;
 
 export function TripLayout(): ReactElement {
   const { tripId } = useParams<{ tripId: string }>();
   const tripQuery = useTrip(tripId);
   const updateTrip = useUpdateTrip();
+  const expenses = useFinancialSummary(
+    undefined,
+    undefined,
+    1,
+    tripId,
+    tripId !== undefined,
+  );
   const [isEditing, setIsEditing] = useState(false);
 
   if (tripQuery.isLoading) {
@@ -109,6 +120,14 @@ export function TripLayout(): ReactElement {
           {formatTripRange(trip.startDate, trip.endDate)}
           <span className="mx-1.5 text-ink-faint">·</span>
           {formatTripDuration(trip.startDate, trip.endDate)}
+          {(trip.budgetAmount !== null || expenses.totalExpense > 0) && (
+            <>
+              <span className="mx-1.5 text-ink-faint">·</span>
+              {trip.budgetAmount !== null
+                ? `${formatBRL(expenses.totalExpense)} de ${formatBRL(trip.budgetAmount)}`
+                : formatBRL(expenses.totalExpense)}
+            </>
+          )}
         </div>
         {trip.notes !== null && (
           <p className="border-t border-edge/70 px-5 py-3 text-xs leading-relaxed text-ink-muted">

@@ -45,6 +45,7 @@ const createTripBodySchema = z.object({
   startDate: dateOnlySchema,
   endDate: dateOnlySchema,
   notes: z.string().trim().max(4000).nullish().transform((v) => v ?? null),
+  budgetAmount: z.number().positive().nullable().optional().transform((v) => v ?? null),
 });
 
 const updateTripBodySchema = z
@@ -54,6 +55,7 @@ const updateTripBodySchema = z
     startDate: dateOnlySchema.optional(),
     endDate: dateOnlySchema.optional(),
     notes: z.string().trim().max(4000).nullable().optional(),
+    budgetAmount: z.number().positive().nullable().optional(),
     isArchived: z.boolean().optional(),
   })
   .refine((body) => Object.keys(body).length > 0, { message: "Empty update" });
@@ -155,6 +157,7 @@ function statusForError(error: TripOperationError): number {
     case "DESTINATION_REQUIRED":
     case "INVALID_DATE":
     case "END_BEFORE_START":
+    case "INVALID_BUDGET":
     case "ITEM_TITLE_REQUIRED":
     case "INVALID_QUANTITY":
     case "INVALID_CATEGORY":

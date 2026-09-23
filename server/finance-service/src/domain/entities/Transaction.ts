@@ -16,6 +16,8 @@ export interface TransactionProps {
   readonly paymentMethod: PaymentMethod;
   readonly isFixed: boolean;
   readonly installment: Installment | null;
+  /** Viagem dona do lançamento; null = extrato pessoal sem vínculo. */
+  readonly tripId: string | null;
   readonly date: Date;
   readonly createdAt: Date;
 }
@@ -71,12 +73,15 @@ export class Transaction {
       }
     }
 
+    const tripId = props.tripId?.trim() ?? "";
+
     return {
       ok: true,
       transaction: new Transaction({
         ...props,
         title: props.title.trim(),
         category: props.category.trim(),
+        tripId: tripId.length > 0 ? tripId : null,
       }),
     };
   }
@@ -90,6 +95,7 @@ export class Transaction {
   get paymentMethod(): PaymentMethod { return this.props.paymentMethod; }
   get isFixed(): boolean { return this.props.isFixed; }
   get installment(): Installment | null { return this.props.installment; }
+  get tripId(): string | null { return this.props.tripId; }
   get date(): Date { return this.props.date; }
   get createdAt(): Date { return this.props.createdAt; }
 
@@ -105,6 +111,7 @@ export class Transaction {
   }): CreateTransactionResult {
     return Transaction.create({
       ...this.props,
+      tripId: this.props.tripId,
       title: data.title ?? this.props.title,
       amount: data.amount ?? this.props.amount,
       type: data.type ?? this.props.type,

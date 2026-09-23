@@ -79,6 +79,7 @@ export type TripSummary = {
   readonly startDate: string;
   readonly endDate: string;
   readonly notes: string | null;
+  readonly budgetAmount: number | null;
   readonly isArchived: boolean;
   readonly packingTotal: number;
   readonly packingDone: number;
@@ -103,6 +104,7 @@ export type CreateTripInput = {
   readonly startDate: string;
   readonly endDate: string;
   readonly notes: string | null;
+  readonly budgetAmount: number | null;
 };
 
 export type UpdateTripInput = {
@@ -111,6 +113,7 @@ export type UpdateTripInput = {
   readonly startDate?: string;
   readonly endDate?: string;
   readonly notes?: string | null;
+  readonly budgetAmount?: number | null;
   readonly isArchived?: boolean;
 };
 
@@ -170,6 +173,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   DESTINATION_REQUIRED: "Informe o destino.",
   INVALID_DATE: "As datas informadas são inválidas.",
   END_BEFORE_START: "A volta precisa ser depois da ida.",
+  INVALID_BUDGET: "Informe um orçamento maior que zero.",
   ITEM_TITLE_REQUIRED: "Escreva o nome do item.",
   INVALID_QUANTITY: "A quantidade precisa ser um número inteiro maior que zero.",
   INVALID_CATEGORY: "Categoria inválida.",
