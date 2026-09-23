@@ -236,9 +236,9 @@ antes do restart de propósito: se a compilação quebrar, o deploy aborta e o q
 sendo a versão anterior. Também é possível reenviar um deploy pelo botão *Run workflow*, sem
 precisar de um commit novo.
 
-O `pull` é `--ff-only` para o deploy **falhar** quando a VPS tiver alteração local, em vez de
-descartar em silêncio o trabalho de alguém. Se isso acontecer, resolva a árvore de trabalho na VPS
-antes de rodar de novo.
+O `pull` é `--ff-only`. Se a VPS tiver arquivo **rastreado** sujo (quase sempre o `package-lock.json`
+depois de um `npm install` manual), o workflow restaura esses arquivos e puxa de novo. `.env` e
+outros não rastreados ficam. Se o deploy falhar, o log agora imprime `==>` em cada etapa.
 
 ### Configuração no GitHub
 

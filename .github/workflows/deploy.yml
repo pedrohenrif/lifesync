@@ -45,8 +45,14 @@ jobs:
 
             # Sessao SSH nao-interativa nao carrega o .bashrc, entao o node, o
             # npm e o pm2 instalados via nvm ficam fora do PATH.
+            # set +u: o nvm.sh referencia variaveis vazias e morre com nounset.
             export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; fi
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              set +u
+              # shellcheck disable=SC1091
+              . "$NVM_DIR/nvm.sh"
+              set -u
+            fi
 
             for bin in git node npm pm2; do
               if ! command -v "$bin" >/dev/null 2>&1; then
@@ -66,22 +72,38 @@ jobs:
             fi
 
             echo "==> Commit atual: $(git rev-parse --short HEAD)"
+            echo "==> git status"
+            git status --short
 
-            # --ff-only de proposito: se a VPS tiver alteracao local, o deploy
-            # falha em vez de descartar silenciosamente o trabalho de alguem.
+            # npm install / build manuais na VPS sujam arquivos rastreados
+            # (em geral o lockfile) e o --ff-only recusa o pull. .env local
+            # nao e rastreado, entao restore nao apaga credencial.
+            if ! git diff-index --quiet HEAD --; then
+              echo "==> Restaurando arquivos rastreados sujos para liberar o pull"
+              git restore --source=HEAD --worktree --staged -- .
+            fi
+
+            echo "==> git pull --ff-only origin main"
             git pull --ff-only origin main
             echo "==> Novo commit: $(git rev-parse --short HEAD)"
 
             # install em vez de ci: o ci apaga node_modules inteiro antes de
             # reinstalar, e os processos no ar dependem dessa pasta enquanto a
             # instalacao acontece.
+            echo "==> npm install"
             npm install
 
             # O build vem antes do restart: se a compilacao quebrar, o set -e
             # aborta aqui e a aplicacao no ar continua sendo a versao anterior.
+            echo "==> npm run build"
             npm run build
 
-            pm2 restart $PM2_APPS --update-env
+            # Um a um: o log mostra qual processo falhou, em vez de um restart
+            # em lote sem pista.
+            for app in $PM2_APPS; do
+              echo "==> pm2 restart $app"
+              pm2 restart "$app" --update-env
+            done
             pm2 save
             pm2 list
         env:
