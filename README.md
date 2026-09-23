@@ -231,14 +231,14 @@ O frontend estará disponível em `http://localhost:5173`.
 ## Deploy
 
 O push na `main` dispara o workflow `.github/workflows/deploy.yml`, que entra na VPS por SSH e roda
-`git pull --ff-only`, `npm install`, `npm run build` e reinicia os processos no PM2. O build vem
-antes do restart de propósito: se a compilação quebrar, o deploy aborta e o que está no ar continua
-sendo a versão anterior. Também é possível reenviar um deploy pelo botão *Run workflow*, sem
-precisar de um commit novo.
+`git fetch` + `git reset --hard origin/main`, `npm install`, `npm run build` e reinicia os processos
+no PM2. O build vem antes do restart de propósito: se a compilação quebrar, o deploy aborta e o que
+está no ar continua sendo a versão anterior. Também é possível reenviar um deploy pelo botão
+*Run workflow*, sem precisar de um commit novo.
 
-O `pull` é `--ff-only`. Se a VPS tiver arquivo **rastreado** sujo (quase sempre o `package-lock.json`
-depois de um `npm install` manual), o workflow restaura esses arquivos e puxa de novo. `.env` e
-outros não rastreados ficam. Se o deploy falhar, o log agora imprime `==>` em cada etapa.
+A pasta na VPS é destino de deploy, não working copy: o `reset --hard` descarta lockfile sujo
+depois de `npm install` e alinha o disco com a `main`. `.env` e outros não rastreados ficam.
+Se o deploy falhar, o log imprime `==>` em cada etapa.
 
 ### Configuração no GitHub
 
