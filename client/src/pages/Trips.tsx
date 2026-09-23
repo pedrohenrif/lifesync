@@ -118,18 +118,18 @@ export function Trips(): ReactElement {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:px-6">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+    <div className="mx-auto max-w-3xl space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-lg font-semibold text-zinc-100">Minhas viagens</h1>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 text-xs leading-relaxed text-zinc-500">
             Cada viagem tem a própria lista de bagagem e de pendências.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsFormOpen(true)}
-          className="ls-btn shrink-0"
+          className="ls-btn sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Nova

@@ -52,7 +52,7 @@ export function TripLayout(): ReactElement {
 
   if (tripQuery.isError || tripQuery.data === undefined) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6">
+      <div className="mx-auto max-w-3xl py-12 text-center">
         <p className="text-sm font-medium text-zinc-300">Viagem não encontrada</p>
         <p className="mt-1 text-xs text-zinc-500">
           Ela pode ter sido removida em outro dispositivo.
@@ -72,7 +72,7 @@ export function TripLayout(): ReactElement {
   const phase = getTripPhase(trip.startDate, trip.endDate);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-3xl space-y-5">
       <div>
         <Link
           to="/viagens"
@@ -112,13 +112,13 @@ export function TripLayout(): ReactElement {
       </div>
 
       {/* Abas da viagem: a barra global só sabe em qual viagem você está. */}
-      <div className="-mx-4 flex gap-1 overflow-x-auto border-b border-edge px-4 sm:mx-0 sm:px-0">
+      <div className="-mx-4 flex gap-1 overflow-x-auto overscroll-x-contain border-b border-edge px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0">
         {SECTIONS.map(({ path, label, icon: Icon }) => (
           <NavLink
             key={path}
             to={`/viagens/${trip.id}/${path}`}
             className={({ isActive }) =>
-              `flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
+              `flex min-h-11 shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition ${
                 isActive
                   ? "border-accent-500 text-accent-400"
                   : "border-transparent text-zinc-500 hover:text-zinc-300"

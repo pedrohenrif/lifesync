@@ -66,7 +66,7 @@ export function TripItinerary(): ReactElement {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-zinc-500">
           {trip.itineraryTotal === 0
             ? "Roteiro vazio"
@@ -75,7 +75,7 @@ export function TripItinerary(): ReactElement {
         <button
           type="button"
           onClick={() => setCreatingForDate(trip.startDate)}
-          className="ls-btn shrink-0"
+          className="ls-btn sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Adicionar

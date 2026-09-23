@@ -205,17 +205,17 @@ export function Agenda(): ReactElement {
         </div>
 
         {isConnected && (
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => disconnect.mutate()}
               disabled={disconnect.isPending}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-zinc-900 hover:text-zinc-200 disabled:opacity-50"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-400 transition hover:bg-zinc-900 hover:text-zinc-200 disabled:opacity-50"
             >
               <Unlink className="h-3.5 w-3.5" />
               Desconectar
             </button>
-            <button type="button" onClick={openCreateForm} className="ls-btn">
+            <button type="button" onClick={openCreateForm} className="ls-btn sm:w-auto">
               <Plus className="h-4 w-4" />
               Novo evento
             </button>

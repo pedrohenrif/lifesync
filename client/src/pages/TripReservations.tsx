@@ -152,13 +152,13 @@ export function TripReservations(): ReactElement {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-zinc-500">
           {trip.reservationTotal === 0
             ? "Nenhuma reserva guardada"
             : `${trip.reservationTotal} ${trip.reservationTotal === 1 ? "reserva" : "reservas"}`}
         </p>
-        <button type="button" onClick={() => setIsCreating(true)} className="ls-btn shrink-0">
+        <button type="button" onClick={() => setIsCreating(true)} className="ls-btn sm:w-auto">
           <Plus className="h-4 w-4" />
           Nova
         </button>

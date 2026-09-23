@@ -12,6 +12,8 @@ import {
   ListChecks,
   Luggage,
   Map,
+  Ticket,
+  CalendarRange,
   ShieldCheck,
   Download,
   Sparkles,
@@ -64,6 +66,8 @@ function buildTravelNavItems(activeTripId: string | null): readonly NavItem[] {
     tripsItem,
     { to: `/viagens/${activeTripId}/bagagem`, label: "Bagagem", icon: Luggage },
     { to: `/viagens/${activeTripId}/pendencias`, label: "Pendências", icon: ListChecks },
+    { to: `/viagens/${activeTripId}/reservas`, label: "Reservas", icon: Ticket },
+    { to: `/viagens/${activeTripId}/roteiro`, label: "Roteiro", icon: CalendarRange },
   ];
 }
 
@@ -302,12 +306,14 @@ export function AuthLayout(): ReactElement {
             <Link
               key={to}
               to={to}
-              className={`flex min-h-12 min-w-[3rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 transition ${
+              className={`flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 transition ${
                 isActive ? "bg-accent-600/15 text-accent-400" : "text-zinc-500 hover:text-zinc-300"
               }`}
             >
               <Icon className={`h-5 w-5 ${isActive ? "text-accent-400" : ""}`} />
-              <span className="max-w-[4.5rem] truncate text-[10px] font-medium">{label}</span>
+              <span className="max-w-full truncate text-center text-[10px] font-medium leading-tight">
+                {label}
+              </span>
             </Link>
           );
         })}

@@ -80,7 +80,7 @@ export function TripPacking(): ReactElement {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as PackingCategory)}
-            className="ls-input flex-1"
+            className="ls-input min-w-0 flex-1"
             aria-label="Categoria"
           >
             {PACKING_CATEGORIES.map((value) => (
@@ -95,13 +95,13 @@ export function TripPacking(): ReactElement {
             max={999}
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="ls-input w-20"
+            className="ls-input w-16 shrink-0 sm:w-20"
             aria-label="Quantidade"
           />
           <button
             type="submit"
             disabled={addItem.isPending || name.trim().length === 0}
-            className="ls-btn shrink-0"
+            className="ls-btn !w-auto shrink-0 px-3"
           >
             {addItem.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -78,13 +78,13 @@ export function TripChecklist(): ReactElement {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="ls-input flex-1"
+            className="ls-input min-w-0 flex-1"
             aria-label="Prazo (opcional)"
           />
           <button
             type="submit"
             disabled={addItem.isPending || title.trim().length === 0}
-            className="ls-btn shrink-0"
+            className="ls-btn !w-auto shrink-0 px-3"
           >
             {addItem.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
